@@ -1,0 +1,12 @@
+{
+    "name": "my calendar",
+    "short_name": "my calendar",
+    "background_color": "#000000",
+    "icons": [{
+        "src": "./icon.png",
+        "sizes": "256x256",
+        "type": "image/png"
+      }],
+    "start_url": "https://hisato-kozuki.github.io/calendar/index.html",
+    "display": "standalone"
+  }

@@ -2,6 +2,9 @@
 var CACHE_NAME = 'pwa-sample-caches';
 var urlsToCache = [
 	'/hisato-kozuki.github.io/',
+    '/',
+    '/manifest.json',
+    '/serviceworker.js',
 ];
 
 // インストール処理

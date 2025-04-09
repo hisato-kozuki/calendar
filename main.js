@@ -1,3 +1,16 @@
+if ('serviceWorker' in navigator) {
+    // Wait for the 'load' event to not block other work
+    window.addEventListener('load', async () => {
+      // Try to register the service worker.
+      try {
+        const reg = await navigator.serviceWorker.register('./service-worker.js');
+        console.log('Service worker registered! 😎', reg);
+      } catch (err) {
+        console.log('😥 Service worker registration failed: ', err);
+      }
+    });
+}
+
 const url = "https://script.google.com/macros/s/AKfycbxpAN4lSL-DfTKabn8BC-afeMzzds9ArVBg_TxEQ_V05kyI3dBeROupekZVmjpoXPo5Cg/exec"; // GASで取得したウェブアプリのURL
 const date = new Date();
 

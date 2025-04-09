@@ -2,12 +2,47 @@
 <html lang="ja">
     <head>
         <meta charset="UTF-8">
+        <style>
+            .title{
+                width: 80%;
+                height: 32px;
+                position: relative;
+                left: 5%;
+                border: solid 2px darkred;
+                font-size: 24px;
+                text-align: center;
+            }
+            .container{
+                width: 90%;
+                position: relative;
+                left: 5%;
+                display: flex;
+                border: solid 2px darkblue;
+            }
+            .date_container{
+                width: 20%;
+                position: relative;
+                border: solid 2px darkorange;
+
+            }
+            .event_container{
+                width: 80%;
+                position: relative;
+                border: solid 2px darkseagreen;
+
+            }
+        </style>
     </head>
     <body>
+        <div class="title">カレンダー</div>
+        <div class="container">
+            <div class="date_container">a</div>
+            <div class="event_container">a</div>
+        </div>
         <p id="p"></p>
-        <form id="form" method="GET" action="https://script.google.com/macros/s/AKfycbwFBOS6OwaSKlKf1Uui1BF6_CY1cw25TPRApnUwltMnxoDuJfCv7hRbWoshXSPXPo4oRA/exec">
-            <p>タイトル:<input type="text" name="title" value="お買い物"/></p>
-            <p>年:<input type="text" name="y" value="2022"/></p>
+        <form id="form" method="GET" action="https://script.google.com/macros/s/AKfycbxpAN4lSL-DfTKabn8BC-afeMzzds9ArVBg_TxEQ_V05kyI3dBeROupekZVmjpoXPo5Cg/exec">
+            <p>タイトル:<input type="text" name="title" value=""/></p>
+            <p>年:<input type="text" name="y" value="2025"/></p>
             <p>月:<input type="text" name="m" value="1"/></p>
             <p>日:<input type="text" name="d" value="1"/></p>
             <p>開始時間:<input type="text" name="h_s" value="1"/></p>

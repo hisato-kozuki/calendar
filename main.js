@@ -79,7 +79,7 @@ function dbsave(received_data){
 function display(events){
     let date="", titles="";
     for(let i = 0; i < events.length; i++){
-        date += events[i].year + "/" + (events[i].month+1).toString().padStart(2, "0") + "/" + events[i].date.toString().padStart(2, "0") + "/" + events[i].hour.toString().padStart(2, "0") + "\n";
+        date += events[i].year + "/" + (events[i].month+1).toString().padStart(2, "0") + "/" + events[i].date.toString().padStart(2, "0") + "  " + events[i].hour.toString().padStart(2, "0") + "\n";
         titles += events[i].title + "\n";
     }
     document.getElementsByClassName("date_container")[0].innerText = date;
@@ -110,7 +110,7 @@ document.getElementById("form").addEventListener('submit', event => {
     };
     fetch(url_, options)
     .then(response => response.text())
-    .then(data => JSON.parse(data))
+    .then(data => {JSON.parse(data);alert(data)})
     .catch(error => console.error("Error:", error));;
 });
 

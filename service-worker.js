@@ -1,8 +1,9 @@
 // キャッシュファイルの指定
 var CACHE_NAME = 'pwa-sample-caches';
 var urlsToCache = [
-	'/hisato-kozuki.github.io/',
     '/',
+    '/index.html',
+    '/main.js',
     '/manifest.json',
     '/serviceworker.js',
 ];

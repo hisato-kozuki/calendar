@@ -45,21 +45,66 @@ function post_event(data){
 
     fetch(url, options)
     .then(response => response.text())
-    .then(data => {console.log(data);console.log();alert(data);})
+    .then(data => {
+        console.log(data);console.log();alert(data);get_events();
+        document.getElementById("postbutton").innerText = "送信";
+    })
+    .catch(error => console.error("Error:", error));
+}
+
+function delete_event(data){
+    //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
+    let received_data;
+    options.body=JSON.stringify(data);
+
+    fetch(url, options)
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);console.log();alert(data);get_events();
+        delete_cell.innerText = "削除";
+    })
     .catch(error => console.error("Error:", error));
 }
 
 function display(events){
-    let date="", titles="";
-    
+    if(document.getElementById("cell"))document.getElementById("cell").remove();
+    let cell = document.createElement("div");
+    cell.id = "cell";
+    cell.style.width = "100%";
+
     for(let i = 0; i < events.length; i++){
-        date += events[i].year + "/" + (events[i].month+1).toString().padStart(2, "0") + "/" + events[i].date.toString().padStart(2, "0") + "  " + events[i].hour.toString().padStart(2, "0") + "\n";
+        let date_cell = document.createElement("div");
+        let event_cell = document.createElement("div");
+        let div = document.createElement("div");
+        date_cell.className = "date_cell";
+        event_cell.className = "event_cell";
+        div.style.display = "flex";
+        date_cell.innerText = events[i].year + "/" + (events[i].month+1).toString().padStart(2, "0") + "/" + events[i].date.toString().padStart(2, "0") + "  " + events[i].hour.toString().padStart(2, "0") + "\n";
         let color = colorcode[events[i].color];
         if(color == undefined)color = "#404040";
-        titles += "<span style='color: " + color + "'>" + events[i].title +"</span><br>";
+        event_cell.innerHTML = "<span style='color: " + color + "'>" + events[i].title +"</span><br>";
+        div.appendChild(date_cell);
+        div.appendChild(event_cell);
+        let delete_cell = document.createElement("button");
+        delete_cell.className = "delete_cell";
+        delete_cell.innerText = "削除";
+        delete_cell.addEventListener('click', () => {
+            var result = confirm("本当に削除しますか？");
+            if(result){
+                const data = {
+                    'type': "delete",
+                    'id': events[i].id
+                };
+                delete_cell.innerText = "お待ちください。";
+                delete_event(data);
+            }
+        });
+        div.appendChild(delete_cell);
+        cell.appendChild(div);
     }
-    document.getElementsByClassName("date_container")[0].innerText = date;
-    document.getElementsByClassName("event_container")[0].innerHTML= titles;
+
+    console.log(cell.style.className);
+    document.getElementsByClassName("container")[0].appendChild(cell);
 }
 
 document.getElementById("form").addEventListener('submit', (event) => {
@@ -75,7 +120,10 @@ document.getElementById("form").addEventListener('submit', (event) => {
         'h_e': document.getElementById("form").h_e.value,
         'color': document.getElementById("form").color.value,
     };
-    if(data.title != "")post_event(data);
+    if(data.title != ""){
+        document.getElementById("postbutton").innerText = "お待ちください。";
+        post_event(data);
+    }
 });
 
 document.getElementById("form2").addEventListener('submit', event => {

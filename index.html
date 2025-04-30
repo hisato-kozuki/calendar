@@ -15,22 +15,43 @@
             }
             .container{
                 width: 90%;
+                height: fit-content;
                 position: relative;
                 left: 5%;
-                display: flex;
                 border: solid 2px darkblue;
             }
             .date_container{
                 width: 25%;
-                position: relative;
+                position: absolute;
                 border: solid 2px darkorange;
                 font-size: 28px;
             }
             .event_container{
                 width: 75%;
-                position: relative;
+                position: absolute;
+                left: 25%;
                 border: solid 2px darkseagreen;
                 font-size: 28px;
+            }
+            .date_cell{
+                width: 25%;
+                position: relative;
+                font-size: 28px;
+            }
+            .event_cell{
+                width: 65%;
+                position: relative;
+                font-size: 28px;
+                border-left: solid 2px #b0b0b0;
+                padding-left: 2px;
+            }
+            .delete_cell{
+                width: 10%;
+                height: fit-content;
+                position: relative;
+                font-size: 24px;
+                padding: 0px;
+                margin: 4px;
             }
             p{
                 font-size: 28px;
@@ -63,8 +84,8 @@
     <body>
         <div class="title">カレンダー</div>
         <div class="container">
-            <div class="date_container">a</div>
-            <div class="event_container">a</div>
+            <!--div class="date_container"></div>
+            <div class="event_container"></div-->
         </div>
         <p id="p"></p>
         <div style="height: 550px;"><form id="form" method="GET" action="https://script.google.com/macros/s/AKfycbxpAN4lSL-DfTKabn8BC-afeMzzds9ArVBg_TxEQ_V05kyI3dBeROupekZVmjpoXPo5Cg/exec">
@@ -79,7 +100,7 @@
             <p>　　　日:<input type="text" name="d" value="1"/></p>
             <p>開始時間:<input type="text" name="h_s" value="1"/></p>
             <p>終了時間:<input type="text" name="h_e" value="1"/></p>
-            <p><button type="submit">送信</button>
+            <p><button id="postbutton" type="submit">送信</button>
         </form></div>
 
         <button onclick="document.getElementById('form2').style.visibility='visible';">url更新</button>

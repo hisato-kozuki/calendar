@@ -144,14 +144,16 @@ function display(events){
 document.getElementById("form").addEventListener('submit', (event) => {
     // イベントを停止する
     event.preventDefault();
+    let date_start = new Date(Date.parse(document.getElementById("form").start.value));
+    let date_end = new Date(Date.parse(document.getElementById("form").end.value));
     const data = {
         'type': 'post',
         'title': document.getElementById("form").title.value,
-        'y': document.getElementById("form").y.value,
-        'm': document.getElementById("form").m.value,
-        'd': document.getElementById("form").d.value,
-        'h_s': document.getElementById("form").h_s.value,
-        'h_e': document.getElementById("form").h_e.value,
+        'y': date_start.getFullYear(),
+        'm': date_start.getMonth()+1,
+        'd': date_start.getDate(),
+        'h_s': date_start.getHours(),
+        'h_e': date_end.getHours(),
         'color': document.getElementById("form").color.value,
     };
     if(data.title != ""){
@@ -172,12 +174,9 @@ document.getElementById("form2").addEventListener('submit', event => {
 window.onload = async function(){
     urlget();
     dbget();
-    
-    document.getElementById("form").y.value = date.getFullYear();
-    document.getElementById("form").m.value = date.getMonth()+1;
-    document.getElementById("form").d.value = date.getDate();
-    document.getElementById("form").h_s.value = date.getHours();
-    document.getElementById("form").h_e.value = date.getHours();
+    let text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0")+"T"+date.getHours().toString()+":00";
+    document.getElementById("form").start.value = text;
+    document.getElementById("form").end.value = text;
 }
 
 async function dbget(){

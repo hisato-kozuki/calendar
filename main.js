@@ -94,19 +94,17 @@ function display(events){
         else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
         else dot.innerText = "";
         div.appendChild(dot);
-        date_text = date_start.toLocaleString();
-        date_text = date_text.substr(0, date_text.length-3);
+        date_text = date_start.getFullYear() + "/" + (date_start.getMonth()+1).toString().padStart(2, "0") + "/" + date_start.getDate().toString().padStart(2, "0") + " " + date_start.getHours().toString().padStart(2, "0") + ":00";
         date_cell.innerText = date_text;
         if(date_start.getFullYear() != date_end.getFullYear()){
-            date_text = date_end.toLocaleString();
-            date_text = date_text.substr(0, date_text.length-3);
-            date_cell.innerText += "\n~ " + date_text;
+            date_text = date_end.getFullYear() + "/" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_cell.innerText += "\n～" + date_text;
         }else if(date_start.getMonth() != date_end.getMonth()){
-            date_cell.innerText += "\n~ " + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_cell.innerText += "\n～" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
         }else if(date_start.getDate() != date_end.getDate()){
-            date_cell.innerText += "\n~ " + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_cell.innerText += "\n～" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
         }else if(date_start.getHours() != date_end.getHours()){
-            date_cell.innerText += " ~ " + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
         }
         let color = colorcode[events[i].color];
         if(color == undefined)color = "#404040";

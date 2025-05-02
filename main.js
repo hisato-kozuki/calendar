@@ -131,7 +131,7 @@ function display(events){
         if(i){
             let date_new = new Date(events[i].date_start);
             let date_old = new Date(events[i-1].date_start);
-            if((date_new - date_old)/86400000 - (date_new.getDay()+6)%7 > 0){
+            if((date_new - date_old)/86400000 - (date_new.getDay()+6)%7 >= 1){
                 let div = document.createElement("div");
                 div.style.borderBottom = "solid 1px gray";
                 cell.appendChild(div);

@@ -25,11 +25,14 @@ const options = {
 
 function get_events(){
     //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
+    let date_start = new Date();
+    let date_end =  new Date();
+    date_end.setMonth(date_end.getMonth()+2);
     const data = {
         'type': "get",
-        'date_start': [date.getFullYear(), date.getMonth(), date.getDate()],
-        'date_end': [date.getFullYear(), date.getMonth()+2, date.getDate()]
-    };    
+        'date_start': date_start,
+        'date_end': date_end
+    };
     options.body=JSON.stringify(data);
     let received_data;
     fetch(url, options)
@@ -83,21 +86,27 @@ function display(events){
         date_cell.className = "date_cell";
         event_cell.className = "event_cell";
         div.style.display = "flex";
+        let date_start = new Date(events[i].date_start);
+        let date_end = new Date(events[i].date_end);
         dot.innerText = "◆"; dot.style.margin = "0px"; dot.style.fontSize = "20px";
         dot.style.width = "3%"; dot.style.alignSelf = "center"; dot.style.textAlign = "center";
-        if ((events[i].day+6)%7 == 6)dot.style.color = "orangered";
-        else if ((events[i].day+6)%7 == 5)dot.style.color = "darkturquoise";
+        if ((date_start.getDay()+6)%7 == 6)dot.style.color = "orangered";
+        else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
         else dot.innerText = "";
         div.appendChild(dot);
-        date_cell.innerText += events[i].year[0] + "/" + (events[i].month[0]+1).toString().padStart(2, "0") + "/" + events[i].date[0].toString().padStart(2, "0") + " - " + events[i].hour[0].toString().padStart(2, "0");
-        if(events[i].year[0] != events[i].year[1]){
-            date_cell.innerText += "\n~ " + events[i].year[1] + "/" + (events[i].month[1]+1).toString().padStart(2, "0") + "/" + events[i].date[1].toString().padStart(2, "0") + " - " + events[i].hour[1].toString().padStart(2, "0") + "\n";
-        }else if(events[i].month[0] != events[i].month[1]){
-            date_cell.innerText += "\n~ " + (events[i].month[1]+1).toString().padStart(2, "0") + "/" + events[i].date[1].toString().padStart(2, "0") + " - " + events[i].hour[1].toString().padStart(2, "0") + "\n";
-        }else if(events[i].date[0] != events[i].date[1]){
-            date_cell.innerText += "\n~ " + events[i].date[1].toString().padStart(2, "0") + " - " + events[i].hour[1].toString().padStart(2, "0") + "\n";
-        }else if(events[i].hour[0] != events[i].hour[1]){
-            date_cell.innerText += " ~ " + events[i].hour[1].toString().padStart(2, "0") + "\n";
+        date_text = date_start.toLocaleString();
+        date_text = date_text.substr(0, date_text.length-3);
+        date_cell.innerText = date_text;
+        if(date_start.getFullYear() != date_end.getFullYear()){
+            date_text = date_end.toLocaleString();
+            date_text = date_text.substr(0, date_text.length-3);
+            date_cell.innerText += "\n~ " + date_text;
+        }else if(date_start.getMonth() != date_end.getMonth()){
+            date_cell.innerText += "\n~ " + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+        }else if(date_start.getDate() != date_end.getDate()){
+            date_cell.innerText += "\n~ " + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+        }else if(date_start.getHours() != date_end.getHours()){
+            date_cell.innerText += " ~ " + date_end.getHours().toString().padStart(2, "0") + ":00";
         }
         let color = colorcode[events[i].color];
         if(color == undefined)color = "#404040";
@@ -119,16 +128,10 @@ function display(events){
             }
         });
         div.appendChild(delete_cell);
-        let date = [new Date(), new Date()];
-        date[0].setFullYear(events[i].year[0]);
-        date[0].setMonth(events[i].month[0]);
-        date[0].setDate(events[i].date[0]);
         if(i){
-            date[1].setFullYear(events[i-1].year[0]); 
-            date[1].setMonth(events[i-1].month[0]);
-            date[1].setDate(events[i-1].date[0]);
-            console.log((date[0] - date[1])/86400000)
-            if((date[0] - date[1])/86400000 - (events[i].day+6)%7 > 0){
+            let date_new = new Date(events[i].date_start);
+            let date_old = new Date(events[i-1].date_start);
+            if((date_new - date_old)/86400000 - (date_new.getDay()+6)%7 > 0){
                 let div = document.createElement("div");
                 div.style.borderBottom = "solid 1px gray";
                 cell.appendChild(div);
@@ -146,14 +149,12 @@ document.getElementById("form").addEventListener('submit', (event) => {
     event.preventDefault();
     let date_start = new Date(Date.parse(document.getElementById("form").start.value));
     let date_end = new Date(Date.parse(document.getElementById("form").end.value));
+    console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
     const data = {
         'type': 'post',
         'title': document.getElementById("form").title.value,
-        'y': date_start.getFullYear(),
-        'm': date_start.getMonth()+1,
-        'd': date_start.getDate(),
-        'h_s': date_start.getHours(),
-        'h_e': date_end.getHours(),
+        'date_start': date_start,
+        'date_end': date_end,
         'color': document.getElementById("form").color.value,
     };
     if(data.title != ""){

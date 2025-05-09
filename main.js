@@ -27,6 +27,8 @@ function get_events(){
     //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
     let date_start = new Date();
     let date_end =  new Date();
+    date_start.setDate(date_start.getDate()-1);
+    date_start.setHours(0);
     date_end.setMonth(date_end.getMonth()+2);
     const data = {
         'type': "get",
@@ -94,15 +96,19 @@ function display(events){
         else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
         else dot.innerText = "";
         div.appendChild(dot);
-        date_text = date_start.getFullYear() + "/" + (date_start.getMonth()+1).toString().padStart(2, "0") + "/" + date_start.getDate().toString().padStart(2, "0") + " " + date_start.getHours().toString().padStart(2, "0") + ":00";
+        date_text = date_start.getFullYear() + "/" + (date_start.getMonth()+1).toString().padStart(2, "0") + "/" + date_start.getDate().toString().padStart(2, "0") 
+        + " " + date_start.getHours().toString().padStart(2, "0") + ":" + date_start.getMinutes().toString().padStart(2, "0");
         date_cell.innerText = date_text;
         if(date_start.getFullYear() != date_end.getFullYear()){
-            date_text = date_end.getFullYear() + "/" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_text = date_end.getFullYear() + "/" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") 
+            + " " + date_end.getHours().toString().padStart(2, "0") + ":" + date_start.getMinutes().toString().padStart(2, "0");
             date_cell.innerText += "\n～" + date_text;
         }else if(date_start.getMonth() != date_end.getMonth()){
-            date_cell.innerText += "\n～" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_cell.innerText += "\n～" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") 
+            + " " + date_end.getHours().toString().padStart(2, "0") + ":" + date_start.getMinutes().toString().padStart(2, "0");
         }else if(date_start.getDate() != date_end.getDate()){
-            date_cell.innerText += "\n～" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_cell.innerText += "\n～" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") 
+            + ":" + date_start.getMinutes().toString().padStart(2, "0");
         }else if(date_start.getHours() != date_end.getHours()){
             date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
         }

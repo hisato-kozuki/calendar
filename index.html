@@ -66,8 +66,8 @@
                 margin: 12px;
                 margin-left: 0px;
             }
-            .form2{
-                position:relative;
+            .clip{
+                clip-path: polygon(0% 0%, 50% 45%, 100% 0%, 55% 50%, 100% 100%, 50% 55%, 0% 100%, 45% 50%, 0% 0%);
             }
         </style>
     </head>
@@ -112,6 +112,7 @@
             <button id="urlbutton" onclick="document.getElementById('form2').style.visibility='visible';document.getElementById('urlbutton').style.visibility='hidden';">url更新</button>
         </div>
         </div>
+        <div style="width:100px;height:100px;background-color: #33B679;" class="clip clip2"></div>
         <script src="main.js">
         </script>
     </body>

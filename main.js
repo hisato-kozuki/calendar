@@ -125,7 +125,7 @@ function display(events){
         delete_cell.className = "delete_cell";
         delete_cell.innerText = "削除";
         delete_cell.addEventListener('click', () => {
-            var result = confirm("本当に削除しますか？");
+            var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
             if(result){
                 const data = {
                     'type': "delete",

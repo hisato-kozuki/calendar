@@ -47,9 +47,9 @@
                 font-size: 28px;
             }
             button{
+                height: fit-content;
                 font-size: 28px;
-                position:absolute;
-                right:0px;
+                margin:28px;
             }
             select{
                 font-size: 28px;
@@ -58,10 +58,13 @@
                 font-size: 20px;
             }
             form{
-                width: 80%;
-                height: 500px;
-                position: absolute;
+                display: flex;
                 left: 5%;
+                border: solid 1px black;
+                font-size: 28px;
+                padding: 12px;
+                margin: 12px;
+                margin-left: 0px;
             }
             .form2{
                 position:relative;
@@ -75,23 +78,40 @@
             <div class="event_container"></div-->
         </div>
         <p id="p"></p>
-        <div style="height: 550px;"><form id="form" method="GET" action="https://script.google.com/macros/s/AKfycbxpAN4lSL-DfTKabn8BC-afeMzzds9ArVBg_TxEQ_V05kyI3dBeROupekZVmjpoXPo5Cg/exec">
-            <p>タイトル:<input type="text" name="title" value=""/><select name="color">
-                <option style="background-color:#404040" value="0">黒</option>
-                <option style="background-color:#D50000" value="11">赤</option>
-                <option style="background-color:#F6BF26" value="5">黄</option>
-                <option style="background-color:#33B679" value="2">緑</option>
+        <div style="margin-left: 5%; width: 90%;">
+        <form id="form3">
+            <div style="align-content: center;">
+                開始:<input type="date" name="start"/>
+                終了:<input type="date" name="end"/>
+            </div>
+            <div style="display: flex; flex-direction: column-reverse;">
+                <button id="getbutton" type="submit" style="margin-top: 0px; margin-bottom: 0px;">リロード</button>
+            </div>
+        </form>
+        <div><form id="form" method="GET" action="https://script.google.com/macros/s/AKfycbxpAN4lSL-DfTKabn8BC-afeMzzds9ArVBg_TxEQ_V05kyI3dBeROupekZVmjpoXPo5Cg/exec">
+            <div>
+                <p>タイトル:<input type="text" name="title" value=""/><select name="color">
+                    <option style="background-color:#404040" value="0">黒</option>
+                    <option style="background-color:#D50000" value="11">赤</option>
+                    <option style="background-color:#F6BF26" value="5">黄</option>
+                    <option style="background-color:#33B679" value="2">緑</option>
                 </select></p>
-            <p>　　開始:<input type="datetime-local" name="start"/></p>
-            <p>　　終了:<input type="datetime-local" name="end"/></p>
-            <p><button id="postbutton" type="submit">送信</button>
+                <p>　　開始:<input type="datetime-local" name="start"/></p>
+                <p>　　終了:<input type="datetime-local" name="end"/></p>
+            </div>
+            <div style="display: flex; flex-direction: column-reverse;">
+                <button id="postbutton" type="submit">送信</button>
+            </div>
         </form></div>
 
-        <button onclick="document.getElementById('form2').style.visibility='visible';">url更新</button>
-        <form id="form2" style="visibility: hidden;">
-            urlを入力してください。:<input type="text" name="url"/>
-            <button type="submit">送信</button>
-        </form>
+        <div style="display: flex;">
+            <form id="form2" style="visibility: hidden;">
+                <input type="text" name="url" placeholder="urlを入力してください。"/>
+                <button type="submit">送信</button>
+            </form>
+            <button id="urlbutton" onclick="document.getElementById('form2').style.visibility='visible';document.getElementById('urlbutton').style.visibility='hidden';">url更新</button>
+        </div>
+        </div>
         <script src="main.js">
         </script>
     </body>

@@ -14,6 +14,7 @@ if ('serviceWorker' in navigator) {
 const date = new Date();
 let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let events;
+let url;
 
 const options = {
     'method' : 'post',
@@ -23,13 +24,15 @@ const options = {
     'body' : '' //送りたいデータをpayloadに配置してJSON形式変換。
 };
 
-function get_events(){
+function get_events(date_start, date_end){
     //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
-    let date_start = new Date();
-    let date_end =  new Date();
-    date_start.setDate(date_start.getDate()-1);
-    date_start.setHours(0);
-    date_end.setMonth(date_end.getMonth()+2);
+    if(date_start == undefined){
+        date_start = new Date();
+        date_end =  new Date();
+        date_start.setDate(date_start.getDate()-1);
+        date_start.setHours(0);
+        date_end.setMonth(date_end.getMonth()+2);
+    }
     const data = {
         'type': "get",
         'date_start': date_start,
@@ -42,6 +45,7 @@ function get_events(){
     .then(data => {
         dbsave(received_data=JSON.parse(data));console.log(received_data);display(received_data);
         document.getElementById("postbutton").innerText = "送信";
+        document.getElementById("getbutton").innerText = "リロード";
     })
     .catch(error => console.error("Error:", error));
 }
@@ -176,12 +180,25 @@ document.getElementById("form2").addEventListener('submit', event => {
     get_events();
 });
 
+document.getElementById("form3").addEventListener('submit', event => {
+    // イベントを停止する
+    event.preventDefault();
+    let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
+    let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
+    document.getElementById("getbutton").innerText = "……";
+    get_events(date_start, date_end);
+});
+
 window.onload = async function(){
     urlget();
     dbget();
     let text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0")+"T"+date.getHours().toString()+":00";
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
+    text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
+    document.getElementById("form3").start.value = text;
+    text = date.getFullYear().toString()+"-"+(date.getMonth()+3).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
+    document.getElementById("form3").end.value = text;
 }
 
 async function dbget(){

@@ -23,26 +23,24 @@ const options = {
     'body' : '' //送りたいデータをpayloadに配置してJSON形式変換。
 };
 
-window.onload = async function(){
+window.onload = function(){
     const date = new Date();
-    console.log("url",url);
     urlget();
-    console.log("url",url);
     dbget();
-    let text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0")+"T"+date.getHours().toString()+":00";
+    let text = date_string(date, "-", 0, true, true);
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
-    text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
-    document.getElementById("form3").start.value = date_string(date, "-", 0, false);
-    document.getElementById("form3").end.value = date_string(date, "-", 2, false);;
+    document.getElementById("form3").start.value = date_string(date, "-", 0, true, false);
+    document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);;
 }
 
-function date_string(date, separator, month_offset, hour_required){
-    let date_string = date.getFullYear().toString()
+function date_string(date, separator, month_offset, year_required, hour_required){
+    let date_string = "";
+    if(year_required)date_string += date.getFullYear().toString();
     date_string += separator + (date.getMonth() + month_offset + 1).toString().padStart(2, "0")
     date_string += separator + date.getDate().toString().padStart(2, "0")
     if(hour_required && separator == "-")date_string += "T" + date.getHours().toString() + ":00";
-    if(hour_required && separator == "/")date_string += " " + date.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
+    if(hour_required && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
     return date_string;
 }
 
@@ -122,19 +120,11 @@ function display(events){
         else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
         else dot.innerText = "";
         div.appendChild(dot);
-        date_text = date_start.getFullYear() + "/" + (date_start.getMonth()+1).toString().padStart(2, "0") + "/" + date_start.getDate().toString().padStart(2, "0") 
-        + " " + date_start.getHours().toString().padStart(2, "0") + ":" + date_start.getMinutes().toString().padStart(2, "0");
-        date_cell.innerText = date_text;
+        date_cell.innerText = date_string(date_start, "/", 0, true, true);
         if(date_start.getFullYear() != date_end.getFullYear()){
-            date_text = date_end.getFullYear() + "/" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") 
-            + " " + date_end.getHours().toString().padStart(2, "0") + ":" + date_start.getMinutes().toString().padStart(2, "0");
-            date_cell.innerText += "\n～" + date_text;
-        }else if(date_start.getMonth() != date_end.getMonth()){
-            date_cell.innerText += "\n～" + (date_end.getMonth()+1).toString().padStart(2, "0") + "/" + date_end.getDate().toString().padStart(2, "0") 
-            + " " + date_end.getHours().toString().padStart(2, "0") + ":" + date_start.getMinutes().toString().padStart(2, "0");
-        }else if(date_start.getDate() != date_end.getDate()){
-            date_cell.innerText += "\n～" + date_end.getDate().toString().padStart(2, "0") + " " + date_end.getHours().toString().padStart(2, "0") 
-            + ":" + date_start.getMinutes().toString().padStart(2, "0");
+            date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
+        }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
+            date_cell.innerText += "\n～" + date_string(date_end, "/", 0, false, true);
         }else if(date_start.getHours() != date_end.getHours()){
             date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
         }
@@ -170,7 +160,7 @@ function display(events){
         cell.appendChild(div);
     }
 
-    console.log(cell.style.className);
+    // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
 }
 
@@ -224,7 +214,7 @@ async function urlget(){
 }
 
 function urlsave(url){
-    db_operation("save", "url");
+    db_operation("save", "url", url);
 }
 
 function db_operation(mode, storeName, received_data){
@@ -287,7 +277,7 @@ function db_operation(mode, storeName, received_data){
             if(storeName=="url"){
                 var putReq = store.put({
                     id: 1,
-                    url: url
+                    url: received_data
                 });
 
             }

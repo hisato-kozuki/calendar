@@ -267,7 +267,7 @@ function db_operation(mode, storeName, received_data){
                 }
             }
         }
-        if(mode="save"){
+        if(mode=="save"){
             if(storeName=="calendar"){
                 var putReq = store.put({
                     id: 1,
@@ -283,6 +283,7 @@ function db_operation(mode, storeName, received_data){
             }
             putReq.onsuccess = function (event) {
                 console.log('更新成功');
+                console.log("saved:"+received_data);
             }
         }
     }

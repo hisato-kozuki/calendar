@@ -11,7 +11,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-const date = new Date();
 let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let events;
 let url;
@@ -23,6 +22,19 @@ const options = {
     },
     'body' : '' //送りたいデータをpayloadに配置してJSON形式変換。
 };
+
+window.onload = async function(){
+    const date = new Date();
+    urlget();
+    dbget();
+    let text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0")+"T"+date.getHours().toString()+":00";
+    document.getElementById("form").start.value = text;
+    document.getElementById("form").end.value = text;
+    text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
+    document.getElementById("form3").start.value = text;
+    text = date.getFullYear().toString()+"-"+(date.getMonth()+3).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
+    document.getElementById("form3").end.value = text;
+}
 
 function get_events(date_start, date_end){
     //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
@@ -189,100 +201,44 @@ document.getElementById("form3").addEventListener('submit', event => {
     get_events(date_start, date_end);
 });
 
-window.onload = async function(){
-    urlget();
-    dbget();
-    let text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0")+"T"+date.getHours().toString()+":00";
-    document.getElementById("form").start.value = text;
-    document.getElementById("form").end.value = text;
-    text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
-    document.getElementById("form3").start.value = text;
-    text = date.getFullYear().toString()+"-"+(date.getMonth()+3).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
-    document.getElementById("form3").end.value = text;
-}
-
 async function dbget(){
-    var dbName = 'sampleDB';
-    var dbVersion = '1';
-    var storeName  = 'calendar';
-    //　DB名を指定して接続
-    var openReq  = indexedDB.open(dbName, dbVersion);
-    // 接続に失敗
-    openReq.onerror = function (event) {
-        console.log('接続失敗');
-    }
-    
-    //DBのバージョン更新(DBの新規作成も含む)時のみ実行
-    openReq.onupgradeneeded = function (event) {
-        var db = event.target.result;
-        const objectStore = db.createObjectStore(storeName, {keyPath : 'id'});
-        objectStore.createIndex("id", "id", { unique: true });
-        objectStore.createIndex("events", "events", { unique: false });
-
-        console.log('DB更新');
-    }
-
-    //onupgradeneededの後に実行。更新がない場合はこれだけ実行
-    openReq.onsuccess = function (event) {
-        var db = event.target.result;
-        var trans = db.transaction(storeName, "readwrite");
-        var store = trans.objectStore(storeName);
-        var getReq_g = store.get(1);
-
-        getReq_g.onsuccess = function (event) {
-            if (typeof event.target.result != 'undefined') {
-                let events = event.target.result.events;
-                console.log(event);
-                display(events);
-                return new Promise((resolve)=>resolve(100));
-            }
-        }
-    }
+    db_operation("get", "calendar");
 }
 
 function dbsave(received_data){
-    var dbName = 'sampleDB';
-    var dbVersion = '1';
-    var storeName  = 'calendar';
-    var openReq  = indexedDB.open(dbName, dbVersion);
-    openReq.onerror = function (event) {
-        console.log('接続失敗');
-    }
-    
-    openReq.onsuccess = function (event) {
-        var db = event.target.result;
-        var trans = db.transaction(storeName, "readwrite");
-        var store = trans.objectStore(storeName);
-        var putReq = store.put({
-            id: 1,
-            events: received_data
-        });
-
-        putReq.onsuccess = function (event) {
-            console.log('更新成功');
-        }
-    }
+    db_operation("save", "calendar", received_data);
 }
 
 async function urlget(){
-    var dbName = 'GasUrlDB';
+    db_operation("get", "url");
+}
+
+function urlsave(url){
+    db_operation("save", "url");
+}
+
+function db_operation(mode, storeName, received_data){
+    var dbName;
+    if(storeName=="calendar")dbName = 'sampleDB';
+    if(storeName=="url")dbName = 'GasUrlDB';
     var dbVersion = '1';
-    var storeName  = 'url';
     //　DB名を指定して接続
     var openReq  = indexedDB.open(dbName, dbVersion);
     // 接続に失敗
     openReq.onerror = function (event) {
         console.log('接続失敗');
     }
-    
-    //DBのバージョン更新(DBの新規作成も含む)時のみ実行
-    openReq.onupgradeneeded = function (event) {
-        var db = event.target.result;
-        const objectStore = db.createObjectStore(storeName, {keyPath : 'id'});
-        objectStore.createIndex("id", "id", { unique: true });
-        objectStore.createIndex("url", "url", { unique: false });
+    if(mode=="get"){
+        //DBのバージョン更新(DBの新規作成も含む)時のみ実行
+        openReq.onupgradeneeded = function (event) {
+            var db = event.target.result;
+            const objectStore = db.createObjectStore(storeName, {keyPath : 'id'});
+            objectStore.createIndex("id", "id", { unique: true });
+            if(storeName=="calendar")objectStore.createIndex("events", "events", { unique: false });
+            if(storeName=="url")objectStore.createIndex("url", "url", { unique: false });
 
-        console.log('DB更新');
+            console.log('DB更新');
+        }
     }
 
     //onupgradeneededの後に実行。更新がない場合はこれだけ実行
@@ -290,43 +246,44 @@ async function urlget(){
         var db = event.target.result;
         var trans = db.transaction(storeName, "readwrite");
         var store = trans.objectStore(storeName);
-        var getReq_g = store.get(1);
-
-        getReq_g.onsuccess = function (event) {
-            if (typeof event.target.result != 'undefined') {
-                let stored_url = event.target.result.url;
-                url = stored_url;
-                console.log(url);
-                get_events();
-                return new Promise((resolve)=>resolve(100));
-            }
-            else{
-                document.getElementById("form2").style.visibility="visible";
+        if(mode=="get"){
+            var getReq_g = store.get(1);
+            getReq_g.onsuccess = function (event) {
+                if (typeof event.target.result != 'undefined') {
+                    if(storeName=="calendar"){
+                        let events = event.target.result.events;
+                        console.log(event);
+                        display(events);
+                    }
+                    if(storeName=="url"){
+                        let stored_url = event.target.result.url;
+                        url = stored_url;
+                        console.log(url);
+                        get_events();
+                    }
+                    return new Promise((resolve)=>resolve(100));
+                }else{
+                    if(storeName=="url")document.getElementById("form2").style.visibility="visible";
+                }
             }
         }
-    }
-}
+        if(mode="save"){
+            if(storeName=="calendar"){
+                var putReq = store.put({
+                    id: 1,
+                    url: url
+                });
+            }
+            if(storeName=="url"){
+                var putReq = store.put({
+                    id: 1,
+                    events: received_data
+                });
 
-function urlsave(url){
-    var dbName = 'GasUrlDB';
-    var dbVersion = '1';
-    var storeName  = 'url';
-    var openReq  = indexedDB.open(dbName, dbVersion);
-    openReq.onerror = function (event) {
-        console.log('接続失敗');
-    }
-    
-    openReq.onsuccess = function (event) {
-        var db = event.target.result;
-        var trans = db.transaction(storeName, "readwrite");
-        var store = trans.objectStore(storeName);
-        var putReq = store.put({
-            id: 1,
-            url: url
-        });
-
-        putReq.onsuccess = function (event) {
-            console.log('更新成功');
+            }
+            putReq.onsuccess = function (event) {
+                console.log('更新成功');
+            }
         }
     }
 }

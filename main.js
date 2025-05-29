@@ -25,15 +25,25 @@ const options = {
 
 window.onload = async function(){
     const date = new Date();
+    console.log("url",url);
     urlget();
+    console.log("url",url);
     dbget();
     let text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0")+"T"+date.getHours().toString()+":00";
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
     text = date.getFullYear().toString()+"-"+(date.getMonth()+1).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
-    document.getElementById("form3").start.value = text;
-    text = date.getFullYear().toString()+"-"+(date.getMonth()+3).toString().padStart(2, "0")+"-"+date.getDate().toString().padStart(2, "0");
-    document.getElementById("form3").end.value = text;
+    document.getElementById("form3").start.value = date_string(date, "-", 0, false);
+    document.getElementById("form3").end.value = date_string(date, "-", 2, false);;
+}
+
+function date_string(date, separator, month_offset, hour_required){
+    let date_string = date.getFullYear().toString()
+    date_string += separator + (date.getMonth() + month_offset + 1).toString().padStart(2, "0")
+    date_string += separator + date.getDate().toString().padStart(2, "0")
+    if(hour_required && separator == "-")date_string += "T" + date.getHours().toString() + ":00";
+    if(hour_required && separator == "/")date_string += " " + date.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
+    return date_string;
 }
 
 function get_events(date_start, date_end){
@@ -258,7 +268,7 @@ function db_operation(mode, storeName, received_data){
                     if(storeName=="url"){
                         let stored_url = event.target.result.url;
                         url = stored_url;
-                        console.log(url);
+                        console.log("stored_url",url);
                         get_events();
                     }
                     return new Promise((resolve)=>resolve(100));
@@ -271,13 +281,13 @@ function db_operation(mode, storeName, received_data){
             if(storeName=="calendar"){
                 var putReq = store.put({
                     id: 1,
-                    url: url
+                    events: received_data
                 });
             }
             if(storeName=="url"){
                 var putReq = store.put({
                     id: 1,
-                    events: received_data
+                    url: url
                 });
 
             }

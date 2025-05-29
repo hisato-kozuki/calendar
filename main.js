@@ -63,7 +63,7 @@ function get_events(date_start, date_end){
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
-        dbsave(received_data=JSON.parse(data));console.log(received_data);display(received_data);
+        dbsave(received_data=JSON.parse(data));console.log("received_data", received_data);display(received_data);
         document.getElementById("postbutton").innerText = "送信";
         document.getElementById("getbutton").innerText = "リロード";
     })
@@ -252,7 +252,7 @@ function db_operation(mode, storeName, received_data){
                 if (typeof event.target.result != 'undefined') {
                     if(storeName=="calendar"){
                         let events = event.target.result.events;
-                        console.log(event);
+                        console.log("stored_event", event);
                         display(events);
                     }
                     if(storeName=="url"){

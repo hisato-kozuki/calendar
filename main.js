@@ -98,29 +98,33 @@ function delete_event(data){
     .catch(error => console.error("Error:", error));
 }
 
+function createE(tag, classname, id, text){
+    let element = document.createElement(tag);
+    element.className = classname;
+    element.id = id;
+    if(text != undefined)element.innerText = text;
+    return element;
+}
+
 function display(events){
     if(document.getElementById("cell"))document.getElementById("cell").remove();
-    let cell = document.createElement("div");
-    cell.id = "cell";
+    let cell = createE("div", "", "cell");
     cell.style.width = "100%";
 
     for(let i = 0; i < events.length; i++){
-        let date_cell = document.createElement("div");
-        let event_cell = document.createElement("div");
-        let dot = document.createElement("p");
-        let div = document.createElement("div");
-        date_cell.className = "date_cell";
-        event_cell.className = "event_cell";
-        div.style.display = "flex";
         let date_start = new Date(events[i].date_start);
         let date_end = new Date(events[i].date_end);
-        dot.innerText = "◆"; dot.style.margin = "0px"; dot.style.fontSize = "20px";
+        let date_cell = createE("div", "date_cell", "", date_string(date_start, "/", 0, true, true));
+        let event_cell = createE("div", "event_cell");
+        let dot = createE("p", "", "", "◆");
+        let div = createE("div");
+        div.style.display = "flex";
+        dot.style.margin = "0px"; dot.style.fontSize = "20px";
         dot.style.width = "3%"; dot.style.alignSelf = "center"; dot.style.textAlign = "center";
         if ((date_start.getDay()+6)%7 == 6)dot.style.color = "orangered";
         else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
         else dot.innerText = "";
         div.appendChild(dot);
-        date_cell.innerText = date_string(date_start, "/", 0, true, true);
         if(date_start.getFullYear() != date_end.getFullYear()){
             date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
         }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
@@ -133,9 +137,7 @@ function display(events){
         event_cell.innerHTML = "<span style='color: " + color + "'>" + events[i].title +"</span><br>";
         div.appendChild(date_cell);
         div.appendChild(event_cell);
-        let delete_cell = document.createElement("button");
-        delete_cell.className = "delete_cell";
-        delete_cell.innerText = "削除";
+        let delete_cell = createE("button", "delete_cell", "", "削除");
         delete_cell.addEventListener('click', () => {
             var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
             if(result){
@@ -152,14 +154,13 @@ function display(events){
             let date_new = new Date(events[i].date_start);
             let date_old = new Date(events[i-1].date_start);
             if(Math.floor(((date_new - date_old)/3600000 + date_old.getHours())/24) - (date_new.getDay()+6)%7 >= 1){
-                let div = document.createElement("div");
+                let div = createE("div");
                 div.style.borderBottom = "solid 1px gray";
                 cell.appendChild(div);
             }
         }
         cell.appendChild(div);
     }
-
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
 }

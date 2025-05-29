@@ -11,6 +11,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+const date = new Date();
 let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let events;
 let url;
@@ -24,7 +25,6 @@ const options = {
 };
 
 window.onload = function(){
-    const date = new Date();
     urlget();
     dbget();
     let text = date_string(date, "-", 0, true, true);
@@ -84,7 +84,7 @@ function post_event(data){
     .catch(error => console.error("Error:", error));
 }
 
-function delete_event(data){
+function delete_event(data, delete_cell){
     //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
     let received_data;
     options.body=JSON.stringify(data);
@@ -93,7 +93,7 @@ function delete_event(data){
     .then(response => response.text())
     .then(data => {
         console.log(data);get_events();
-        delete_cell.innerText = "完了";
+        if(delete_cell != undefined)delete_cell.innerText = "完了";
     })
     .catch(error => console.error("Error:", error));
 }
@@ -133,8 +133,22 @@ function display(events){
             date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
         }
         let color = colorcode[events[i].color];
+        event_cell.innerText = events[i].title;
         if(color == undefined)color = "#404040";
-        event_cell.innerHTML = "<span style='color: " + color + "'>" + events[i].title +"</span><br>";
+        if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
+            event_cell.style.background = color;
+            if(events[i].color == 9 || events[i].color == 1)event_cell.style.color = "white";
+            if(events[i].color == 4 && date_start -date < 86400000){ // 現在時刻の一日後より前の時刻の場合に
+                task_renew(events[i], date_start, 4);
+            }
+            if(events[i].color == 1 && date_start -date < 172800000){ // 現在時刻の2日後より前の時刻の場合に
+                task_renew(events[i], date_start, 1);
+            }
+            if(events[i].color == 9 && date_start -date < 604800000){ // 現在時刻の１週間後より前の時刻の場合に
+                task_renew(events[i], date_start, 9);
+            }
+        }
+        else event_cell.style.color = color;
         div.appendChild(date_cell);
         div.appendChild(event_cell);
         let delete_cell = createE("button", "delete_cell", "", "削除");
@@ -146,7 +160,7 @@ function display(events){
                     'id': events[i].id
                 };
                 delete_cell.innerText = "……";
-                delete_event(data);
+                delete_event(data, delete_cell);
             }
         });
         div.appendChild(delete_cell);
@@ -163,6 +177,32 @@ function display(events){
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
+}
+
+function task_renew(event_data, date, color){
+    console.log("detected");
+    let data = {
+        'type': "delete",
+        'id': event_data.id
+    };
+    delete_event(data);
+    let new_date = date;
+    console.log("old_date", new_date);
+    if(color == 4)new_date.setDate(date.getDate()+2);
+    if(color == 1)new_date.setDate(date.getDate()+7);
+    if(color == 9)new_date.setMonth(date.getMonth()+1);
+    console.log("new_date", new_date);
+    data = {
+        'type': 'post',
+        'title': event_data.title,
+        'date_start': new_date,
+        'date_end': new_date,
+        'color': color,
+    };
+    if(data.title != ""){
+        document.getElementById("postbutton").innerText = "……";
+        post_event(data);
+    }
 }
 
 document.getElementById("form").addEventListener('submit', (event) => {

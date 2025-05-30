@@ -39,7 +39,7 @@ function date_string(date, separator, month_offset, year_required, hour_required
     if(year_required)date_string += date.getFullYear().toString();
     date_string += separator + (date.getMonth() + month_offset + 1).toString().padStart(2, "0")
     date_string += separator + date.getDate().toString().padStart(2, "0")
-    if(hour_required && separator == "-")date_string += "T" + date.getHours().toString() + ":00";
+    if(hour_required && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":00";
     if(hour_required && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
     return date_string;
 }

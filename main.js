@@ -136,8 +136,8 @@ function display(events){
         event_cell.innerText = events[i].title;
         if(color == undefined)color = "#404040";
         if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
-            event_cell.style.background = color;
-            if(events[i].color == 9 || events[i].color == 1)event_cell.style.color = "white";
+            event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
+            // if(events[i].color == 9 || events[i].color == 1)event_cell.style.color = "white";
             if(events[i].color == 4 && date_start -date < 86400000){ // 現在時刻の一日後より前の時刻の場合に
                 task_renew(events[i], date_start, 4);
             }

@@ -70,7 +70,7 @@ function get_events(date_start, date_end){
     .catch(error => console.error("Error:", error));
 }
 
-function post_event(data){
+function post_event(data, get_required){
     //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
     let received_data;
     options.body=JSON.stringify(data);
@@ -78,7 +78,8 @@ function post_event(data){
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
-        console.log(data);get_events();
+        console.log(data);
+        if(get_required)get_events();
         document.getElementById("postbutton").innerText = "完了";
     })
     .catch(error => console.error("Error:", error));
@@ -92,7 +93,7 @@ function delete_event(data, delete_cell){
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
-        console.log(data);get_events();
+        console.log(data);
         if(delete_cell != undefined)delete_cell.innerText = "完了";
     })
     .catch(error => console.error("Error:", error));
@@ -137,14 +138,15 @@ function display(events){
         if(color == undefined)color = "#404040";
         if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
             event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
-            // if(events[i].color == 9 || events[i].color == 1)event_cell.style.color = "white";
-            if(events[i].color == 4 && date_start -date < 86400000){ // 現在時刻の一日後より前の時刻の場合に
+            let date_today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            // console.log((date_start - date_today)/3600000);
+            if(events[i].color == 4 && date_start - date_today < 86400000){ // 現在日程の一日後より前の時刻の場合に
                 task_renew(events[i], date_start, 4);
             }
-            if(events[i].color == 1 && date_start -date < 172800000){ // 現在時刻の2日後より前の時刻の場合に
+            if(events[i].color == 1 && date_start - date_today < 172800000){ // 現在日程の2日後より前の時刻の場合に
                 task_renew(events[i], date_start, 1);
             }
-            if(events[i].color == 9 && date_start -date < 604800000){ // 現在時刻の１週間後より前の時刻の場合に
+            if(events[i].color == 9 && date_start - date_today < 604800000){ // 現在日程の１週間後より前の時刻の場合に
                 task_renew(events[i], date_start, 9);
             }
         }
@@ -201,7 +203,7 @@ function task_renew(event_data, date, color){
     };
     if(data.title != ""){
         document.getElementById("postbutton").innerText = "……";
-        post_event(data);
+        post_event(data, 0);
     }
 }
 
@@ -220,7 +222,7 @@ document.getElementById("form").addEventListener('submit', (event) => {
     };
     if(data.title != ""){
         document.getElementById("postbutton").innerText = "……";
-        post_event(data);
+        post_event(data, 1);
     }
 });
 

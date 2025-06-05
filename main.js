@@ -169,10 +169,13 @@ function display(events){
         if(i){
             let date_new = new Date(events[i].date_start);
             let date_old = new Date(events[i-1].date_start);
-            if(Math.floor(((date_new - date_old)/3600000 + date_old.getHours())/24) - (date_new.getDay()+6)%7 >= 1){
+            if(date_new.getDate() != date_old.getDate()){
                 let div = createE("div");
                 div.style.borderBottom = "solid 1px gray";
-                cell.appendChild(div);
+                if(Math.floor(((date_new - date_old)/3600000 + date_old.getHours())/24) - (date_new.getDay()+6)%7 >= 1){
+                    div.style.borderBottom = "solid 2px gray";
+                }
+                cell.appendChild(div);  
             }
         }
         cell.appendChild(div);

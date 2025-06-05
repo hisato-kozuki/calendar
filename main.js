@@ -212,19 +212,21 @@ function task_renew(event_data, date, color){
 
 document.getElementById("form").addEventListener('submit', (event) => {
     // イベントを停止する
+    let form = document.getElementById("form");
+    let button = document.getElementById("postbutton");
     event.preventDefault();
-    let date_start = new Date(Date.parse(document.getElementById("form").start.value));
-    let date_end = new Date(Date.parse(document.getElementById("form").end.value));
+    let date_start = new Date(Date.parse(form.start.value));
+    let date_end = new Date(Date.parse(form.end.value));
     console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
     const data = {
         'type': 'post',
-        'title': document.getElementById("form").title.value,
+        'title': form.title.value,
         'date_start': date_start,
         'date_end': date_end,
-        'color': document.getElementById("form").color.value,
+        'color': form.color.value,
     };
-    if(data.title != ""){
-        document.getElementById("postbutton").innerText = "……";
+    if(data.title != "" && button.innerText == "送信"){
+        button.innerText = "……";
         post_event(data, 1);
     }
 });
@@ -243,8 +245,10 @@ document.getElementById("form3").addEventListener('submit', event => {
     event.preventDefault();
     let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
-    document.getElementById("getbutton").innerText = "……";
-    get_events(date_start, date_end);
+    if(document.getElementById("getbutton").innerText == "リロード"){
+        get_events(date_start, date_end);
+        document.getElementById("getbutton").innerText = "……";
+    }
 });
 
 async function dbget(){

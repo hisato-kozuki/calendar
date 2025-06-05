@@ -12,6 +12,7 @@ if ('serviceWorker' in navigator) {
 }
 
 const date = new Date();
+let date_today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let events;
 let url;
@@ -27,7 +28,7 @@ const options = {
 window.onload = function(){
     urlget();
     dbget();
-    let text = date_string(date, "-", 0, true, true);
+    let text = date_string(date_today, "-", 0, true, true);
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
     document.getElementById("form3").start.value = date_string(date, "-", 0, true, false);
@@ -138,7 +139,6 @@ function display(events){
         if(color == undefined)color = "#404040";
         if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
             event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
-            let date_today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
             // console.log((date_start - date_today)/3600000);
             if(events[i].color == 4 && date_start - date_today < 86400000){ // 現在日程の一日後より前の時刻の場合に
                 task_renew(events[i], date_start, 4);
@@ -251,7 +251,16 @@ document.getElementById("form3").addEventListener('submit', event => {
     }
 });
 
-async function dbget(){
+document.getElementById("date_default").addEventListener('click', event => {
+    // イベントを停止する
+    event.preventDefault();
+    
+    text = document.getElementById("form").start.value;
+    console.log(text);
+    document.getElementById("form").end.value = text;
+});
+
+function dbget(){
     db_operation("get", "calendar");
 }
 
@@ -259,7 +268,7 @@ function dbsave(received_data){
     db_operation("save", "calendar", received_data);
 }
 
-async function urlget(){
+function urlget(){
     db_operation("get", "url");
 }
 
@@ -311,7 +320,6 @@ function db_operation(mode, storeName, received_data){
                         console.log("stored_url",url);
                         get_events();
                     }
-                    return new Promise((resolve)=>resolve(100));
                 }else{
                     if(storeName=="url")document.getElementById("form2").style.visibility="visible";
                 }

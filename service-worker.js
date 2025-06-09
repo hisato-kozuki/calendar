@@ -1,11 +1,8 @@
 // キャッシュファイルの指定
-var CACHE_NAME = 'pwa-sample-caches';
+var CACHE_NAME = 'pwa-mycalendar-caches';
 var urlsToCache = [
-    // '/',
     '/calendar/index.html',
     '/calendar/main.js',
-    // '/manifest.json',
-    // '/serviceworker.js',
 ];
 
 // インストール処理

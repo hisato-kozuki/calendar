@@ -2,8 +2,8 @@
 var CACHE_NAME = 'pwa-sample-caches';
 var urlsToCache = [
     // '/',
-    '/index.html',
-    '/main.js',
+    '/calendar/index.html',
+    '/calendar/main.js',
     // '/manifest.json',
     // '/serviceworker.js',
 ];

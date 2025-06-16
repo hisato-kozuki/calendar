@@ -31,7 +31,7 @@ window.onload = function(){
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
     document.getElementById("form3").start.value = date_string(date, "-", 0, true, false);
-    document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);;
+    document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
 }
 
 function date_string(date, separator, month_offset, year_required, hour_required){
@@ -79,8 +79,10 @@ function post_event(data, get_required){
     .then(response => response.text())
     .then(data => {
         console.log(data);
-        if(get_required)get_events();
-        document.getElementById("postbutton").innerText = "完了";
+        if(get_required){
+            get_events();
+            document.getElementById("postbutton").innerText = "完了";
+        } else document.getElementById("postbutton").innerText = "送信";
     })
     .catch(error => console.error("Error:", error));
 }

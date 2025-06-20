@@ -169,7 +169,6 @@ function display(events, task_renew_required){
         div.appendChild(date_cell);
         div.appendChild(event_cell);
         let delete_cell = createE("button", "delete_cell", "", "削除");
-        delete_cell.style.height = "40px";
         delete_cell.addEventListener('click', () => {
             var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
             if(result){

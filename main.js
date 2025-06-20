@@ -196,7 +196,7 @@ function task_renew(event_data, date, color){
     delete_event(data);
     let new_date = date;
     console.log("old_date", new_date);
-    if(color == 4)new_date.setDate(date.getDate()+2);
+    if(color == 4)new_date.setDate(date.getDate()+1);
     if(color == 1)new_date.setDate(date.getDate()+7);
     if(color == 9)new_date.setMonth(date.getMonth()+1);
     console.log("new_date", new_date);

@@ -65,9 +65,13 @@ function get_events(date_start, date_end){
     .then(data => {
         dbsave(received_data=JSON.parse(data));console.log("received_data", received_data);display(received_data, true);
         document.getElementById("postbutton").innerText = "送信";
-        document.getElementById("getbutton").innerText = "リロード";
+        document.getElementById("getbutton").innerText = "完了";
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+        console.log("reload not complete")
+        console.error("Error:", error);
+        document.getElementById("getbutton").innerText = "Error";
+    });
 }
 
 function post_event(data, get_required){
@@ -84,7 +88,10 @@ function post_event(data, get_required){
             document.getElementById("postbutton").innerText = "完了";
         } else document.getElementById("postbutton").innerText = "送信";
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("postbutton").innerText = "Error";
+    });
 }
 
 function delete_event(data, delete_cell){
@@ -95,10 +102,14 @@ function delete_event(data, delete_cell){
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
+        console.log(received_data=JSON.parse(data));
         console.log(data);
         if(delete_cell != undefined)delete_cell.innerText = "完了";
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+        console.error("Error:", error);
+        delete_cell.innerText = "Error";
+    });
 }
 
 function createE(tag, classname, id, text){
@@ -157,6 +168,7 @@ function display(events, task_renew_required){
         div.appendChild(date_cell);
         div.appendChild(event_cell);
         let delete_cell = createE("button", "delete_cell", "", "削除");
+        delete_cell.style.height = "40px";
         delete_cell.addEventListener('click', () => {
             var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
             if(result){
@@ -164,7 +176,7 @@ function display(events, task_renew_required){
                     'type': "delete",
                     'id': events[i].id
                 };
-                delete_cell.innerText = "……";
+                cell_pending(delete_cell)
                 delete_event(data, delete_cell);
             }
         });
@@ -185,6 +197,7 @@ function display(events, task_renew_required){
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
+    document.getElementById("getbutton").innerText = "リロード";
 }
 
 function task_renew(event_data, date, color){
@@ -213,6 +226,17 @@ function task_renew(event_data, date, color){
     }
 }
 
+function cell_pending(cell, type){
+    if(cell.innerText == "完了" || cell.innerText == "Error"){
+        if(cell.innerText == "完了" && type == "getbutton")cell.innerText = "リロード";
+    }else{
+        if(cell.innerText == ">")cell.innerText = ">>";
+        else if(cell.innerText == ">>")cell.innerText = ">>>";
+        else cell.innerText = ">";
+        setTimeout(() => cell_pending(cell, type), 500);
+    }
+}
+
 document.getElementById("form").addEventListener('submit', (event) => {
     // イベントを停止する
     let form = document.getElementById("form");
@@ -229,7 +253,7 @@ document.getElementById("form").addEventListener('submit', (event) => {
         'color': form.color.value,
     };
     if(data.title != "" && button.innerText == "送信"){
-        button.innerText = "……";
+        cell_pending(button);
         post_event(data, 1);
     }
 });
@@ -248,9 +272,10 @@ document.getElementById("form3").addEventListener('submit', event => {
     event.preventDefault();
     let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
-    if(document.getElementById("getbutton").innerText == "リロード"){
+    let button = document.getElementById("getbutton");
+    if(button.innerText == "リロード"){
         get_events(date_start, date_end);
-        document.getElementById("getbutton").innerText = "……";
+        cell_pending(button, "getbutton");
     }
 });
 
@@ -321,6 +346,7 @@ function db_operation(mode, storeName, received_data){
                         let stored_url = event.target.result.url;
                         url = stored_url;
                         console.log("stored_url",url);
+                        cell_pending(document.getElementById("getbutton"), "getbutton");
                         get_events();
                     }
                 }else{

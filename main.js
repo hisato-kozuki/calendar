@@ -84,6 +84,7 @@ function post_event(data, get_required){
     .then(data => {
         console.log(data);
         if(get_required){
+            cell_pending(document.getElementById("getbutton"), "getbutton");
             get_events();
             document.getElementById("postbutton").innerText = "完了";
         } else document.getElementById("postbutton").innerText = "送信";
@@ -197,7 +198,6 @@ function display(events, task_renew_required){
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
-    document.getElementById("getbutton").innerText = "リロード";
 }
 
 function task_renew(event_data, date, color){

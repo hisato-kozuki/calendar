@@ -32,6 +32,12 @@ window.onload = function(){
     document.getElementById("form").end.value = text;
     document.getElementById("form3").start.value = date_string(date, "-", 0, true, false);
     document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
+    for(let i = 0; i < localStorage.length; i++){
+        let text = JSON.parse(localStorage.getItem(i));
+        console.log(text.name, text["name"]);
+        console.log(text.name)
+        if(text)document.getElementById("urls").innerHTML += "<p style='font-size:16px'>" + text.name + " " + "<a href='" + text["url"] + "'>" + text["url"] + "</a></p>";
+    }
 }
 
 function date_string(date, separator, month_offset, year_required, hour_required){
@@ -309,6 +315,24 @@ document.getElementById("date_default").addEventListener('click', event => {
     text = document.getElementById("form").start.value;
     console.log(text);
     document.getElementById("form").end.value = text;
+});
+
+document.getElementById("urlform").addEventListener('submit', event => {
+    // イベントを停止する
+    event.preventDefault();
+    if(document.getElementById("urls").style.visibility == "hidden"){
+        document.getElementById("urls").style.visibility = "visible";
+        document.getElementById("urls").style.height = "fit-content";
+        document.getElementById("nameinput").style.visibility = "visible";
+        document.getElementById("urlinput").style.visibility = "visible";
+    }
+    else{
+        let data = {
+            "name": document.getElementById("urlform").name.value,
+            "url": document.getElementById("urlform").url.value
+        }
+        localStorage.setItem(localStorage.length, JSON.stringify(data));
+    }
 });
 
 function dbget(){

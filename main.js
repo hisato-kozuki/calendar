@@ -124,7 +124,6 @@ function createE(tag, classname, id, text){
 function display(events, task_renew_required){
     if(document.getElementById("cell"))document.getElementById("cell").remove();
     let cell = createE("div", "small_container", "cell");
-    console.log("innderWidth: ", window.innerWidth, "innderHeight: ", window.innerHeight)
     let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     date_start.setDate(date_start.getDate()-date_start.getDay()+1);
@@ -136,8 +135,6 @@ function display(events, task_renew_required){
         for(let j = 0; j < 7; j++){
             // let date_start = new Date(events[i].date_start);
             // let date_end = new Date(events[i].date_end);
-            console.log(date_monday);
-            date.setDate(date_monday.getDate()+j);
             let day_cell = createE("div", "day_cell", "");
             let date_index_cell = createE("div", "date_index_cell", "", date.getDate()+"日");
             if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
@@ -145,6 +142,7 @@ function display(events, task_renew_required){
             day_cell.appendChild(date_index_cell);
             week_cell.appendChild(day_cell);
             day_cells[7*i+j] = day_cell;
+            date.setDate(date.getDate()+1);
         }
         cell.appendChild(week_cell);
     }

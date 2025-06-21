@@ -204,7 +204,7 @@ function display(events, task_renew_required){
         date_start_monday.setDate(date_start_monday.getDate()-date_start_monday.getDay()+1);
         date_start_monday.setHours(0);
         let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
-        console.log(date_start_0-date_start_monday);
+        // console.log(date_start_0-date_start_monday);
         day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
         if(i){
             let date_new = new Date(events[i].date_start);

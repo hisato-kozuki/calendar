@@ -123,23 +123,44 @@ function createE(tag, classname, id, text){
 
 function display(events, task_renew_required){
     if(document.getElementById("cell"))document.getElementById("cell").remove();
-    let cell = createE("div", "", "cell");
-    cell.style.width = "100%";
-
+    let cell = createE("div", "small_container", "cell");
+    console.log("innderWidth: ", window.innerWidth, "innderHeight: ", window.innerHeight)
+    let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
+    let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
+    date_start.setDate(date_start.getDate()-date_start.getDay()+1);
+    date_end.setDate(date_end.getDate()-date_end.getDay()+1);
+    let day_cells = new Array((date_end-date_start)/86400000);
+    for(let date_monday = date_start, i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
+        let week_cell = createE("div", "week_cell", "");
+        let date = new Date(date_monday);
+        for(let j = 0; j < 7; j++){
+            // let date_start = new Date(events[i].date_start);
+            // let date_end = new Date(events[i].date_end);
+            console.log(date_monday);
+            date.setDate(date_monday.getDate()+j);
+            let day_cell = createE("div", "day_cell", "");
+            let date_index_cell = createE("div", "date_index_cell", "", date.getDate()+"日");
+            if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
+            else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
+            day_cell.appendChild(date_index_cell);
+            week_cell.appendChild(day_cell);
+            day_cells[7*i+j] = day_cell;
+        }
+        cell.appendChild(week_cell);
+    }
     for(let i = 0; i < events.length; i++){
         let date_start = new Date(events[i].date_start);
         let date_end = new Date(events[i].date_end);
         let date_cell = createE("div", "date_cell", "", date_string(date_start, "/", 0, true, true));
         let event_cell = createE("div", "event_cell");
-        let dot = createE("p", "", "", "◆");
-        let div = createE("div");
-        div.style.display = "flex";
+        let event_container = createE("div", "event_container", "");
+        let dot = createE("p", "dot", "", "◆");
         dot.style.margin = "0px"; dot.style.fontSize = "20px";
         dot.style.width = "3%"; dot.style.alignSelf = "center"; dot.style.textAlign = "center";
         if ((date_start.getDay()+6)%7 == 6)dot.style.color = "orangered";
         else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
         else dot.innerText = "";
-        div.appendChild(dot);
+        event_container.appendChild(dot);
         if(date_start.getFullYear() != date_end.getFullYear()){
             date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
         }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
@@ -166,8 +187,8 @@ function display(events, task_renew_required){
             }
         }
         else event_cell.style.color = color;
-        div.appendChild(date_cell);
-        div.appendChild(event_cell);
+        event_container.appendChild(date_cell);
+        event_container.appendChild(event_cell);
         let delete_cell = createE("button", "delete_cell", "", "削除");
         delete_cell.addEventListener('click', () => {
             var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
@@ -180,7 +201,13 @@ function display(events, task_renew_required){
                 delete_event(data, delete_cell);
             }
         });
-        div.appendChild(delete_cell);
+        event_container.appendChild(delete_cell);
+        let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
+        date_start_monday.setDate(date_start_monday.getDate()-date_start_monday.getDay()+1);
+        date_start_monday.setHours(0);
+        let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
+        console.log(date_start_0-date_start_monday);
+        day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
         if(i){
             let date_new = new Date(events[i].date_start);
             let date_old = new Date(events[i-1].date_start);
@@ -190,10 +217,9 @@ function display(events, task_renew_required){
                 if(Math.floor(((date_new - date_old)/3600000 + date_old.getHours())/24) - (date_new.getDay()+6)%7 >= 1){
                     div.style.borderBottom = "solid 2px gray";
                 }
-                cell.appendChild(div);  
+                day_cells[(date_start_0-date_start_monday)/86400000-1].appendChild(div);
             }
-        }
-        cell.appendChild(div);
+        }        
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);

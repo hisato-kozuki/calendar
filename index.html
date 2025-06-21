@@ -25,6 +25,21 @@
                     left: 20%;
                     border: solid 2px darkblue;
                 }
+                .week_cell{
+                    position: relative;
+                    align-content: center;
+                    border-bottom: solid 1px gray;
+                }
+                .day_cell{
+                    width: 100%;
+                }
+                .date_index_cell{
+                    height: 0px;
+                    visibility: hidden;
+                }
+                .event_container{
+                    display: flex;
+                }
                 .date_cell{
                     width: 38%;
                     position: relative;
@@ -100,8 +115,22 @@
                     left: 5%;
                     border: solid 2px darkblue;
                 }
+                .week_cell{
+                    position: relative;
+                    align-content: center;
+                    border: solid 1px gray;
+                }
+                .day_cell{
+                    width: 100%;
+                    display: flex;
+                }
+                .date_index_cell{
+                    visibility: hidden;
+                }
+                .event_container{
+                    display: flex;
+                }
                 .date_cell{
-                    width: 38%;
                     position: relative;
                     font-size: 28px;
                     align-content: center;
@@ -155,6 +184,108 @@
                 }
                 .autofill{
                     font-size:20px;
+                    background: white;
+                }
+            }
+            @media (max-width:1024px) and (orientation: landscape){
+                h1{
+                    margin: 0px;
+                }
+                .title{
+                    width: 90%;
+                    height: fit-content;
+                    position: relative;
+                    left: 5%;
+                    border: solid 2px darkred;
+                    font-size: 40px;
+                    text-align: center;
+                }
+                .container{
+                    width: 90%;
+                    height: fit-content;
+                    position: relative;
+                    left: 5%;
+                    border: solid 2px darkblue;
+                }
+                .small_container{
+                    width: 100%;
+                }
+                .week_cell{
+                    position: relative;
+                    display: flex;
+                    justify-content:space-around;
+                    align-content: center;
+                    border: solid 2px gray;
+                }
+                .day_cell{
+                    width: 20%;
+                    position: relative;
+                    font-size: 20px;
+                    border: solid 1px gray;
+                }
+                .date_index_cell{
+                    position: relative;
+                    font-size: 20px;
+                    align-content: center;
+                    border-bottom: solid 1px gray;
+                    visibility: visible;
+                }
+                .event_container{
+                    padding: 0px;
+                    visibility: visible;
+                }
+                .date_cell{
+                    height: 0px;
+                    visibility: hidden;
+                }
+                .event_cell{
+                    position: relative;
+                    font-size: 20px;
+                    align-content: center;
+                    padding-left: 2px;
+                }
+                .delete_cell{
+                    height: 0px;
+                    margin: 0px;
+                    visibility: hidden;
+                }
+                .dot{
+                    height: 0px;
+                    visibility: hidden;
+                }
+                p{
+                    font-size: 20px;
+                }
+                input{
+                    font-size: 20px;
+                }
+                button{
+                    height: fit-content;
+                    font-size: 20px;
+                    margin:28px;
+                }
+                select{
+                    font-size: 20px;
+                }
+                option{
+                    font-size: 16px;
+                }
+                form{
+                    display: flex;
+                    border: solid 1px black;
+                    font-size: 20px;
+                    padding: 12px;
+                    margin: 12px;
+                    margin-left: 0px;
+                }
+                .getbutton{
+                    width: 140px;
+                    height: 46px;
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                }
+                .autofill{
+                    font-size:16px;
                     background: white;
                 }
             }

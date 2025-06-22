@@ -132,8 +132,8 @@ function display(events, task_renew_required){
     let cell = createE("div", "small_container", "cell");
     let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
-    date_start.setDate(date_start.getDate()-date_start.getDay()+1);
-    date_end.setDate(date_end.getDate()-date_end.getDay()+1);
+    date_start.setDate(date_start.getDate()-(date_start.getDay()+6)%7);
+    date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
     let day_cells = new Array((date_end-date_start)/86400000);
     for(let date_monday = date_start, i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
         let week_cell = createE("div", "week_cell", "");
@@ -207,10 +207,11 @@ function display(events, task_renew_required){
         });
         event_container.appendChild(delete_cell);
         let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
-        date_start_monday.setDate(date_start_monday.getDate()-date_start_monday.getDay()+1);
+        date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+6)%7);
         date_start_monday.setHours(0);
         let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
-        // console.log(date_start_0-date_start_monday);
+        console.log(date_start_monday)
+        console.log((date_start_0-date_start_monday)/86400000);
         day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
         if(i){
             let date_new = new Date(events[i].date_start);

@@ -34,8 +34,6 @@ window.onload = function(){
     document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
     for(let i = 0; i < localStorage.length; i++){
         let text = JSON.parse(localStorage.getItem(i));
-        console.log(text.name, text["name"]);
-        console.log(text.name)
         if(text)document.getElementById("urls").innerHTML += "<p style='font-size:16px'>" + text.name + " " + "<a href='" + text["url"] + "'>" + text["url"] + "</a></p>";
     }
 }
@@ -88,7 +86,7 @@ function post_event(data, get_required){
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
-        console.log(data);
+        // console.log(data);
         if(get_required){
             cell_pending(document.getElementById("getbutton"), "getbutton");
             get_events();
@@ -109,8 +107,8 @@ function delete_event(data, delete_cell){
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
-        console.log(received_data=JSON.parse(data));
-        console.log(data);
+        // console.log(received_data=JSON.parse(data));
+        // console.log(data);
         if(delete_cell != undefined)delete_cell.innerText = "完了";
     })
     .catch(error => {
@@ -132,7 +130,7 @@ function display(events, task_renew_required){
     let cell = createE("div", "small_container", "cell");
     let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
-    date_start.setDate(date_start.getDate()-(date_start.getDay()+6)%7);
+    date_start.setDate(date_start.getDate()-(date_start.getDay()+5)%7-1);
     date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
     let day_cells = new Array((date_end-date_start)/86400000);
     for(let date_monday = date_start, i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
@@ -207,11 +205,11 @@ function display(events, task_renew_required){
         });
         event_container.appendChild(delete_cell);
         let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
-        date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+6)%7);
+        date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
         date_start_monday.setHours(0);
         let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
-        console.log(date_start_monday)
-        console.log((date_start_0-date_start_monday)/86400000);
+        // console.log(date_start_monday);
+        // console.log((date_start_0-date_start_monday)/86400000);
         day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
         if(i){
             let date_new = new Date(events[i].date_start);

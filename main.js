@@ -140,7 +140,8 @@ function display(events, task_renew_required){
             // let date_start = new Date(events[i].date_start);
             // let date_end = new Date(events[i].date_end);
             let day_cell = createE("div", "day_cell", "");
-            let date_index_cell = createE("div", "date_index_cell", "", date.getDate()+"日");
+            let days = ["月", "火", "水", "木", "金", "土", "日"];
+            let date_index_cell = createE("div", "date_index_cell", "", date.getDate()+"日("+days[j]+")");
             if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
             else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
             day_cell.appendChild(date_index_cell);
@@ -215,12 +216,7 @@ function display(events, task_renew_required){
             let date_new = new Date(events[i].date_start);
             let date_old = new Date(events[i-1].date_start);
             if(date_new.getDate() != date_old.getDate()){
-                let div = createE("div");
-                div.style.borderBottom = "solid 1px gray";
-                if(Math.floor(((date_new - date_old)/3600000 + date_old.getHours())/24) - (date_new.getDay()+6)%7 >= 1){
-                    div.style.borderBottom = "solid 2px gray";
-                }
-                day_cells[(date_start_0-date_start_monday)/86400000-1].appendChild(div);
+                day_cells[(date_start_0-date_start_monday)/86400000-1].style.borderBottomWidth="1px";
             }
         }        
     }

@@ -36,7 +36,7 @@ window.onload = function(){
     document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
     for(let i = 0; i < localStorage.length; i++){
         let text = JSON.parse(localStorage.getItem(i));
-        if(text)document.getElementById("urls").innerHTML += "<p style='font-size:16px'>" + text.name + " " + "<a href='" + text["url"] + "'>" + text["url"] + "</a></p>";
+        if(text)document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + text.url + "'>" + text.name + "</a></p>";
     }
 }
 

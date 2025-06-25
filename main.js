@@ -15,6 +15,8 @@ let date_today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let events;
 let url;
+let studytime=0, hobbytime=0;
+let isstudy=false, ishobby=false;
 
 const options = {
     'method' : 'post',
@@ -152,71 +154,73 @@ function display(events, task_renew_required){
         cell.appendChild(week_cell);
     }
     for(let i = 0; i < events.length; i++){
-        let date_start = new Date(events[i].date_start);
-        let date_end = new Date(events[i].date_end);
-        let date_cell = createE("div", "date_cell", "", date_string(date_start, "/", 0, true, true));
-        let event_cell = createE("div", "event_cell");
-        let event_container = createE("div", "event_container", "");
-        let dot = createE("p", "dot", "", "◆");
-        dot.style.margin = "0px"; dot.style.fontSize = "20px";
-        dot.style.width = "3%"; dot.style.alignSelf = "center"; dot.style.textAlign = "center";
-        if ((date_start.getDay()+6)%7 == 6)dot.style.color = "orangered";
-        else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
-        else dot.innerText = "";
-        event_container.appendChild(dot);
-        if(date_start.getFullYear() != date_end.getFullYear()){
-            date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
-        }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
-            date_cell.innerText += "\n～" + date_string(date_end, "/", 0, false, true);
-        }else if(date_start.getHours() != date_end.getHours()){
-            date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
-        }
-        let color = colorcode[events[i].color];
-        event_cell.innerText = events[i].title;
-        if(color == undefined)color = "#404040";
-        if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
-            event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
-            // console.log((date_start - date_today)/3600000);
-            if(task_renew_required){
-                if(events[i].color == 4 && date_start - date_today < 86400000){ // 現在日程の一日後より前の時刻の場合に
-                    task_renew(events[i], date_start, 4);
-                }
-                if(events[i].color == 1 && date_start - date_today < 172800000){ // 現在日程の2日後より前の時刻の場合に
-                    task_renew(events[i], date_start, 1);
-                }
-                if(events[i].color == 9 && date_start - date_today < 604800000){ // 現在日程の１週間後より前の時刻の場合に
-                    task_renew(events[i], date_start, 9);
+        if(events[i].color != 3){
+            let date_start = new Date(events[i].date_start);
+            let date_end = new Date(events[i].date_end);
+            let date_cell = createE("div", "date_cell", "", date_string(date_start, "/", 0, true, true));
+            let event_cell = createE("div", "event_cell");
+            let event_container = createE("div", "event_container", "");
+            let dot = createE("p", "dot", "", "◆");
+            dot.style.margin = "0px"; dot.style.fontSize = "20px";
+            dot.style.width = "3%"; dot.style.alignSelf = "center"; dot.style.textAlign = "center";
+            if ((date_start.getDay()+6)%7 == 6)dot.style.color = "orangered";
+            else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
+            else dot.innerText = "";
+            event_container.appendChild(dot);
+            if(date_start.getFullYear() != date_end.getFullYear()){
+                date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
+            }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
+                date_cell.innerText += "\n～" + date_string(date_end, "/", 0, false, true);
+            }else if(date_start.getHours() != date_end.getHours()){
+                date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
+            }
+            let color = colorcode[events[i].color];
+            event_cell.innerText = events[i].title;
+            if(color == undefined)color = "#404040";
+            if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
+                event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
+                // console.log((date_start - date_today)/3600000);
+                if(task_renew_required){
+                    if(events[i].color == 4 && date_start - date_today < 86400000){ // 現在日程の一日後より前の時刻の場合に
+                        task_renew(events[i], date_start, 4);
+                    }
+                    if(events[i].color == 1 && date_start - date_today < 172800000){ // 現在日程の2日後より前の時刻の場合に
+                        task_renew(events[i], date_start, 1);
+                    }
+                    if(events[i].color == 9 && date_start - date_today < 604800000){ // 現在日程の１週間後より前の時刻の場合に
+                        task_renew(events[i], date_start, 9);
+                    }
                 }
             }
-        }
-        else event_cell.style.color = color;
-        event_container.appendChild(date_cell);
-        event_container.appendChild(event_cell);
-        let delete_cell = createE("button", "delete_cell", "", "削除");
-        delete_cell.addEventListener('click', () => {
-            var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
-            if(result){
-                const data = {
-                    'type': "delete",
-                    'id': events[i].id
-                };
-                cell_pending(delete_cell)
-                delete_event(data, delete_cell);
-            }
-        });
-        event_container.appendChild(delete_cell);
-        let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
-        date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
-        date_start_monday.setHours(0);
-        let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
-        // console.log(date_start_monday);
-        // console.log((date_start_0-date_start_monday)/86400000);
-        day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
-        if(i){
-            let date_new = new Date(events[i].date_start);
-            let date_old = new Date(events[i-1].date_start);
-            if(date_new.getDate() != date_old.getDate()){
-                day_cells[(date_start_0-date_start_monday)/86400000-1].style.borderBottomWidth="1px";
+            else event_cell.style.color = color;
+            event_container.appendChild(date_cell);
+            event_container.appendChild(event_cell);
+            let delete_cell = createE("button", "delete_cell", "", "削除");
+            delete_cell.addEventListener('click', () => {
+                var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
+                if(result){
+                    const data = {
+                        'type': "delete",
+                        'id': events[i].id
+                    };
+                    cell_pending(delete_cell)
+                    delete_event(data, delete_cell);
+                }
+            });
+            event_container.appendChild(delete_cell);
+            let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
+            date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
+            date_start_monday.setHours(0);
+            let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
+            // console.log(date_start_monday);
+            // console.log((date_start_0-date_start_monday)/86400000);
+            day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
+            if(i){
+                let date_new = new Date(events[i].date_start);
+                let date_old = new Date(events[i-1].date_start);
+                if(date_new.getDate() != date_old.getDate()){
+                    day_cells[(date_start_0-date_start_monday)/86400000-1].style.borderBottomWidth="1px";
+                }
             }
         }        
     }
@@ -415,5 +419,62 @@ function db_operation(mode, storeName, received_data){
                 console.log("saved:"+received_data);
             }
         }
+    }
+}
+
+document.getElementById("studybutton").addEventListener('click', event => {
+    if(isstudy == false){
+        isstudy = true;
+        countup(studytime, "studytimer", false);
+    }
+    else{
+        isstudy = false;
+    }
+});
+
+document.getElementById("hobbybutton").addEventListener('click', event => {
+    if(ishobby == false){
+        ishobby = true;
+        countup(hobbytime, "hobbytimer", true);
+    }
+    else{
+        ishobby = false;
+    }
+});
+
+document.getElementById("studysend").addEventListener('click', event => {
+    console.log("study");
+    data = {
+        'type': 'post',
+        'title': "sssss"+(studytime).toString().padStart(5, "0"),
+        'date_start': date_today,
+        'date_end': date_today,
+        'color': 3,
+    };
+    post_event(data, false);
+});
+
+document.getElementById("hobbysend").addEventListener('click', event => {
+    console.log("hoby");
+    data = {
+        'type': 'post',
+        'title': "hhhhh"+(hobbytime).toString().padStart(5, "0"),
+        'date_start': date_today,
+        'date_end': date_today,
+        'color': 3,
+    };
+    post_event(data, false);
+});
+
+function countup(count, id, flag){
+    console.log("count", count, "id", id, "flag", flag)
+    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(1, "0")+":"+Math.floor(count/60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
+    if(!flag){
+        if(isstudy)setTimeout(()=>countup(count+1, id, flag), 1000);
+        else studytime = count;
+    }
+    else if(flag){
+        if(ishobby)setTimeout(()=>countup(count+1, id, flag), 1000);
+        else hobbytime = count;
     }
 }

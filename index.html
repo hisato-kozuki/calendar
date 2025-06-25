@@ -334,12 +334,28 @@
             </div>
         </form></div>
 
-        <form id="urlform" style="width: 60%;position: relative;left:20%;flex-direction: column;">
-            <p id="urls" style="height: 0px; visibility: hidden;font-size: 16px;"></p>
-            <input id="nameinput" type="text" name="name" style="visibility: hidden;" placeholder="名"/>
-            <input id="urlinput" type="url" name="url" style="visibility: hidden;" placeholder="url"/>
-            <button type="submit">送信</button>
-        </form>
+        <div style="display: flex;">
+            <form id="urlform" style="width: 60%;position: relative;flex-direction: column;">
+                <p id="urls" style="height: 0px; visibility: hidden;font-size: 16px;"></p>
+                <input id="nameinput" type="text" name="name" style="visibility: hidden;" placeholder="名"/>
+                <input id="urlinput" type="url" name="url" style="visibility: hidden;" placeholder="url"/>
+                <button type="submit">送信</button>
+            </form>
+            <div style="width: 35%;position: relative;display: flex; flex-direction: column;border: solid black 1px;margin: 12px;">                
+                <div style="height:50%;display: flex;justify-content: space-around;">
+                    <p id="studytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
+                    <p id="hobbytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
+                </div>
+                <div style="height:20%;display: flex;justify-content: space-around;">
+                    <button id="studybutton">勉強</button>
+                    <button id="hobbybutton">趣味</button>
+                </div>
+                <div style="height:20%;display: flex;justify-content: space-around;">
+                    <button id="studysend">送信</button>
+                    <button id="hobbysend">送信</button>
+                </div>
+            </div>
+        </div>
         <div style="display: flex;">
             <form id="form2" style="visibility: hidden;">
                 <input type="password" name="url" placeholder="urlを入力してください。"/>

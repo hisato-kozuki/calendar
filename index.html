@@ -306,63 +306,68 @@
         </div>
         <p id="p"></p>
         <div class="container" style="border-color: transparent">
-        <form id="form3">
-            <div style="align-content: center;">
-                開始:<input type="date" name="start" style="width: 35%"/>
-                終了:<input type="date" name="end" style="width: 35%"/>
-            </div>
-            <div>
-                <button id="getbutton" type="submit" class="getbutton">リロード</button>
-            </div>
-        </form>
-        <div><form id="form">
-            <div>
-                <p>タイトル:<input type="text" name="title" value=""/><select name="color">
-                    <option style="background-color:#404040" value="0">黒</option>
-                    <option style="background-color:#D50000" value="11">赤</option>
-                    <option style="background-color:#F6BF26" value="5">黄</option>
-                    <option style="background-color:#33B679" value="2">緑</option>
-                    <option style="background-color:#E67C73" value="4">ピンク</option>
-                    <option style="background-color:#7986CB" value="1">紫</option>
-                    <option style="background-color:#3F51B5" value="9">青</option>
-                </select></p>
-                <p>　　開始:<input type="datetime-local" name="start"/></p>
-                <p>　　終了:<input type="datetime-local" name="end"/><button id="date_default" class="autofill">上に同じ</button></p>
-            </div>
-            <div style="display: flex; flex-direction: column-reverse;">
-                <button id="postbutton" type="submit" style="height: 46px">送信</button>
-            </div>
-        </form></div>
+            <form id="form3">
+                <div style="align-content: center;">
+                    開始:<input type="date" name="start" style="width: 35%"/>
+                    終了:<input type="date" name="end" style="width: 35%"/>
+                </div>
+                <div>
+                    <button id="getbutton" type="submit" class="getbutton">リロード</button>
+                </div>
+            </form>
+            <div><form id="form">
+                <div>
+                    <p>タイトル:<input type="text" name="title" value=""/><select name="color">
+                        <option style="background-color:#404040" value="0">黒</option>
+                        <option style="background-color:#D50000" value="11">赤</option>
+                        <option style="background-color:#F6BF26" value="5">黄</option>
+                        <option style="background-color:#33B679" value="2">緑</option>
+                        <option style="background-color:#E67C73" value="4">ピンク</option>
+                        <option style="background-color:#7986CB" value="1">紫</option>
+                        <option style="background-color:#3F51B5" value="9">青</option>
+                    </select></p>
+                    <p>　　開始:<input type="datetime-local" name="start"/></p>
+                    <p>　　終了:<input type="datetime-local" name="end"/><button id="date_default" class="autofill">上に同じ</button></p>
+                </div>
+                <div style="display: flex; flex-direction: column-reverse;">
+                    <button id="postbutton" type="submit" style="height: 46px">送信</button>
+                </div>
+            </form></div>
 
-        <div style="display: flex;">
-            <form id="urlform" style="width: 60%;position: relative;flex-direction: column;">
-                <p id="urls" style="height: 0px; visibility: hidden;font-size: 16px;"></p>
-                <input id="nameinput" type="text" name="name" style="visibility: hidden;" placeholder="名"/>
-                <input id="urlinput" type="url" name="url" style="visibility: hidden;" placeholder="url"/>
-                <button type="submit">送信</button>
-            </form>
-            <div style="width: 35%;position: relative;display: flex; flex-direction: column;border: solid black 1px;margin: 12px;">                
-                <div style="height:50%;display: flex;justify-content: space-around;">
-                    <p id="studytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
-                    <p id="hobbytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
-                </div>
-                <div style="height:20%;display: flex;justify-content: space-around;">
-                    <button id="studybutton">勉強</button>
-                    <button id="hobbybutton">趣味</button>
-                </div>
-                <div style="height:20%;display: flex;justify-content: space-around;">
-                    <button id="studysend">送信</button>
-                    <button id="hobbysend">送信</button>
+            <div style="display: flex;">
+                <form id="urlform" style="width: 60%;position: relative;flex-direction: column;">
+                    <p id="urls" style="height: 0px; visibility: hidden;font-size: 16px;"></p>
+                    <input id="nameinput" type="text" name="name" style="visibility: hidden;" placeholder="名"/>
+                    <input id="urlinput" type="url" name="url" style="visibility: hidden;" placeholder="url"/>
+                    <button type="submit">送信</button>
+                </form>
+                <div style="width: 35%;position: relative;display: flex; flex-direction: column;border: solid black 1px;margin: 12px;">                
+                    <div style="height:50%;display: flex;justify-content: space-around;">
+                        <p id="studytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
+                        <p id="hobbytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
+                    </div>
+                    <div style="height:20%;display: flex;justify-content: space-around;">
+                        <button id="studybutton">勉強</button>
+                        <button id="hobbybutton">趣味</button>
+                    </div>
+                    <div style="height:20%;display: flex;justify-content: space-around;">
+                        <button id="studysend">送信</button>
+                        <button id="hobbysend">送信</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div style="display: flex;">
-            <form id="form2" style="visibility: hidden;">
-                <input type="password" name="url" placeholder="urlを入力してください。"/>
-                <button type="submit">送信</button>
-            </form>
-            <button id="urlbutton" onclick="document.getElementById('form2').style.visibility='visible';document.getElementById('urlbutton').style.visibility='hidden';">url更新</button>
-        </div>
+            <div style="display: flex;">
+                <p id="studyhistory" style="width:40%;display:none;border: solid black 1px;">勉強時間</p>
+                <p id="hobbyhistory" style="width:40%;display:none;border: solid black 1px;">趣味時間</p>
+                <button id="historybutton">履歴表示</button>
+            </div>
+            <div style="display: flex;">
+                <form id="form2" style="display:none;">
+                    <input type="password" name="url" placeholder="urlを入力してください。"/>
+                    <button type="submit">送信</button>
+                </form>
+                <button id="urlbutton" onclick="document.getElementById('form2').style.display='block';document.getElementById('urlbutton').style.visibility='hidden';">url更新</button>
+            </div>
         </div>
         <script src="main.js">
         </script>

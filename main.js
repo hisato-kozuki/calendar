@@ -27,13 +27,13 @@ const options = {
 };
 
 window.onload = function(){
-    urlget();
-    dbget();
     let text = date_string(date_today, "-", 0, true, true);
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
     document.getElementById("form3").start.value = date_string(date, "-", 0, true, false);
     document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
+    urlget();
+    dbget();
     for(let i = 0; i < localStorage.length; i++){
         let text = JSON.parse(localStorage.getItem(i));
         if(text)document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + text.url + "'>" + text.name + "</a></p>";
@@ -50,7 +50,7 @@ function date_string(date, separator, month_offset, year_required, hour_required
     return date_string;
 }
 
-function get_events(date_start, date_end){
+function get_events(date_start, date_end, no_display){
     //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
     if(date_start == undefined){
         date_start = new Date();
@@ -69,9 +69,11 @@ function get_events(date_start, date_end){
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
-        dbsave(received_data=JSON.parse(data));console.log("received_data", received_data);display(received_data, true);
-        document.getElementById("postbutton").innerText = "送信";
-        document.getElementById("getbutton").innerText = "完了";
+        if(no_display == undefined){
+            dbsave(received_data=JSON.parse(data));console.log("received_data", received_data);display(received_data, true);
+            document.getElementById("postbutton").innerText = "送信";
+            document.getElementById("getbutton").innerText = "完了";
+        }else count_history(data);
     })
     .catch(error => {
         console.log("reload not complete")
@@ -153,8 +155,10 @@ function display(events, task_renew_required){
         }
         cell.appendChild(week_cell);
     }
+    let skip = 0;
     for(let i = 0; i < events.length; i++){
         if(events[i].color != 3){
+            console.log(events[i].date_start)
             let date_start = new Date(events[i].date_start);
             let date_end = new Date(events[i].date_end);
             let date_cell = createE("div", "date_cell", "", date_string(date_start, "/", 0, true, true));
@@ -212,17 +216,18 @@ function display(events, task_renew_required){
             date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
             date_start_monday.setHours(0);
             let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
-            // console.log(date_start_monday);
-            // console.log((date_start_0-date_start_monday)/86400000);
+            console.log(date_start,date_start_monday);
+            console.log((date_start_0-date_start_monday)/86400000);
             day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
             if(i){
                 let date_new = new Date(events[i].date_start);
-                let date_old = new Date(events[i-1].date_start);
+                let date_old = new Date(events[i-1-skip].date_start);
                 if(date_new.getDate() != date_old.getDate()){
                     day_cells[(date_start_0-date_start_monday)/86400000-1].style.borderBottomWidth="1px";
                 }
             }
-        }        
+            skip = 0;
+        }else skip++;
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
@@ -443,7 +448,6 @@ document.getElementById("hobbybutton").addEventListener('click', event => {
 });
 
 document.getElementById("studysend").addEventListener('click', event => {
-    console.log("study");
     data = {
         'type': 'post',
         'title': "sssss"+(studytime).toString().padStart(5, "0"),
@@ -455,7 +459,6 @@ document.getElementById("studysend").addEventListener('click', event => {
 });
 
 document.getElementById("hobbysend").addEventListener('click', event => {
-    console.log("hoby");
     data = {
         'type': 'post',
         'title': "hhhhh"+(hobbytime).toString().padStart(5, "0"),
@@ -467,7 +470,6 @@ document.getElementById("hobbysend").addEventListener('click', event => {
 });
 
 function countup(count, id, flag){
-    console.log("count", count, "id", id, "flag", flag)
     document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(1, "0")+":"+Math.floor(count/60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
     if(!flag){
         if(isstudy)setTimeout(()=>countup(count+1, id, flag), 1000);
@@ -477,4 +479,41 @@ function countup(count, id, flag){
         if(ishobby)setTimeout(()=>countup(count+1, id, flag), 1000);
         else hobbytime = count;
     }
+}
+
+document.getElementById("historybutton").addEventListener('click', event => {
+    let history = [document.getElementById('studyhistory'), document.getElementById('hobbyhistory')];
+    if(history[0].style.display=='none'){
+        history[0].style.display = 'block';
+        history[1].style.display = 'block';
+        let date_old = new Date(date_today);
+        console.log("date_old",date_old)
+        date_old = new Date(date_today - 86400000);
+        console.log("date_old",date_old)
+        get_events(date_old, date_today, false);
+        date_old = new Date(date_today - 604800000);
+        get_events(date_old, date_today, false);
+        date_old.setDate(date_today.getMonth-1);
+        get_events(date_old, date_today, false);
+    }else{
+        history[0].style.display = 'none';
+        history[1].style.display = 'none';
+    }
+});
+
+function count_history(events){
+    let studytime = 0; hobbytime = 0;
+    for(let i = 0; i < events.length; i++){
+        if(events[i].color == 3){
+            if(events[i].title.slice(0, 5) === "sssss"){
+                studytime += Number(events[i].title.slice(5, 10));
+            }
+            if(events[i].title.slice(0, 5) === "hhhhh"){
+                hobbytime += Number(events[i].title.slice(5, 10));
+            }
+        }
+    }
+    console.log("Aaaa")
+    document.getElementById('studyhistory').innerText += "\n"+studytime/3600+":"+studytime/60+","+studytime%60;
+    document.getElementById('hobbyhistory').innerText += "\n"+hobbytime/3600+":"+hobbytime/60+","+hobbytime%60;
 }

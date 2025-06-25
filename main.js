@@ -65,15 +65,15 @@ function get_events(date_start, date_end, no_display){
         'date_end': date_end
     };
     options.body=JSON.stringify(data);
-    let received_data;
     fetch(url, options)
     .then(response => response.text())
     .then(data => {
+        let received_data=JSON.parse(data);
         if(no_display == undefined){
-            dbsave(received_data=JSON.parse(data));console.log("received_data", received_data);display(received_data, true);
+            dbsave(received_data);console.log("received_data", received_data);display(received_data, true);
             document.getElementById("postbutton").innerText = "送信";
             document.getElementById("getbutton").innerText = "完了";
-        }else count_history(data);
+        }else count_history(received_data);
     })
     .catch(error => {
         console.log("reload not complete")
@@ -219,7 +219,7 @@ function display(events, task_renew_required){
             console.log(date_start,date_start_monday);
             console.log((date_start_0-date_start_monday)/86400000);
             day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
-            if(i){
+            if(i-skip){
                 let date_new = new Date(events[i].date_start);
                 let date_old = new Date(events[i-1-skip].date_start);
                 if(date_new.getDate() != date_old.getDate()){
@@ -430,7 +430,8 @@ function db_operation(mode, storeName, received_data){
 document.getElementById("studybutton").addEventListener('click', event => {
     if(isstudy == false){
         isstudy = true;
-        countup(studytime, "studytimer", false);
+        let start_date = new Date();
+        countup(studytime, start_date, "studytimer", false);
     }
     else{
         isstudy = false;
@@ -440,7 +441,8 @@ document.getElementById("studybutton").addEventListener('click', event => {
 document.getElementById("hobbybutton").addEventListener('click', event => {
     if(ishobby == false){
         ishobby = true;
-        countup(hobbytime, "hobbytimer", true);
+        let start_date = new Date();
+        countup(hobbytime, start_date, "hobbytimer", true);
     }
     else{
         ishobby = false;
@@ -469,14 +471,16 @@ document.getElementById("hobbysend").addEventListener('click', event => {
     post_event(data, false);
 });
 
-function countup(count, id, flag){
+function countup(former_count, start_date, id, flag){
+    let date = new Date();
+    let count = former_count + Math.floor((date - start_date)/1000);
     document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(1, "0")+":"+Math.floor(count/60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
     if(!flag){
-        if(isstudy)setTimeout(()=>countup(count+1, id, flag), 1000);
+        if(isstudy)setTimeout(()=>countup(former_count, start_date, id, flag), 1000);
         else studytime = count;
     }
     else if(flag){
-        if(ishobby)setTimeout(()=>countup(count+1, id, flag), 1000);
+        if(ishobby)setTimeout(()=>countup(former_count, start_date, id, flag), 1000);
         else hobbytime = count;
     }
 }
@@ -487,13 +491,11 @@ document.getElementById("historybutton").addEventListener('click', event => {
         history[0].style.display = 'block';
         history[1].style.display = 'block';
         let date_old = new Date(date_today);
-        console.log("date_old",date_old)
         date_old = new Date(date_today - 86400000);
-        console.log("date_old",date_old)
         get_events(date_old, date_today, false);
         date_old = new Date(date_today - 604800000);
         get_events(date_old, date_today, false);
-        date_old.setDate(date_today.getMonth-1);
+        date_old.setMonth(date_today.getMonth()-1);
         get_events(date_old, date_today, false);
     }else{
         history[0].style.display = 'none';
@@ -513,7 +515,6 @@ function count_history(events){
             }
         }
     }
-    console.log("Aaaa")
-    document.getElementById('studyhistory').innerText += "\n"+studytime/3600+":"+studytime/60+","+studytime%60;
-    document.getElementById('hobbyhistory').innerText += "\n"+hobbytime/3600+":"+hobbytime/60+","+hobbytime%60;
+    document.getElementById('studyhistory').innerText += "\n"+Math.floor(studytime/3600)+":"+Math.floor(studytime/60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0);
+    document.getElementById('hobbyhistory').innerText += "\n"+Math.floor(hobbytime/3600)+":"+Math.floor(hobbytime/60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0);
 }

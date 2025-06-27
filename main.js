@@ -15,6 +15,7 @@ let date_today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let events;
 let url;
+const days = ["月", "火", "水", "木", "金", "土", "日"];
 let studytime=0, hobbytime=0;
 let isstudy=false, ishobby=false;
 
@@ -38,6 +39,7 @@ window.onload = function(){
         let text = JSON.parse(localStorage.getItem(i));
         if(text)document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + text.url + "'>" + text.name + "</a></p>";
     }
+    countup(true, true);countup(false, true);
 }
 
 function date_string(date, separator, month_offset, year_required, hour_required){
@@ -144,7 +146,6 @@ function display(events, task_renew_required){
             // let date_start = new Date(events[i].date_start);
             // let date_end = new Date(events[i].date_end);
             let day_cell = createE("div", "day_cell", "");
-            let days = ["月", "火", "水", "木", "金", "土", "日"];
             let date_index_cell = createE("div", "date_index_cell", "", date.getDate()+"日("+days[j]+")");
             if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
             else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
@@ -164,12 +165,11 @@ function display(events, task_renew_required){
             let date_cell = createE("div", "date_cell", "", date_string(date_start, "/", 0, true, true));
             let event_cell = createE("div", "event_cell");
             let event_container = createE("div", "event_container", "");
-            let dot = createE("p", "dot", "", "◆");
+            let dot = createE("p", "dot", "", days[(date_start.getDay()+6)%7]);
             dot.style.margin = "0px"; dot.style.fontSize = "20px";
             dot.style.width = "3%"; dot.style.alignSelf = "center"; dot.style.textAlign = "center";
             if ((date_start.getDay()+6)%7 == 6)dot.style.color = "orangered";
             else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
-            else dot.innerText = "";
             event_container.appendChild(dot);
             if(date_start.getFullYear() != date_end.getFullYear()){
                 date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
@@ -222,6 +222,7 @@ function display(events, task_renew_required){
             if(i-skip){
                 let date_new = new Date(events[i].date_start);
                 let date_old = new Date(events[i-1-skip].date_start);
+                console.log(i);
                 if(date_new.getDate() != date_old.getDate()){
                     day_cells[(date_start_0-date_start_monday)/86400000-1].style.borderBottomWidth="1px";
                 }
@@ -428,61 +429,80 @@ function db_operation(mode, storeName, received_data){
 }
 
 document.getElementById("studybutton").addEventListener('click', event => {
-    if(isstudy == false){
-        isstudy = true;
-        let start_date = new Date();
-        countup(studytime, start_date, "studytimer", false);
+    if(localStorage.getItem("isstudy") != 1){
+        localStorage.setItem("isstudy", 1);
+        localStorage.setItem("study_start_date", new Date());
+        countup(false);
     }
     else{
-        isstudy = false;
+        localStorage.setItem("isstudy", 0);
     }
 });
 
 document.getElementById("hobbybutton").addEventListener('click', event => {
-    if(ishobby == false){
-        ishobby = true;
-        let start_date = new Date();
-        countup(hobbytime, start_date, "hobbytimer", true);
+    if(localStorage.getItem("ishobby") != 1){
+        localStorage.setItem("ishobby", 1);
+        localStorage.setItem("hobby_start_date", new Date());
+        countup(true);
     }
     else{
-        ishobby = false;
+        localStorage.setItem("ishobby", 0);
     }
 });
 
 document.getElementById("studysend").addEventListener('click', event => {
     data = {
         'type': 'post',
-        'title': "sssss"+(studytime).toString().padStart(5, "0"),
+        'title': "sssss"+(localStorage.getItem("studytime")).toString().padStart(5, "0"),
         'date_start': date_today,
         'date_end': date_today,
         'color': 3,
     };
+    localStorage.setItem("studytime", 0);
     post_event(data, false);
 });
 
 document.getElementById("hobbysend").addEventListener('click', event => {
     data = {
         'type': 'post',
-        'title': "hhhhh"+(hobbytime).toString().padStart(5, "0"),
+        'title': "hhhhh"+(localStorage.getItem("hobbytime")).toString().padStart(5, "0"),
         'date_start': date_today,
         'date_end': date_today,
         'color': 3,
     };
+    localStorage.setItem("hobbytime", 0);
     post_event(data, false);
 });
 
-function countup(former_count, start_date, id, flag){
+document.getElementById("clear").addEventListener('click', event => {
+    localStorage.setItem("studytime", 0);
+    localStorage.setItem("hobbytime", 0);
+    document.getElementById("studytimer").innerText=0;
+    document.getElementById("hobbytimer").innerText=0;
+});
+
+function countup(flag, no_save){
     let date = new Date();
-    let count = former_count + Math.floor((date - start_date)/1000);
-    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(1, "0")+":"+Math.floor(count/60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
+    let count;
+    let id;
+    let date_start;
     if(!flag){
-        if(isstudy)setTimeout(()=>countup(former_count, start_date, id, flag), 1000);
-        else studytime = count;
+        id = "studytimer";
+        date_start = new Date(localStorage.getItem("study_start_date"));
+        count = Number(localStorage.getItem("studytime"));
+        if(no_save == undefined)count += Math.floor((date - date_start)/1000);
+        if(localStorage.getItem("isstudy") != 0)setTimeout(()=>countup(flag), 1000);
+        else localStorage.setItem("studytime", count);
     }
-    else if(flag){
-        if(ishobby)setTimeout(()=>countup(former_count, start_date, id, flag), 1000);
-        else hobbytime = count;
+    else {
+        id = "hobbytimer";
+        date_start = new Date(localStorage.getItem("hobby_start_date"));
+        count = Number(localStorage.getItem("hobbytime"));
+        if(no_save == undefined)count += Math.floor((date - date_start)/1000);
+        if(localStorage.getItem("ishobby") != 0)setTimeout(()=>countup(flag), 1000);
+        else localStorage.setItem("hobbytime", count);
     }
+    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(1, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
 }
 
 document.getElementById("historybutton").addEventListener('click', event => {
@@ -515,6 +535,6 @@ function count_history(events){
             }
         }
     }
-    document.getElementById('studyhistory').innerText += "\n"+Math.floor(studytime/3600)+":"+Math.floor(studytime/60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0);
-    document.getElementById('hobbyhistory').innerText += "\n"+Math.floor(hobbytime/3600)+":"+Math.floor(hobbytime/60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0);
+    document.getElementById('studyhistory').innerText += "\n"+Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0);
+    document.getElementById('hobbyhistory').innerText += "\n"+Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0);
 }

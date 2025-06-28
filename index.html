@@ -98,6 +98,17 @@
                     font-size:16px;
                     background: white;
                 }
+                .grid{
+                    width: 50%;
+                    display: none;
+                    grid-template-columns: 20% repeat(2, 40%);
+                    grid-template-rows: repeat(4, 1fr);
+                }
+                .grid div{
+                    padding: 5px;
+                    text-align: center;
+                    border: solid black 1px;
+                }
             }
             @media (max-width:1024px) and (orientation: portrait){
                 .title{
@@ -188,6 +199,17 @@
                 .autofill{
                     font-size:20px;
                     background: white;
+                }
+                .grid{
+                    width: 50%;
+                    display: none;
+                    grid-template-columns: 20% repeat(2, 40%);
+                    grid-template-rows: repeat(4, 1fr);
+                }
+                .grid div{
+                    padding: 3px;
+                    text-align: center;
+                    border: solid black 1px;
                 }
             }
             @media (max-width:1024px) and (orientation: landscape){
@@ -294,8 +316,18 @@
                     font-size:16px;
                     background: white;
                 }
+                .grid{
+                    width: 50%;
+                    display: none;
+                    grid-template-columns: 20% repeat(2, 40%);
+                    grid-template-rows: repeat(4, 1fr);
+                }
+                .grid div{
+                    padding: 3px;
+                    text-align: center;
+                    border: solid black 1px;
+                }
             }
-            @media (max-width:1024px) and (orientation: landscape){}
         </style>
     </head>
     <body>
@@ -360,8 +392,11 @@
                 </div>
             </div>
             <div style="display: flex;">
-                <p id="studyhistory" style="width:40%;display:none;border: solid black 1px;">勉強時間</p>
-                <p id="hobbyhistory" style="width:40%;display:none;border: solid black 1px;">趣味時間</p>
+                <div class="grid">
+                    <div id="studyhistory" style="grid-column: 2; grid-row: 1;">勉強時間</div>
+                    <div id="hobbyhistory" style="grid-column: 3; grid-row: 1;">趣味時間</div>
+                    <div style="grid-column: 1; grid-row: 2;">今日</div><div style="grid-column: 1; grid-row: 3;">昨日</div><div style="grid-column: 1; grid-row: 4;">一週間</div>
+                </div>
                 <button id="historybutton">履歴表示</button>
             </div>
             <div style="display: flex;">

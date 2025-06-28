@@ -52,35 +52,36 @@ function date_string(date, separator, month_offset, year_required, hour_required
     return date_string;
 }
 
-function get_events(date_start, date_end, no_display){
-    //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
-    if(date_start == undefined){
-        date_start = new Date();
-        date_end =  new Date();
-        date_start.setDate(date_start.getDate()-1);
-        date_start.setHours(0);
-        date_end.setMonth(date_end.getMonth()+2);
-    }
-    const data = {
-        'type': "get",
-        'date_start': date_start,
-        'date_end': date_end
-    };
-    options.body=JSON.stringify(data);
-    fetch(url, options)
-    .then(response => response.text())
-    .then(data => {
-        let received_data=JSON.parse(data);
-        if(no_display == undefined){
-            dbsave(received_data);console.log("received_data", received_data);display(received_data, true);
+function get_events(date_start, date_end){
+    return new Promise((resolve, reject) => {
+            //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
+        if(date_start == undefined){
+            date_start = new Date();
+            date_end =  new Date();
+            date_start.setDate(date_start.getDate()-1);
+            date_start.setHours(0);
+            date_end.setMonth(date_end.getMonth()+2);
+        }
+        const data = {
+            'type': "get",
+            'date_start': date_start,
+            'date_end': date_end
+        };
+        options.body=JSON.stringify(data);
+        fetch(url, options)
+        .then(response => response.text())
+        .then(data => {
+            let received_data=JSON.parse(data);
             document.getElementById("postbutton").innerText = "送信";
             document.getElementById("getbutton").innerText = "完了";
-        }else count_history(received_data);
-    })
-    .catch(error => {
-        console.log("reload not complete")
-        console.error("Error:", error);
-        document.getElementById("getbutton").innerText = "Error";
+            resolve(received_data);
+        })
+        .catch(error => {
+            console.log("reload not complete")
+            console.error("Error:", error);
+            document.getElementById("getbutton").innerText = "Error";
+            reject(error);
+        });
     });
 }
 
@@ -95,7 +96,7 @@ function post_event(data, get_required){
         // console.log(data);
         if(get_required){
             cell_pending(document.getElementById("getbutton"), "getbutton");
-            get_events();
+            get_events().then((data)=>{display(data, true);dbsave(data);});
             document.getElementById("postbutton").innerText = "完了";
         } else document.getElementById("postbutton").innerText = "送信";
     })
@@ -298,7 +299,7 @@ document.getElementById("form2").addEventListener('submit', event => {
     url=document.getElementById("form2").url.value;
     document.getElementById("form2").style.visibility="hidden";
     urlsave(url);
-    get_events();
+    get_events().then((data)=>{display(data, true);dbsave(data);});
 });
 
 document.getElementById("form3").addEventListener('submit', event => {
@@ -308,7 +309,7 @@ document.getElementById("form3").addEventListener('submit', event => {
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     let button = document.getElementById("getbutton");
     if(button.innerText == "リロード"){
-        get_events(date_start, date_end);
+        get_events(date_start, date_end).then((data)=>{display(data, true);dbsave(data);});
         cell_pending(button, "getbutton");
     }
 });
@@ -399,7 +400,7 @@ function db_operation(mode, storeName, received_data){
                         url = stored_url;
                         console.log("stored_url",url);
                         cell_pending(document.getElementById("getbutton"), "getbutton");
-                        get_events();
+                        get_events().then((data)=>{display(data, true);dbsave(data);});
                     }
                 }else{
                     if(storeName=="url")document.getElementById("form2").style.visibility="visible";
@@ -506,24 +507,20 @@ function countup(flag, no_save){
 }
 
 document.getElementById("historybutton").addEventListener('click', event => {
-    let history = [document.getElementById('studyhistory'), document.getElementById('hobbyhistory')];
-    if(history[0].style.display=='none'){
-        history[0].style.display = 'block';
-        history[1].style.display = 'block';
-        let date_old = new Date(date_today);
-        date_old = new Date(date_today - 86400000);
-        get_events(date_old, date_today, false);
+    let history = document.getElementsByClassName('grid')[0];
+    if(history.style.display != 'grid'){
+        history.style.display = 'grid';
+        get_events(date_today, date, false).then((data)=>count_history(data, 2));
+        let date_old = new Date(date_today - 86400000);
+        get_events(date_old, date_today, false).then((data)=>count_history(data, 3));
         date_old = new Date(date_today - 604800000);
-        get_events(date_old, date_today, false);
-        date_old.setMonth(date_today.getMonth()-1);
-        get_events(date_old, date_today, false);
+        get_events(date_old, date_today, false).then((data)=>count_history(data, 4));
     }else{
-        history[0].style.display = 'none';
-        history[1].style.display = 'none';
+        history.style.display = 'none';
     }
 });
 
-function count_history(events){
+function count_history(events, row){
     let studytime = 0; hobbytime = 0;
     for(let i = 0; i < events.length; i++){
         if(events[i].color == 3){
@@ -535,6 +532,12 @@ function count_history(events){
             }
         }
     }
-    document.getElementById('studyhistory').innerText += "\n"+Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0);
-    document.getElementById('hobbyhistory').innerText += "\n"+Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0);
+    let studyhistory = createE("div", "", "", Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0));
+    studyhistory.style.gridRow = row;
+    studyhistory.style.gridColumn = 2;
+    let hobbyhistory = createE("div", "", "", Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0));
+    hobbyhistory.style.gridRow = row;
+    hobbyhistory.style.gridColumn = 3;
+    document.getElementsByClassName('grid')[0].appendChild(hobbyhistory);
+    document.getElementsByClassName('grid')[0].appendChild(studyhistory);
 }

@@ -86,24 +86,27 @@ function get_events(date_start, date_end){
 }
 
 function post_event(data, get_required){
-    //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
-    let received_data;
-    options.body=JSON.stringify(data);
+    return new Promise((resolve, reject) => {
+        //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
+        let received_data;
+        options.body=JSON.stringify(data);
 
-    fetch(url, options)
-    .then(response => response.text())
-    .then(data => {
-        // console.log(data);
-        if(get_required){
-            cell_pending(document.getElementById("getbutton"), "getbutton");
-            get_events().then((data)=>{display(data, true);dbsave(data);});
-            document.getElementById("postbutton").innerText = "完了";
-        } else document.getElementById("postbutton").innerText = "送信";
+        fetch(url, options)
+        .then(response => response.text())
+        .then(data => {
+            // console.log(data);
+            resolve(true);
+            if(get_required){
+                cell_pending(document.getElementById("getbutton"), "getbutton");
+                get_events().then((data)=>{display(data, true);dbsave(data);});
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            reject(false);
+            document.getElementById("postbutton").innerText = "Error";
+        });
     })
-    .catch(error => {
-        console.error("Error:", error);
-        document.getElementById("postbutton").innerText = "Error";
-    });
 }
 
 function delete_event(data, delete_cell){
@@ -257,7 +260,10 @@ function task_renew(event_data, date, color){
     };
     if(data.title != ""){
         document.getElementById("postbutton").innerText = "……";
-        post_event(data, 0);
+        post_event(data, 0).then((data) => {
+            if(data)document.getElementById("postbutton").innerText = "完了";
+            else document.getElementById("postbutton").innerText = "Error";
+        });
     }
 }
 
@@ -289,7 +295,10 @@ document.getElementById("form").addEventListener('submit', (event) => {
     };
     if(data.title != "" && button.innerText == "送信"){
         cell_pending(button);
-        post_event(data, 1);
+        post_event(data, 1).then((data) => {
+            if(data)document.getElementById("postbutton").innerText = "完了";
+            else document.getElementById("postbutton").innerText = "Error";
+        });
     }
 });
 
@@ -452,27 +461,43 @@ document.getElementById("hobbybutton").addEventListener('click', event => {
 });
 
 document.getElementById("studysend").addEventListener('click', event => {
-    data = {
-        'type': 'post',
-        'title': "sssss"+(localStorage.getItem("studytime")).toString().padStart(5, "0"),
-        'date_start': date_today,
-        'date_end': date_today,
-        'color': 3,
-    };
-    localStorage.setItem("studytime", 0);
-    post_event(data, false);
+    let cell = document.getElementById("studysend");
+    if(cell.innerText == "完了")cell.innerText = "送信";
+    else{
+        data = {
+            'type': 'post',
+            'title': "sssss"+(localStorage.getItem("studytime")).toString().padStart(5, "0"),
+            'date_start': date_today,
+            'date_end': date_today,
+            'color': 3,
+        };
+        localStorage.setItem("studytime", 0);
+        post_event(data, false).then((data) => {
+            if(data)cell.innerText = "完了";
+            else cell.innerText = "Error";
+        });
+        cell_pending(cell);
+    }
 });
 
 document.getElementById("hobbysend").addEventListener('click', event => {
-    data = {
-        'type': 'post',
-        'title': "hhhhh"+(localStorage.getItem("hobbytime")).toString().padStart(5, "0"),
-        'date_start': date_today,
-        'date_end': date_today,
-        'color': 3,
-    };
-    localStorage.setItem("hobbytime", 0);
-    post_event(data, false);
+    let cell = document.getElementById("hobbysend");
+    if(cell.innerText == "完了")cell.innerText = "送信";
+    else{
+        data = {
+            'type': 'post',
+            'title': "hhhhh"+(localStorage.getItem("hobbytime")).toString().padStart(5, "0"),
+            'date_start': date_today,
+            'date_end': date_today,
+            'color': 3,
+        };
+        localStorage.setItem("hobbytime", 0);
+        post_event(data, false).then((data) => {
+            if(data)cell.innerText = "完了";
+            else cell.innerText = "Error";
+        });
+        cell_pending(cell);
+    }
 });
 
 document.getElementById("clear").addEventListener('click', event => {

@@ -15,6 +15,7 @@ let date_today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let events;
 let url;
+let links = {};//よく使うサイトのリンク
 const days = ["月", "火", "水", "木", "金", "土", "日"];
 let studytime=0, hobbytime=0;
 let isstudy=false, ishobby=false;
@@ -35,9 +36,12 @@ window.onload = function(){
     document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
     urlget();
     dbget();
-    for(let i = 0; i < localStorage.length; i++){
-        let text = JSON.parse(localStorage.getItem(i));
-        if(text)document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + text.url + "'>" + text.name + "</a></p>";
+    if(localStorage.getItem("links")){
+        links = JSON.parse(localStorage.getItem("links"));
+        let key = Object.keys(links);
+        for(let i = 0; i < key.length; i++){
+            document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + links[key[i]] + "'>" + key[i] + "</a></p>";
+        }
     }
     countup(true, true);countup(false, true);
 }
@@ -335,19 +339,22 @@ document.getElementById("date_default").addEventListener('click', event => {
 document.getElementById("urlform").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
-    if(document.getElementById("urls").style.visibility == "hidden"){
+    if(document.getElementById("urlformbutton").innerText=="表示"){
         document.getElementById("urls").style.visibility = "visible";
         document.getElementById("urls").style.height = "fit-content";
         document.getElementById("nameinput").style.visibility = "visible";
         document.getElementById("urlinput").style.visibility = "visible";
+        document.getElementById("urlformbutton").innerText="登録";
     }
-    else{
-        let data = {
-            "name": document.getElementById("urlform").name.value,
-            "url": document.getElementById("urlform").url.value
+    else if(document.getElementById("urlformbutton").innerText=="登録"){
+        links[document.getElementById("urlform").name.value] = document.getElementById("urlform").url.value;
+        localStorage.setItem("links", JSON.stringify(links));
+        document.getElementById("urlformbutton").innerText="完了";
+        document.getElementById("urls").innerHTML = "";
+        for(let i = 0; i < key.length; i++){
+            document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + links[key[i]] + "'>" + key[i] + "</a></p>";
         }
-        localStorage.setItem(localStorage.length, JSON.stringify(data));
-    }
+    }else document.getElementById("urlformbutton").innerText="登録";
 });
 
 function dbget(){

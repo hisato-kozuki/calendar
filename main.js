@@ -146,7 +146,8 @@ function display(events, task_renew_required){
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     date_start.setDate(date_start.getDate()-(date_start.getDay()+5)%7-1);
     date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
-    let day_cells = new Array((date_end-date_start)/86400000);
+    let div1s = new Array((date_end-date_start)/86400000);
+    let div2s = new Array((date_end-date_start)/86400000);
     for(let date_monday = date_start, i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
         let week_cell = createE("div", "week_cell", "");
         let date = new Date(date_monday);
@@ -154,12 +155,21 @@ function display(events, task_renew_required){
             // let date_start = new Date(events[i].date_start);
             // let date_end = new Date(events[i].date_end);
             let day_cell = createE("div", "day_cell", "");
-            let date_index_cell = createE("div", "date_index_cell", "", date.getDate()+"日("+days[j]+")");
+            let date_index_cell = createE("div", "date_index_cell", "", date.getMonth()+1+"/"+date.getDate()+"("+days[j]+")");
             if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
             else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
+            let div0 = createE("div", "div");
+            let div1 = createE("div", "div");
+            div1.style.display = "none";
+            let div2 = createE("div", "div");
+            div2.style.width = "100%";
             day_cell.appendChild(date_index_cell);
-            week_cell.appendChild(day_cell);
-            day_cells[7*i+j] = day_cell;
+            day_cell.appendChild(div2);
+            div1.appendChild(day_cell);
+            div0.appendChild(div1);
+            week_cell.appendChild(div0);
+            div1s[7*i+j] = div1;
+            div2s[7*i+j] = div2;
             date.setDate(date.getDate()+1);
         }
         cell.appendChild(week_cell);
@@ -170,15 +180,9 @@ function display(events, task_renew_required){
             console.log(events[i].date_start)
             let date_start = new Date(events[i].date_start);
             let date_end = new Date(events[i].date_end);
-            let date_cell = createE("div", "date_cell", "", date_string(date_start, "/", 0, true, true));
+            let date_cell = createE("div", "date_cell", "", date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0"));
             let event_cell = createE("div", "event_cell");
             let event_container = createE("div", "event_container", "");
-            let dot = createE("p", "dot", "", days[(date_start.getDay()+6)%7]);
-            dot.style.margin = "0px"; dot.style.fontSize = "20px";
-            dot.style.width = "3%"; dot.style.alignSelf = "center"; dot.style.textAlign = "center";
-            if ((date_start.getDay()+6)%7 == 6)dot.style.color = "orangered";
-            else if ((date_start.getDay()+6)%7 == 5)dot.style.color = "darkturquoise";
-            event_container.appendChild(dot);
             if(date_start.getFullYear() != date_end.getFullYear()){
                 date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
             }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
@@ -226,15 +230,9 @@ function display(events, task_renew_required){
             let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
             console.log(date_start,date_start_monday);
             console.log((date_start_0-date_start_monday)/86400000);
-            day_cells[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
-            if(i-skip){
-                let date_new = new Date(events[i].date_start);
-                let date_old = new Date(events[i-1-skip].date_start);
-                console.log(i);
-                if(date_new.getDate() != date_old.getDate()){
-                    day_cells[(date_start_0-date_start_monday)/86400000-1].style.borderBottomWidth="1px";
-                }
-            }
+            event_container.style.top = (date_start.getHours()/24*350+30)+"px";
+            div2s[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
+            div1s[(date_start_0-date_start_monday)/86400000].style.display = "flex";
             skip = 0;
         }else skip++;
     }
@@ -422,7 +420,9 @@ function db_operation(mode, storeName, received_data){
                         let date_old = new Date(date_today - 86400000);
                         get_events(date_old, date_today, false).then((data)=>count_history(data, 3));
                         date_old = new Date(date_today - 604800000);
-                        get_events(date_old, date_today, false).then((data)=>count_history(data, 4));
+                        get_events(date_old, date_today, false).then((data)=>{
+                            count_history(data, 4);document.getElementById("getbutton").innerText="リロード";
+                        });
                     }
                 }else{
                     if(storeName=="url")document.getElementById("form2").style.visibility="visible";

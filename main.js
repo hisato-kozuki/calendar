@@ -351,6 +351,7 @@ document.getElementById("urlform").addEventListener('submit', event => {
         localStorage.setItem("links", JSON.stringify(links));
         document.getElementById("urlformbutton").innerText="完了";
         document.getElementById("urls").innerHTML = "";
+        let key = Object.keys(links);
         for(let i = 0; i < key.length; i++){
             document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + links[key[i]] + "'>" + key[i] + "</a></p>";
         }

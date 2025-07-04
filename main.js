@@ -410,6 +410,11 @@ function db_operation(mode, storeName, received_data){
                         console.log("stored_url",url);
                         cell_pending(document.getElementById("getbutton"), "getbutton");
                         get_events().then((data)=>{display(data, true);dbsave(data);});
+                        get_events(date_today, date, false).then((data)=>count_history(data, 2));
+                        let date_old = new Date(date_today - 86400000);
+                        get_events(date_old, date_today, false).then((data)=>count_history(data, 3));
+                        date_old = new Date(date_today - 604800000);
+                        get_events(date_old, date_today, false).then((data)=>count_history(data, 4));
                     }
                 }else{
                     if(storeName=="url")document.getElementById("form2").style.visibility="visible";
@@ -535,11 +540,6 @@ document.getElementById("historybutton").addEventListener('click', event => {
     let history = document.getElementsByClassName('grid')[0];
     if(history.style.display != 'grid'){
         history.style.display = 'grid';
-        get_events(date_today, date, false).then((data)=>count_history(data, 2));
-        let date_old = new Date(date_today - 86400000);
-        get_events(date_old, date_today, false).then((data)=>count_history(data, 3));
-        date_old = new Date(date_today - 604800000);
-        get_events(date_old, date_today, false).then((data)=>count_history(data, 4));
     }else{
         history.style.display = 'none';
     }

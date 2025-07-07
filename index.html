@@ -87,8 +87,7 @@
                     border: solid 1px black;
                     font-size: 20px;
                     padding: 12px;
-                    margin: 12px;
-                    margin-left: 0px;
+                    margin-top: 12px;
                 }
                 .getbutton{
                     width: 140px;
@@ -119,7 +118,7 @@
                     position: relative;
                     left: 5%;
                     border: solid 2px darkred;
-                    font-size: 40px;
+                    font-size: 20px;
                     text-align: center;
                 }
                 .container{
@@ -141,7 +140,7 @@
                     border-bottom: solid 1px gray;
                 }
                 .date_index_cell{
-                    font-size: 20px;
+                    font-size: 12px;
                     width: 15%;
                 }
                 .event_container{
@@ -150,49 +149,47 @@
                 .date_cell{
                     width: 38%;
                     position: relative;
-                    font-size: 28px;
+                    font-size: 12px;
                     align-content: center;
                 }
                 .event_cell{
                     width: 52%;
                     position: relative;
-                    font-size: 32px;
+                    font-size: 12px;
                     border-left: solid 2px gray;
                     align-content: center;
                     padding-left: 2px;
                 }
                 .delete_cell{
                     width: 7%;
-                    height: 50px;
                     align-self: center;
-                    font-size:28px;
+                    font-size:9px;
                     padding: 0px;
-                    margin: 4px;
+                    margin: 1px;
                 }
                 p{
-                    font-size: 28px;
+                    font-size: 14px;
                 }
                 input{
-                    font-size: 28px;
+                    font-size: 14px;
                 }
                 button{
                     height: fit-content;
-                    font-size: 28px;
+                    font-size: 14px;
                     margin:0px;
                 }
                 select{
-                    font-size: 28px;
+                    font-size: 14px;
                 }
                 option{
-                    font-size: 20px;
+                    font-size: 10px;
                 }
                 form{
                     display: flex;
                     border: solid 1px black;
-                    font-size: 28px;
+                    font-size: 14px;
                     padding: 12px;
-                    margin: 12px;
-                    margin-left: 0px;
+                    margin-top: 12px;
                 }
                 .getbutton{
                     width: 140px;
@@ -201,7 +198,7 @@
                     margin-bottom: 0px;
                 }
                 .autofill{
-                    font-size:20px;
+                    font-size:14px;
                     background: white;
                 }
                 .grid{
@@ -314,8 +311,7 @@
                     border: solid 1px black;
                     font-size: 20px;
                     padding: 12px;
-                    margin: 12px;
-                    margin-left: 0px;
+                    margin-top: 12px;
                 }
                 .getbutton{
                     width: 140px;
@@ -380,24 +376,24 @@
             <div style="display: flex;">
                 <form id="urlform" style="width: 60%;position: relative;flex-direction: column;">
                     <p id="urls" style="height: 0px; visibility: hidden;font-size: 16px;"></p>
-                    <input id="nameinput" type="text" name="name" style="visibility: hidden;" placeholder="名"/>
-                    <input id="urlinput" type="url" name="url" style="visibility: hidden;" placeholder="url"/>
-                    <button id="urlformbutton" type="submit">表示</button>
+                    <input id="nameinput" style="width: 90%;" type="text" name="name" style="visibility: hidden;" placeholder="名"/>
+                    <input id="urlinput" style="width: 90%;" type="url" name="url" style="visibility: hidden;" placeholder="url"/>
+                    <button id="urlformbutton" style="width: 90%;" type="submit">表示</button>
                 </form>
-                <div style="width: 35%;position: relative;display: flex; flex-direction: column;border: solid black 1px;margin: 12px;">                
+                <div style="width: 35%;position: relative;display: flex; flex-direction: column;border: solid black 1px;margin-top: 12px;">                
                     <div style="height:50%;display: flex;justify-content: space-around;">
                         <p id="studytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
                         <p id="hobbytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
                     </div>
-                    <div style="height:20%;display: flex;justify-content: space-around;">
+                    <div style="height:20%;display: flex;justify-content: space-around;align-items: center;">
                         <button id="studybutton">勉強</button>
                         <button id="hobbybutton">趣味</button>
                     </div>
-                    <div style="height:20%;display: flex;justify-content: space-around;">
+                    <div style="height:20%;display: flex;justify-content: space-around;align-items: center;">
                         <button id="studysend">送信</button>
                         <button id="hobbysend">送信</button>
                     </div>
-                    <div style="height:10%;display: flex;justify-content: space-around;">
+                    <div style="height:10%;display: flex;justify-content: space-around;align-items: center;">
                         <button id="clear">clear</button>
                     </div>
                 </div>

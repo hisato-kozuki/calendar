@@ -29,7 +29,6 @@ const options = {
 };
 
 window.onload = function(){
-    document.getElementsByClassName("title")[0].innerText = window.screen.width+"\n"+window.screen.height;
     let text = date_string(date_today, "-", 0, true, true);
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;

@@ -167,6 +167,7 @@ function display(events, task_renew_required){
             div1.style.display = "none";
             let div2 = createE("div", "div");
             div2.style.width = "100%";
+            div2.style.borderLeft = "solid 1px gray";
             day_cell.appendChild(date_index_cell);
             day_cell.appendChild(div2);
             div1.appendChild(day_cell);

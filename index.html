@@ -178,7 +178,7 @@
                 button{
                     height: fit-content;
                     font-size: 28px;
-                    margin:28px;
+                    margin:0px;
                 }
                 select{
                     font-size: 28px;
@@ -360,7 +360,7 @@
             </form>
             <div><form id="form">
                 <div>
-                    <p>タイトル:<input type="text" name="title" value=""/><select name="color">
+                    <p>タイトル:<input style="width: 90%;" type="text" name="title" value=""/><select name="color">
                         <option style="background-color:#404040" value="0">黒</option>
                         <option style="background-color:#D50000" value="11">赤</option>
                         <option style="background-color:#F6BF26" value="5">黄</option>
@@ -369,8 +369,8 @@
                         <option style="background-color:#7986CB" value="1">紫</option>
                         <option style="background-color:#3F51B5" value="9">青</option>
                     </select></p>
-                    <p>　　開始:<input type="datetime-local" name="start"/></p>
-                    <p>　　終了:<input type="datetime-local" name="end"/><button id="date_default" class="autofill">上に同じ</button></p>
+                    <p>　　開始:<input style="width: 90%;" type="datetime-local" name="start"/></p>
+                    <p>　　終了:<input style="width: 90%;" type="datetime-local" name="end"/><button id="date_default" class="autofill">上に同じ</button></p>
                 </div>
                 <div style="display: flex; flex-direction: column-reverse;">
                     <button id="postbutton" type="submit" style="height: 46px">送信</button>

@@ -83,6 +83,7 @@ function get_events(date_start, date_end){
         .catch(error => {
             console.log("reload not complete")
             console.error("Error:", error);
+            document.getElementById("p").innerText = error;
             document.getElementById("getbutton").innerText = "Error";
             reject(error);
         });
@@ -102,11 +103,13 @@ function post_event(data, get_required){
             resolve(true);
             if(get_required){
                 cell_pending(document.getElementById("getbutton"), "getbutton");
-                get_events().then((data)=>{display(data, true);dbsave(data);});
+                get_events().then((data)=>{display(data, true);dbsave(data);
+            console.log("post events 完了")});
             }
         })
         .catch(error => {
             console.error("Error:", error);
+            document.getElementById("p").innerText = error;
             reject(false);
             document.getElementById("postbutton").innerText = "Error";
         });
@@ -127,6 +130,7 @@ function delete_event(data, delete_cell){
     })
     .catch(error => {
         console.error("Error:", error);
+        document.getElementById("p").innerText = error;
         delete_cell.innerText = "Error";
     });
 }
@@ -177,7 +181,7 @@ function display(events, task_renew_required){
     let skip = 0;
     for(let i = 0; i < events.length; i++){
         if(events[i].color != 3){
-            console.log(events[i].date_start)
+            // console.log(events[i].date_start)
             let date_start = new Date(events[i].date_start);
             let date_end = new Date(events[i].date_end);
             let date_cell = createE("div", "date_cell", "", date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0"));
@@ -228,8 +232,8 @@ function display(events, task_renew_required){
             date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
             date_start_monday.setHours(0);
             let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
-            console.log(date_start,date_start_monday);
-            console.log((date_start_0-date_start_monday)/86400000);
+            // console.log(date_start,date_start_monday);
+            // console.log((date_start_0-date_start_monday)/86400000);
             event_container.style.top = (date_start.getHours()/24*350+30)+"px";
             div2s[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
             div1s[(date_start_0-date_start_monday)/86400000].style.display = "flex";
@@ -310,7 +314,9 @@ document.getElementById("form2").addEventListener('submit', event => {
     url=document.getElementById("form2").url.value;
     document.getElementById("form2").style.visibility="hidden";
     urlsave(url);
-    get_events().then((data)=>{display(data, true);dbsave(data);});
+    get_events().then((data)=>{display(data, true);dbsave(data);
+            console.log("url更新 完了")
+        document.getElementById("getbutton").innerText = "リロード";});
 });
 
 document.getElementById("form3").addEventListener('submit', event => {
@@ -320,9 +326,10 @@ document.getElementById("form3").addEventListener('submit', event => {
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     let button = document.getElementById("getbutton");
     if(button.innerText == "リロード"){
-        get_events(date_start, date_end).then((data)=>{display(data, true);dbsave(data);});
+        get_events(date_start, date_end).then((data)=>{display(data, true);dbsave(data);
+            console.log("リロード 完了")});
         cell_pending(button, "getbutton");
-    }
+    }else button.innerText = "リロード";
 });
 
 document.getElementById("date_default").addEventListener('click', event => {
@@ -414,15 +421,21 @@ function db_operation(mode, storeName, received_data){
                         let stored_url = event.target.result.url;
                         url = stored_url;
                         console.log("stored_url",url);
-                        cell_pending(document.getElementById("getbutton"), "getbutton");
-                        get_events().then((data)=>{display(data, true);dbsave(data);});
-                        get_events(date_today, date, false).then((data)=>count_history(data, 2));
+                        const promise1 = new Promise((resolve) =>get_events().then((data)=>resolve(data)));
+                        const promise2 = new Promise((resolve) =>get_events(date_today, date, false).then((data)=>resolve(data)));
                         let date_old = new Date(date_today - 86400000);
-                        get_events(date_old, date_today, false).then((data)=>count_history(data, 3));
+                        const promise3 = new Promise((resolve) =>get_events(date_old, date_today, false).then((data)=>resolve(data)));
                         date_old = new Date(date_today - 604800000);
-                        get_events(date_old, date_today, false).then((data)=>{
-                            count_history(data, 4);document.getElementById("getbutton").innerText="リロード";
-                        });
+                        const promise4 = new Promise((resolve) =>get_events(date_old, date_today, false).then((data)=>resolve(data)));
+                        Promise.all([promise1, promise2, promise3, promise4])
+                        .then((results) => {
+                            display(results[0], true);dbsave(results[0]);
+                            count_history(results[1], 2);
+                            count_history(results[2], 3);
+                            count_history(results[3], 4);
+                            document.getElementById("getbutton").innerText="リロード";
+                            console.log("予定読み込み，履歴読み込み完了");
+                        })
                     }
                 }else{
                     if(storeName=="url")document.getElementById("form2").style.visibility="visible";
@@ -443,10 +456,10 @@ function db_operation(mode, storeName, received_data){
                 });
 
             }
-            putReq.onsuccess = function (event) {
-                console.log('更新成功');
-                console.log("saved:"+received_data);
-            }
+            // putReq.onsuccess = function (event) {
+            //     console.log('更新成功');
+            //     console.log("saved:"+received_data);
+            // }
         }
     }
 }

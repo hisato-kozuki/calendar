@@ -499,7 +499,10 @@ document.getElementById("studysend").addEventListener('click', event => {
         };
         localStorage.setItem("studytime", 0);
         post_event(data, false).then((data) => {
-            if(data)cell.innerText = "完了";
+            if(data){
+                cell.innerText = "完了";
+                document.getElementById("studytimer").innerText = 0;
+            }
             else cell.innerText = "Error";
         });
         cell_pending(cell);
@@ -519,7 +522,10 @@ document.getElementById("hobbysend").addEventListener('click', event => {
         };
         localStorage.setItem("hobbytime", 0);
         post_event(data, false).then((data) => {
-            if(data)cell.innerText = "完了";
+            if(data){
+                cell.innerText = "完了";
+                document.getElementById("hobbytimer").innerText = 0;
+            }
             else cell.innerText = "Error";
         });
         cell_pending(cell);

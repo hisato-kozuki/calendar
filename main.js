@@ -236,8 +236,8 @@ function display(events, task_renew_required){
             // console.log(date_start,date_start_monday);
             // console.log((date_start_0-date_start_monday)/86400000);
             event_container.style.top = (date_start.getHours()/24*350+30)+"px";
-            div2s[(date_start_0-date_start_monday)/86400000].appendChild(event_container);
-            div1s[(date_start_0-date_start_monday)/86400000].style.display = "flex";
+            div2s[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container);
+            div1s[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
             skip = 0;
         }else skip++;
     }

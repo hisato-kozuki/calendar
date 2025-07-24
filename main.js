@@ -150,10 +150,18 @@ function display(events, task_renew_required){
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     date_start.setDate(date_start.getDate()-(date_start.getDay()+5)%7-1);
     date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
-    let div1s = new Array((date_end-date_start)/86400000);
-    let div2s = new Array((date_end-date_start)/86400000);
+    let display_none_cells = new Array((date_end-date_start)/86400000);
+    let timelines = new Array((date_end-date_start)/86400000);
     for(let date_monday = date_start, i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
         let week_cell = createE("div", "week_cell", "");
+        // let time_index = createE("div", "time_index");
+        // for(let j = 0; j < 8; j++){
+        //     let memori = createE("div", "div");
+        //     memori.style.width = "100%";
+        //     memori.style.borderBottom = "solid black 1px";
+        //     time_index.appendChild(memori)
+        // }
+        // week_cell.appendChild(time_index);
         let date = new Date(date_monday);
         for(let j = 0; j < 7; j++){
             // let date_start = new Date(events[i].date_start);
@@ -162,19 +170,16 @@ function display(events, task_renew_required){
             let date_index_cell = createE("div", "date_index_cell", "", date.getMonth()+1+"/"+date.getDate()+"("+days[j]+")");
             if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
             else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
-            let div0 = createE("div", "div");
-            let div1 = createE("div", "div");
-            div1.style.display = "none";
-            let div2 = createE("div", "div");
-            div2.style.width = "100%";
-            div2.style.borderLeft = "solid 1px gray";
+            let day_div = createE("div", "div");
+            let display_none_cell = createE("div", "display_none_cell");
+            let timeline = createE("div", "timeline");
             day_cell.appendChild(date_index_cell);
-            day_cell.appendChild(div2);
-            div1.appendChild(day_cell);
-            div0.appendChild(div1);
-            week_cell.appendChild(div0);
-            div1s[7*i+j] = div1;
-            div2s[7*i+j] = div2;
+            day_cell.appendChild(timeline);
+            display_none_cell.appendChild(day_cell);
+            day_div.appendChild(display_none_cell);
+            week_cell.appendChild(day_div);
+            display_none_cells[7*i+j] = display_none_cell;
+            timelines[7*i+j] = timeline;
             date.setDate(date.getDate()+1);
         }
         cell.appendChild(week_cell);
@@ -235,9 +240,12 @@ function display(events, task_renew_required){
             let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
             // console.log(date_start,date_start_monday);
             // console.log((date_start_0-date_start_monday)/86400000);
-            event_container.style.top = (date_start.getHours()/24*350+30)+"px";
-            div2s[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container);
-            div1s[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
+            // event_container.style.top = (date_start.getHours()/24*350+30)+"px";
+            event_container.style.gridRow = Math.min(Math.max(date_start.getHours()-5, 1), 20)+"/"+Math.min(Math.max(date_end.getHours()-5, 1), 20);
+            event_container.style.gridColumn = 1;
+            event_container.style.backgroundColor = "hsla("+i*67+", 100%, 50%, 0.05)";
+            timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container);
+            display_none_cells[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
             skip = 0;
         }else skip++;
     }

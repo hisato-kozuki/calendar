@@ -1,0 +1,138 @@
+@media (max-width:1024px) and (orientation: landscape){
+    h1{
+        margin: 0px;
+    }
+    .title{
+        width: 90%;
+        height: fit-content;
+        position: relative;
+        left: 5%;
+        border: solid 2px darkred;
+        font-size: 40px;
+        text-align: center;
+    }
+    .container{
+        width: 90%;
+        height: fit-content;
+        position: relative;
+        left: 5%;
+        border: solid 2px darkblue;
+    }
+    .small_container{
+        width: 100%;
+    }
+    .week_cell{
+        height: 400px;
+        position: relative;
+        display: flex;
+        justify-content:space-around;
+        align-items: stretch;
+        border-bottom: solid 2px gray;
+    }
+    .week_cell .div{
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        align-self: stretch;
+    }
+    .time_index{
+        width: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        border-right: solid black 1px;
+    }
+    .day_cell{
+        height: 100%;
+        width: 100%;
+        position: relative;
+        font-size: 20px;
+        border: solid 1px gray;
+    }
+    .date_index_cell{
+        position: relative;
+        height: 20px;
+        margin: 0px;
+        font-size: 12px;
+        align-content: center;
+        text-align: center;
+        border-bottom: solid 1px gray;
+        visibility: visible;
+    }
+    .timeline{        
+        width: 100%;
+        height: 380px;
+        display: grid;
+        grid-template-columns: 100%;
+        grid-template-rows: repeat(18, 1fr);
+    }
+    .event_container{
+        /* position: absolute; */
+        /* top:100px; */
+        padding: 0px;
+        visibility: visible;
+    }
+    .date_cell{
+        height: 0px;
+        display: none;
+    }
+    .event_cell{
+        position: relative;
+        font-size: 12px;
+        align-content: center;
+        padding-left: 2px;
+    }
+    .delete_cell{
+        height: 0px;
+        padding: 0px;
+        margin: 0px;
+        border: 0px;
+        display: none;
+    }
+    p{
+        font-size: 14px;
+    }
+    input{
+        font-size: 14px;
+    }
+    button{
+        height: fit-content;
+        font-size: 14px;
+        margin:28px;
+    }
+    select{
+        font-size: 14px;
+    }
+    option{
+        font-size: 10px;
+    }
+    form{
+        display: flex;
+        border: solid 1px black;
+        font-size: 14px;
+        padding: 12px;
+        margin-top: 12px;
+    }
+    .getbutton{
+        width: 140px;
+        height: 46px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+    .autofill{
+        font-size:10px;
+        background: white;
+    }
+    .grid{
+        width: 50%;
+        display: none;
+        grid-template-columns: 20% repeat(2, 40%);
+        grid-template-rows: repeat(4, 1fr);
+    }
+    .grid div{
+        padding: 3px;
+        text-align: center;
+        border: solid black 1px;
+    }
+}

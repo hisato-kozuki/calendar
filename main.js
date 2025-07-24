@@ -152,7 +152,7 @@ function display(events, task_renew_required){
     date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
     let display_none_cells = new Array((date_end-date_start)/86400000);
     let timelines = new Array((date_end-date_start)/86400000);
-    for(let date_monday = date_start, i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
+    for(let date_monday = new Date(date_start), i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
         let week_cell = createE("div", "week_cell", "");
         // let time_index = createE("div", "time_index");
         // for(let j = 0; j < 8; j++){
@@ -180,10 +180,11 @@ function display(events, task_renew_required){
             week_cell.appendChild(day_div);
             display_none_cells[7*i+j] = display_none_cell;
             timelines[7*i+j] = timeline;
-            for(let k= 0; k<6; k++){
+            for(let k= 0; k<5; k++){
                 let line = createE("div", "display_none_cell");
-                line.style.borderBottom = "dotted #808080 1px";
-                line.style.gridRow = k*3+1;
+                line.style.borderTop = "dotted #808080 1px";
+                line.style.gridRow = 3*(k+1)+1;
+                line.style.gridColumn = 1;
                 timeline.appendChild(line);
             }
             date.setDate(date.getDate()+1);
@@ -191,6 +192,7 @@ function display(events, task_renew_required){
         cell.appendChild(week_cell);
     }
     let skip = 0;
+    let event_container_containers = new Array((date_end-date_start)/86400000*18);
     for(let i = 0; i < events.length; i++){
         if(events[i].color != 3){
             // console.log(events[i].date_start)
@@ -247,10 +249,20 @@ function display(events, task_renew_required){
             // console.log(date_start,date_start_monday);
             // console.log((date_start_0-date_start_monday)/86400000);
             // event_container.style.top = (date_start.getHours()/24*350+30)+"px";
-            event_container.style.gridRow = Math.min(Math.max(date_start.getHours()-5, 1), 20)+"/"+Math.min(Math.max(date_end.getHours()-5, 1), 20);
-            event_container.style.gridColumn = 1;
-            event_container.style.backgroundColor = "hsla("+i*69+", 100%, 50%, 0.05)";
-            timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container);
+            start_hour = Math.min(Math.max(date_start.getHours()-5, 1), 20);
+            end_hour = Math.min(Math.max(date_end.getHours()-5, start_hour+1), 20);
+            if(event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] != undefined){
+                event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)].appendChild(event_container);
+            } else {
+                let event_container_container = createE("div", "div");
+                event_container_container.style.gridRow = start_hour+"/"+end_hour;
+                event_container_container.style.gridColumn = "1/1";
+                event_container_container.style.backgroundColor = "hsla("+i*69+", 100%, 50%, 0.05)";
+                event_container_container.appendChild(event_container);
+                event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] = event_container_container;
+                timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container_container);
+            }
+            // timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container);
             display_none_cells[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
             skip = 0;
         }else skip++;

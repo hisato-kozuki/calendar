@@ -180,6 +180,12 @@ function display(events, task_renew_required){
             week_cell.appendChild(day_div);
             display_none_cells[7*i+j] = display_none_cell;
             timelines[7*i+j] = timeline;
+            for(let k= 0; k<6; k++){
+                let line = createE("div", "div");
+                line.style.borderBottom = "dotted #808080 1px";
+                line.style.gridRow = k*3+1;
+                timeline.appendChild(line);
+            }
             date.setDate(date.getDate()+1);
         }
         cell.appendChild(week_cell);
@@ -243,7 +249,7 @@ function display(events, task_renew_required){
             // event_container.style.top = (date_start.getHours()/24*350+30)+"px";
             event_container.style.gridRow = Math.min(Math.max(date_start.getHours()-5, 1), 20)+"/"+Math.min(Math.max(date_end.getHours()-5, 1), 20);
             event_container.style.gridColumn = 1;
-            event_container.style.backgroundColor = "hsla("+i*67+", 100%, 50%, 0.05)";
+            event_container.style.backgroundColor = "hsla("+i*69+", 100%, 50%, 0.05)";
             timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container);
             display_none_cells[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
             skip = 0;

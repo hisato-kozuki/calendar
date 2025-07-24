@@ -181,7 +181,7 @@ function display(events, task_renew_required){
             display_none_cells[7*i+j] = display_none_cell;
             timelines[7*i+j] = timeline;
             for(let k= 0; k<6; k++){
-                let line = createE("div", "div");
+                let line = createE("div", "display_none_cell");
                 line.style.borderBottom = "dotted #808080 1px";
                 line.style.gridRow = k*3+1;
                 timeline.appendChild(line);

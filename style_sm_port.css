@@ -41,7 +41,7 @@
         border-left: solid 1px gray;
     }
     .event_container{
-        background-color: transparent;
+        background-color: white;
         display: flex;
     }
     .date_cell{

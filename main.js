@@ -184,7 +184,7 @@ function display(events, task_renew_required){
                 let line = createE("div", "display_none_cell");
                 line.style.borderTop = "dotted #808080 1px";
                 line.style.gridRow = 3*(k+1)+1;
-                line.style.gridColumn = 1;
+                line.style.gridColumn = "1/6";
                 timeline.appendChild(line);
             }
             date.setDate(date.getDate()+1);
@@ -192,6 +192,9 @@ function display(events, task_renew_required){
         cell.appendChild(week_cell);
     }
     let skip = 0;
+    let duplicate = 0;
+    let date_start_old;
+    let start_hour_old;
     let event_container_containers = new Array((date_end-date_start)/86400000*18);
     for(let i = 0; i < events.length; i++){
         if(events[i].color != 3){
@@ -251,20 +254,34 @@ function display(events, task_renew_required){
             // event_container.style.top = (date_start.getHours()/24*350+30)+"px";
             start_hour = Math.min(Math.max(date_start.getHours()-5, 1), 20);
             end_hour = Math.min(Math.max(date_end.getHours()-5, start_hour+1), 20);
+            if(i){
+                console.log(date_start, date_start_old)
+                if(date_start.getDate() == date_start_old.getDate() && start_hour == start_hour_old)duplicate += 1;
+                else duplicate = 0;
+                console.log(duplicate)
+            }
             if(event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] != undefined){
+                event_container.style.gridColumn = (duplicate+1)+"/6";
                 event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)].appendChild(event_container);
             } else {
-                let event_container_container = createE("div", "div");
+                let event_container_container = createE("div", "event_grid");
                 event_container_container.style.gridRow = start_hour+"/"+end_hour;
-                event_container_container.style.gridColumn = "1/1";
-                event_container_container.style.backgroundColor = "hsla("+i*69+", 100%, 50%, 0.05)";
+                event_container_container.style.gridColumn = "1/6";
+                event_container.style.gridColumn = (duplicate+1)+"/6";
                 event_container_container.appendChild(event_container);
                 event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] = event_container_container;
                 timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container_container);
             }
-            // timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container);
+            let event_back = createE("div", "display_none_cell");
+            event_back.style.gridRow = start_hour+"/"+end_hour;
+            event_back.style.gridColumn = (duplicate+1)+"/6";
+            event_back.style.backgroundColor = "hsla("+i*159+", 100%, 50%, 0.05)";
+            event_back.style.border = "solid 1px #808080";
+            timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_back);
             display_none_cells[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
             skip = 0;
+            date_start_old = date_start;
+            start_hour_old = start_hour;
         }else skip++;
     }
     // console.log("cell classname",cell.style.className);

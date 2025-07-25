@@ -192,9 +192,14 @@ function display(events, task_renew_required){
         cell.appendChild(week_cell);
     }
     let skip = 0;
-    let duplicate = 0;
+    let duplicate_a = 0;
+    let duplicate_b = 0;
+    let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
+    date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
+    date_start_monday.setHours(0);
     let date_start_old;
     let start_hour_old;
+    let date_end_long = new Array(5);
     let event_container_containers = new Array((date_end-date_start)/86400000*18);
     for(let i = 0; i < events.length; i++){
         if(events[i].color != 3){
@@ -245,9 +250,6 @@ function display(events, task_renew_required){
                 }
             });
             event_container.appendChild(delete_cell);
-            let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
-            date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
-            date_start_monday.setHours(0);
             let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
             // console.log(date_start,date_start_monday);
             // console.log((date_start_0-date_start_monday)/86400000);
@@ -255,29 +257,42 @@ function display(events, task_renew_required){
             start_hour = Math.min(Math.max(date_start.getHours()-5, 1), 20);
             end_hour = Math.min(Math.max(date_end.getHours()-5, start_hour+1), 20);
             if(i){
-                console.log(date_start, date_start_old)
-                if(date_start.getDate() == date_start_old.getDate() && start_hour == start_hour_old)duplicate += 1;
-                else duplicate = 0;
-                console.log(duplicate)
+                if(date_start.getDate() == date_start_old.getDate() && start_hour == start_hour_old)duplicate_a += 1;
+                else duplicate_a = 0;
+                if(duplicate_b && date_end_long[duplicate_b-1] < date_start){
+                    console.log(date_end_long[duplicate_b-1])
+                    duplicate_b -= 1;
+                }
+                console.log(duplicate_a,duplicate_b)
             }
+            let duplicate = duplicate_a + duplicate_b + 1;
             if(event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] != undefined){
-                event_container.style.gridColumn = (duplicate+1)+"/6";
+                event_container.style.gridColumn = duplicate+"/6";
                 event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)].appendChild(event_container);
             } else {
                 let event_container_container = createE("div", "event_grid");
                 event_container_container.style.gridRow = start_hour+"/"+end_hour;
                 event_container_container.style.gridColumn = "1/6";
-                event_container.style.gridColumn = (duplicate+1)+"/6";
+                event_container.style.gridColumn = duplicate+"/6";
                 event_container_container.appendChild(event_container);
                 event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] = event_container_container;
                 timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container_container);
             }
-            let event_back = createE("div", "display_none_cell");
-            event_back.style.gridRow = start_hour+"/"+end_hour;
-            event_back.style.gridColumn = (duplicate+1)+"/6";
-            event_back.style.backgroundColor = "hsla("+i*159+", 100%, 50%, 0.05)";
-            event_back.style.border = "solid 1px #808080";
-            timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_back);
+            let number = Math.max((date_start_0-date_start_monday)/86400000, 0)
+            if(date_start.getDate() == date_end.getDate()){
+                create_back(start_hour, end_hour, duplicate, 6, i, timelines, number);
+            } else {
+                date_end_long[duplicate_b] = date_end;
+                duplicate_b += 1;
+                create_back(start_hour, start_hour+1, duplicate+1, 6, i, timelines, number);
+                create_back(start_hour, 19, duplicate, duplicate+1, i, timelines, number);
+                let days = Math.floor((date_end - date_start_0)/86400000);
+                let j = 1
+                for(; j < days; j++){
+                    create_back(1, 19, duplicate, duplicate+1, i, timelines, number+j);
+                }
+                create_back(1, end_hour, duplicate, duplicate+1, i, timelines, number+j);
+            }
             display_none_cells[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
             skip = 0;
             date_start_old = date_start;
@@ -326,6 +341,15 @@ function cell_pending(cell, type){
         else cell.innerText = ">";
         setTimeout(() => cell_pending(cell, type), 500);
     }
+}
+
+function create_back(start_hour, end_hour, start_column, end_column, i, timelines, number){
+    let event_back = createE("div", "display_none_cell");
+    event_back.style.gridRow = start_hour+"/"+end_hour;
+    event_back.style.gridColumn = start_column+"/"+end_column;
+    event_back.style.backgroundColor = "hsla("+i*159+", 100%, 50%, 0.05)";
+    event_back.style.border = "solid 1px #808080";
+    timelines[number].appendChild(event_back);
 }
 
 document.getElementById("form").addEventListener('submit', (event) => {

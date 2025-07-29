@@ -266,32 +266,37 @@ function display(events, task_renew_required){
                 console.log(duplicate_a,duplicate_b)
             }
             let duplicate = duplicate_a + duplicate_b + 1;
-            if(event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] != undefined){
+            let i_hour = Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20);
+            if(date_start_0 < date_start_monday)i_hour = 0;
+            if(event_container_containers[i_hour] != undefined){
                 event_container.style.gridColumn = duplicate+"/6";
-                event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)].appendChild(event_container);
+                event_container_containers[i_hour].appendChild(event_container);
             } else {
                 let event_container_container = createE("div", "event_grid");
                 event_container_container.style.gridRow = start_hour+"/"+end_hour;
+                if(date_start_0 < date_start_monday)event_container_container.style.gridRow = "1/2";
                 event_container_container.style.gridColumn = "1/6";
                 event_container.style.gridColumn = duplicate+"/6";
                 event_container_container.appendChild(event_container);
-                event_container_containers[Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20)] = event_container_container;
+                event_container_containers[i_hour] = event_container_container;
                 timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container_container);
             }
-            let number = Math.max((date_start_0-date_start_monday)/86400000, 0)
+            let number = (date_start_0-date_start_monday)/86400000;
             if(date_start.getDate() == date_end.getDate()){
-                create_back(start_hour, end_hour, duplicate, 6, i, timelines, number);
+                create_back(start_hour, end_hour, duplicate, i, timelines, number, "wide");
             } else {
                 date_end_long[duplicate_b] = date_end;
                 duplicate_b += 1;
-                create_back(start_hour, start_hour+1, duplicate+1, 6, i, timelines, number);
-                create_back(start_hour, 19, duplicate, duplicate+1, i, timelines, number);
+                if(number >= 0){
+                    create_back(start_hour, start_hour+1, duplicate+1, i, timelines, number, "wide");
+                    create_back(start_hour, 19, duplicate, i, timelines, number);
+                }else create_back(1, 2, duplicate+1, i, timelines, 0, "wide");
                 let days = Math.floor((date_end - date_start_0)/86400000);
                 let j = 1
                 for(; j < days; j++){
-                    create_back(1, 19, duplicate, duplicate+1, i, timelines, number+j);
+                    if(number+j >= 0)create_back(1, 19, duplicate, i, timelines, number+j);
                 }
-                create_back(1, end_hour, duplicate, duplicate+1, i, timelines, number+j);
+                create_back(1, end_hour, duplicate, i, timelines, number+j);
             }
             display_none_cells[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
             skip = 0;
@@ -343,12 +348,17 @@ function cell_pending(cell, type){
     }
 }
 
-function create_back(start_hour, end_hour, start_column, end_column, i, timelines, number){
+function create_back(start_hour, end_hour, start_column, i, timelines, number, wide){
     let event_back = createE("div", "display_none_cell");
-    event_back.style.gridRow = start_hour+"/"+end_hour;
-    event_back.style.gridColumn = start_column+"/"+end_column;
     event_back.style.backgroundColor = "hsla("+i*159+", 100%, 50%, 0.05)";
-    event_back.style.border = "solid 1px #808080";
+    event_back.style.border = "solid 0.1px hsla("+i*159+", 100%, 0%, 0.2)";
+    event_back.style.gridRow = start_hour+"/"+end_hour;
+    if(wide == "wide"){
+        end_column = 6;
+        event_back.style.borderLeft = "transparent";
+        event_back.style.borderRight = "transparent";
+    } else end_column = start_column + 1;
+    event_back.style.gridColumn = start_column+"/"+end_column;
     timelines[number].appendChild(event_back);
 }
 

@@ -12,7 +12,7 @@ if ('serviceWorker' in navigator) {
 
 const date = new Date();
 let todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-let colorCodes = [0, "#7986CB","#33B679","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
+let colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let eventList;
 let apiUrl;
 let urlLinks = {};//よく使うサイトのリンク

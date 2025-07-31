@@ -11,14 +11,14 @@ if ('serviceWorker' in navigator) {
 }
 
 const date = new Date();
-let date_today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-let colorcode = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
-let events;
-let url;
-let links = {};//よく使うサイトのリンク
+let todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+let colorCodes = [0, "#7986CB","#33B679","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
+let eventList;
+let apiUrl;
+let urlLinks = {};//よく使うサイトのリンク
 const days = ["月", "火", "水", "木", "金", "土", "日"];
-let studytime=0, hobbytime=0;
-let isstudy=false, ishobby=false;
+let studyTimeSeconds=0, hobbyTimeSeconds=0;
+let isStudying=false, isHavingHobby=false;
 
 const options = {
     'method' : 'post',
@@ -29,50 +29,51 @@ const options = {
 };
 
 window.onload = function(){
-    let text = date_string(date_today, "-", 0, true, true);
+    let text = date_string(todayDate, "-", 0, true, true);
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
     document.getElementById("form3").start.value = date_string(date, "-", 0, true, false);
     document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
     urlget();
-    dbget();
+    getCalendarEventsFromDB();
     if(localStorage.getItem("links")){
-        links = JSON.parse(localStorage.getItem("links"));
-        let key = Object.keys(links);
+        urlLinks = JSON.parse(localStorage.getItem("links"));
+        let key = Object.keys(urlLinks);
         for(let i = 0; i < key.length; i++){
-            document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + links[key[i]] + "'>" + key[i] + "</a></p>";
+            document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
         }
     }
-    countup(true, true);countup(false, true);
+    countUpTimer(true, true);countUpTimer(false, true);
 }
 
 function date_string(date, separator, month_offset, year_required, hour_required){
     let date_string = "";
+    date.setMonth(date.getMonth() + month_offset);
     if(year_required)date_string += date.getFullYear().toString();
-    date_string += separator + (date.getMonth() + month_offset + 1).toString().padStart(2, "0")
+    date_string += separator + (date.getMonth() + 1).toString().padStart(2, "0")
     date_string += separator + date.getDate().toString().padStart(2, "0")
     if(hour_required && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":00";
     if(hour_required && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
     return date_string;
 }
 
-function get_events(date_start, date_end){
+function get_events(startDate, endDate){
     return new Promise((resolve, reject) => {
-            //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
-        if(date_start == undefined){
-            date_start = new Date();
-            date_end =  new Date();
-            date_start.setDate(date_start.getDate()-1);
-            date_start.setHours(0);
-            date_end.setMonth(date_end.getMonth()+2);
+            //res = UrlFetchApp.fetch(apiUrl,options); // <- Post リクエスト
+        if(startDate == undefined){
+            startDate = new Date();
+            endDate =  new Date();
+            startDate.setDate(startDate.getDate()-1);
+            startDate.setHours(0);
+            endDate.setMonth(endDate.getMonth()+2);
         }
         const data = {
             'type': "get",
-            'date_start': date_start,
-            'date_end': date_end
+            'date_start': startDate,
+            'date_end': endDate
         };
         options.body=JSON.stringify(data);
-        fetch(url, options)
+        fetch(apiUrl, options)
         .then(response => response.text())
         .then(data => {
             let received_data=JSON.parse(data);
@@ -92,18 +93,18 @@ function get_events(date_start, date_end){
 
 function post_event(data, get_required){
     return new Promise((resolve, reject) => {
-        //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
+        //res = UrlFetchApp.fetch(apiUrl,options); // <- Post リクエスト
         let received_data;
         options.body=JSON.stringify(data);
 
-        fetch(url, options)
+        fetch(apiUrl, options)
         .then(response => response.text())
         .then(data => {
             // console.log(data);
             resolve(true);
             if(get_required){
-                cell_pending(document.getElementById("getbutton"), "getbutton");
-                get_events().then((data)=>{display(data, true);dbsave(data);
+                cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
+                get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
             console.log("post events 完了")});
             }
         })
@@ -117,11 +118,11 @@ function post_event(data, get_required){
 }
 
 function delete_event(data, delete_cell){
-    //res = UrlFetchApp.fetch(url,options); // <- Post リクエスト
+    //res = UrlFetchApp.fetch(apiUrl,options); // <- Post リクエスト
     let received_data;
     options.body=JSON.stringify(data);
 
-    fetch(url, options)
+    fetch(apiUrl, options)
     .then(response => response.text())
     .then(data => {
         // console.log(received_data=JSON.parse(data));
@@ -194,11 +195,11 @@ function display(events, task_renew_required){
     let skip = 0;
     let duplicate_a = 0;
     let duplicate_b = 0;
-    let date_start_monday = new Date(Date.parse(document.getElementById("form3").start.value));
-    date_start_monday.setDate(date_start_monday.getDate()-(date_start_monday.getDay()+5)%7-1);
-    date_start_monday.setHours(0);
-    let date_start_old;
-    let start_hour_old;
+    let mondayStartDate = new Date(Date.parse(document.getElementById("form3").start.value));
+    mondayStartDate.setDate(mondayStartDate.getDate()-(mondayStartDate.getDay()+5)%7-1);
+    mondayStartDate.setHours(0);
+    let oldStartDate;
+    let oldStartHour;
     let date_end_long = new Array(5);
     let event_container_containers = new Array((date_end-date_start)/86400000*18);
     for(let i = 0; i < events.length; i++){
@@ -216,21 +217,21 @@ function display(events, task_renew_required){
             }else if(date_start.getHours() != date_end.getHours()){
                 date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
             }
-            let color = colorcode[events[i].color];
+            let color = colorCodes[events[i].color];
             event_cell.innerText = events[i].title;
             if(color == undefined)color = "#404040";
             if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
                 event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
-                // console.log((date_start - date_today)/3600000);
+                // console.log((date_start - todayDate)/3600000);
                 if(task_renew_required){
-                    if(events[i].color == 4 && date_start - date_today < 86400000){ // 現在日程の一日後より前の時刻の場合に
-                        task_renew(events[i], date_start, 4);
+                    if(events[i].color == 4 && date_start - todayDate < 86400000){ // 現在日程の一日後より前の時刻の場合に
+                        renewTask(events[i], date_start, 4);
                     }
-                    if(events[i].color == 1 && date_start - date_today < 172800000){ // 現在日程の2日後より前の時刻の場合に
-                        task_renew(events[i], date_start, 1);
+                    if(events[i].color == 1 && date_start - todayDate < 172800000){ // 現在日程の2日後より前の時刻の場合に
+                        renewTask(events[i], date_start, 1);
                     }
-                    if(events[i].color == 9 && date_start - date_today < 604800000){ // 現在日程の１週間後より前の時刻の場合に
-                        task_renew(events[i], date_start, 9);
+                    if(events[i].color == 9 && date_start - todayDate < 604800000){ // 現在日程の１週間後より前の時刻の場合に
+                        renewTask(events[i], date_start, 9);
                     }
                 }
             }
@@ -245,19 +246,19 @@ function display(events, task_renew_required){
                         'type': "delete",
                         'id': events[i].id
                     };
-                    cell_pending(delete_cell)
+                    cellPendingAnimation(delete_cell)
                     delete_event(data, delete_cell);
                 }
             });
             event_container.appendChild(delete_cell);
             let date_start_0 = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate());
-            // console.log(date_start,date_start_monday);
-            // console.log((date_start_0-date_start_monday)/86400000);
+            // console.log(date_start,mondayStartDate);
+            // console.log((date_start_0-mondayStartDate)/86400000);
             // event_container.style.top = (date_start.getHours()/24*350+30)+"px";
-            start_hour = Math.min(Math.max(date_start.getHours()-5, 1), 20);
-            end_hour = Math.min(Math.max(date_end.getHours()-5, start_hour+1), 20);
+            startHour = Math.min(Math.max(date_start.getHours()-5, 1), 20);
+            endHour= Math.min(Math.max(date_end.getHours()-5, startHour+1), 20);
             if(i){
-                if(date_start.getDate() == date_start_old.getDate() && start_hour == start_hour_old)duplicate_a += 1;
+                if(date_start.getDate() == oldStartDate.getDate() && startHour == oldStartHour)duplicate_a += 1;
                 else duplicate_a = 0;
                 if(duplicate_b && date_end_long[duplicate_b-1] < date_start){
                     console.log(date_end_long[duplicate_b-1])
@@ -266,49 +267,50 @@ function display(events, task_renew_required){
                 console.log(duplicate_a,duplicate_b)
             }
             let duplicate = duplicate_a + duplicate_b + 1;
-            let i_hour = Math.max((date_start_0-date_start_monday)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20);
-            if(date_start_0 < date_start_monday)i_hour = 0;
+            let i_hour = Math.max((date_start_0-mondayStartDate)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20);
+            if(date_start_0 < mondayStartDate)i_hour = 0;
             if(event_container_containers[i_hour] != undefined){
                 event_container.style.gridColumn = duplicate+"/6";
                 event_container_containers[i_hour].appendChild(event_container);
             } else {
                 let event_container_container = createE("div", "event_grid");
-                event_container_container.style.gridRow = start_hour+"/"+end_hour;
-                if(date_start_0 < date_start_monday)event_container_container.style.gridRow = "1/2";
+                event_container_container.style.gridRow = startHour+"/"+endHour;
+                if(date_start_0 < mondayStartDate)event_container_container.style.gridRow = "1/2";
                 event_container_container.style.gridColumn = "1/6";
                 event_container.style.gridColumn = duplicate+"/6";
                 event_container_container.appendChild(event_container);
                 event_container_containers[i_hour] = event_container_container;
-                timelines[Math.max((date_start_0-date_start_monday)/86400000, 0)].appendChild(event_container_container);
+                timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)].appendChild(event_container_container);
             }
-            let number = (date_start_0-date_start_monday)/86400000;
+            let number = (date_start_0-mondayStartDate)/86400000;
+            console.log("date_start: ", date_start, "  date_end: ", date_end)
             if(date_start.getDate() == date_end.getDate()){
-                create_back(start_hour, end_hour, duplicate, i, timelines, number, "wide");
+                createEventBackground(startHour, endHour, duplicate, i, timelines, number, "wide");
             } else {
                 date_end_long[duplicate_b] = date_end;
                 duplicate_b += 1;
                 if(number >= 0){
-                    create_back(start_hour, start_hour+1, duplicate+1, i, timelines, number, "wide");
-                    create_back(start_hour, 19, duplicate, i, timelines, number);
-                }else create_back(1, 2, duplicate+1, i, timelines, 0, "wide");
+                    createEventBackground(startHour, startHour+1, duplicate+1, i, timelines, number, "wide");
+                    createEventBackground(startHour, 19, duplicate, i, timelines, number);
+                }else createEventBackground(1, 2, duplicate+1, i, timelines, 0, "wide");
                 let days = Math.floor((date_end - date_start_0)/86400000);
                 let j = 1
                 for(; j < days; j++){
-                    if(number+j >= 0)create_back(1, 19, duplicate, i, timelines, number+j);
+                    if(number+j >= 0)createEventBackground(1, 19, duplicate, i, timelines, number+j);
                 }
-                create_back(1, end_hour, duplicate, i, timelines, number+j);
+                createEventBackground(1, endHour, duplicate, i, timelines, number+j);
             }
-            display_none_cells[Math.max((date_start_0-date_start_monday)/86400000, 0)].style.display = "flex";
+            display_none_cells[Math.max((date_start_0-mondayStartDate)/86400000, 0)].style.display = "flex";
             skip = 0;
-            date_start_old = date_start;
-            start_hour_old = start_hour;
+            oldStartDate = date_start;
+            oldStartHour = startHour;
         }else skip++;
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
 }
 
-function task_renew(event_data, date, color){
+function renewTask(event_data, date, color){
     console.log("detected");
     let data = {
         'type': "delete",
@@ -337,29 +339,29 @@ function task_renew(event_data, date, color){
     }
 }
 
-function cell_pending(cell, type){
+function cellPendingAnimation(cell, type){
     if(cell.innerText == "完了" || cell.innerText == "Error"){
         if(cell.innerText == "完了" && type == "getbutton")cell.innerText = "リロード";
     }else{
         if(cell.innerText == ">")cell.innerText = ">>";
         else if(cell.innerText == ">>")cell.innerText = ">>>";
         else cell.innerText = ">";
-        setTimeout(() => cell_pending(cell, type), 500);
+        setTimeout(() => cellPendingAnimation(cell, type), 500);
     }
 }
 
-function create_back(start_hour, end_hour, start_column, i, timelines, number, wide){
+function createEventBackground(startHour, endHour, start_column, i, timelines, number, wide){
     let event_back = createE("div", "display_none_cell");
     event_back.style.backgroundColor = "hsla("+i*159+", 100%, 50%, 0.05)";
     event_back.style.border = "solid 0.1px hsla("+i*159+", 100%, 0%, 0.2)";
-    event_back.style.gridRow = start_hour+"/"+end_hour;
+    event_back.style.gridRow = startHour+"/"+endHour;
     if(wide == "wide"){
         end_column = 6;
         event_back.style.borderLeft = "transparent";
         event_back.style.borderRight = "transparent";
     } else end_column = start_column + 1;
     event_back.style.gridColumn = start_column+"/"+end_column;
-    timelines[number].appendChild(event_back);
+    timelines[Math.max(number, 0)].appendChild(event_back);
 }
 
 document.getElementById("form").addEventListener('submit', (event) => {
@@ -378,7 +380,7 @@ document.getElementById("form").addEventListener('submit', (event) => {
         'color': form.color.value,
     };
     if(data.title != "" && button.innerText == "送信"){
-        cell_pending(button);
+        cellPendingAnimation(button);
         post_event(data, 1).then((data) => {
             if(data)document.getElementById("postbutton").innerText = "完了";
             else document.getElementById("postbutton").innerText = "Error";
@@ -389,10 +391,10 @@ document.getElementById("form").addEventListener('submit', (event) => {
 document.getElementById("form2").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
-    url=document.getElementById("form2").url.value;
+    apiUrl=document.getElementById("form2").url.value;
     document.getElementById("form2").style.visibility="hidden";
-    urlsave(url);
-    get_events().then((data)=>{display(data, true);dbsave(data);
+    saveApiUrlToDB(apiUrl);
+    get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
             console.log("url更新 完了")
         document.getElementById("getbutton").innerText = "リロード";});
 });
@@ -404,9 +406,9 @@ document.getElementById("form3").addEventListener('submit', event => {
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     let button = document.getElementById("getbutton");
     if(button.innerText == "リロード"){
-        get_events(date_start, date_end).then((data)=>{display(data, true);dbsave(data);
+        get_events(date_start, date_end).then((data)=>{display(data, true);saveCalendarEventsToDB(data);
             console.log("リロード 完了")});
-        cell_pending(button, "getbutton");
+        cellPendingAnimation(button, "getbutton");
     }else button.innerText = "リロード";
 });
 
@@ -430,34 +432,34 @@ document.getElementById("urlform").addEventListener('submit', event => {
         document.getElementById("urlformbutton").innerText="登録";
     }
     else if(document.getElementById("urlformbutton").innerText=="登録"){
-        links[document.getElementById("urlform").name.value] = document.getElementById("urlform").url.value;
-        localStorage.setItem("links", JSON.stringify(links));
+        urlLinks[document.getElementById("urlform").name.value] = document.getElementById("formform").url.value;
+        localStorage.setItem("links", JSON.stringify(urlLinks));
         document.getElementById("urlformbutton").innerText="完了";
         document.getElementById("urls").innerHTML = "";
-        let key = Object.keys(links);
+        let key = Object.keys(urlLinks);
         for(let i = 0; i < key.length; i++){
-            document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + links[key[i]] + "'>" + key[i] + "</a></p>";
+            document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
         }
     }else document.getElementById("urlformbutton").innerText="登録";
 });
 
-function dbget(){
-    db_operation("get", "calendar");
+function getCalendarEventsFromDB(){
+    dbOperation("get", "calendar");
 }
 
-function dbsave(received_data){
-    db_operation("save", "calendar", received_data);
+function saveCalendarEventsToDB(received_data){
+    dbOperation("save", "calendar", received_data);
 }
 
 function urlget(){
-    db_operation("get", "url");
+    dbOperation("get", "url");
 }
 
-function urlsave(url){
-    db_operation("save", "url", url);
+function saveApiUrlToDB(url){
+    dbOperation("save", "url", url);
 }
 
-function db_operation(mode, storeName, received_data){
+function dbOperation(mode, storeName, received_data){
     var dbName;
     if(storeName=="calendar")dbName = 'sampleDB';
     if(storeName=="url")dbName = 'GasUrlDB';
@@ -497,20 +499,20 @@ function db_operation(mode, storeName, received_data){
                     }
                     if(storeName=="url"){
                         let stored_url = event.target.result.url;
-                        url = stored_url;
-                        console.log("stored_url",url);
+                        apiUrl = stored_url;
+                        console.log("stored_url",apiUrl);
                         const promise1 = new Promise((resolve) =>get_events().then((data)=>resolve(data)));
-                        const promise2 = new Promise((resolve) =>get_events(date_today, date, false).then((data)=>resolve(data)));
-                        let date_old = new Date(date_today - 86400000);
-                        const promise3 = new Promise((resolve) =>get_events(date_old, date_today, false).then((data)=>resolve(data)));
-                        date_old = new Date(date_today - 604800000);
-                        const promise4 = new Promise((resolve) =>get_events(date_old, date_today, false).then((data)=>resolve(data)));
+                        const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
+                        let date_old = new Date(todayDate - 86400000);
+                        const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
+                        date_old = new Date(todayDate - 604800000);
+                        const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
                         Promise.all([promise1, promise2, promise3, promise4])
                         .then((results) => {
-                            display(results[0], true);dbsave(results[0]);
-                            count_history(results[1], 2);
-                            count_history(results[2], 3);
-                            count_history(results[3], 4);
+                            display(results[0], true);saveCalendarEventsToDB(results[0]);
+                            countHistory(results[1], 2);
+                            countHistory(results[2], 3);
+                            countHistory(results[3], 4);
                             document.getElementById("getbutton").innerText="リロード";
                             console.log("予定読み込み，履歴読み込み完了");
                         })
@@ -546,7 +548,7 @@ document.getElementById("studybutton").addEventListener('click', event => {
     if(localStorage.getItem("isstudy") != 1){
         localStorage.setItem("isstudy", 1);
         localStorage.setItem("study_start_date", new Date());
-        countup(false);
+        countUpTimer(false);
     }
     else{
         localStorage.setItem("isstudy", 0);
@@ -557,7 +559,7 @@ document.getElementById("hobbybutton").addEventListener('click', event => {
     if(localStorage.getItem("ishobby") != 1){
         localStorage.setItem("ishobby", 1);
         localStorage.setItem("hobby_start_date", new Date());
-        countup(true);
+        countUpTimer(true);
     }
     else{
         localStorage.setItem("ishobby", 0);
@@ -570,12 +572,12 @@ document.getElementById("studysend").addEventListener('click', event => {
     else{
         data = {
             'type': 'post',
-            'title': "sssss"+(localStorage.getItem("studytime")).toString().padStart(5, "0"),
-            'date_start': date_today,
-            'date_end': date_today,
+            'title': "sssss"+(localStorage.getItem("studyTimeSeconds")).toString().padStart(5, "0"),
+            'date_start': todayDate,
+            'date_end': todayDate,
             'color': 3,
         };
-        localStorage.setItem("studytime", 0);
+        localStorage.setItem("studyTimeSeconds", 0);
         post_event(data, false).then((data) => {
             if(data){
                 cell.innerText = "完了";
@@ -583,7 +585,7 @@ document.getElementById("studysend").addEventListener('click', event => {
             }
             else cell.innerText = "Error";
         });
-        cell_pending(cell);
+        cellPendingAnimation(cell);
     }
 });
 
@@ -593,12 +595,12 @@ document.getElementById("hobbysend").addEventListener('click', event => {
     else{
         data = {
             'type': 'post',
-            'title': "hhhhh"+(localStorage.getItem("hobbytime")).toString().padStart(5, "0"),
-            'date_start': date_today,
-            'date_end': date_today,
+            'title': "hhhhh"+(localStorage.getItem("hobbyTimeSeconds")).toString().padStart(5, "0"),
+            'date_start': todayDate,
+            'date_end': todayDate,
             'color': 3,
         };
-        localStorage.setItem("hobbytime", 0);
+        localStorage.setItem("hobbyTimeSeconds", 0);
         post_event(data, false).then((data) => {
             if(data){
                 cell.innerText = "完了";
@@ -606,7 +608,7 @@ document.getElementById("hobbysend").addEventListener('click', event => {
             }
             else cell.innerText = "Error";
         });
-        cell_pending(cell);
+        cellPendingAnimation(cell);
     }
 });
 
@@ -617,40 +619,31 @@ document.getElementById("clear").addEventListener('click', event => {
     document.getElementById("hobbytimer").innerText=0;
 });
 
-function countup(flag, no_save){
+function countUpTimer(flag, no_save){
+    let date_start;
     let date = new Date();
     let count;
     let id;
-    let date_start;
     if(!flag){
         id = "studytimer";
         date_start = new Date(localStorage.getItem("study_start_date"));
-        count = Number(localStorage.getItem("studytime"));
+        count = Number(localStorage.getItem("studyTimeSeconds"));
         if(no_save == undefined)count += Math.floor((date - date_start)/1000);
-        if(localStorage.getItem("isstudy") != 0)setTimeout(()=>countup(flag), 1000);
-        else localStorage.setItem("studytime", count);
+        if(localStorage.getItem("isstudy") != 0)setTimeout(()=>countUpTimer(flag), 1000);
+        else localStorage.setItem("studyTimeSeconds", count);
     }
     else {
         id = "hobbytimer";
         date_start = new Date(localStorage.getItem("hobby_start_date"));
-        count = Number(localStorage.getItem("hobbytime"));
+        count = Number(localStorage.getItem("hobbyTimeSeconds"));
         if(no_save == undefined)count += Math.floor((date - date_start)/1000);
-        if(localStorage.getItem("ishobby") != 0)setTimeout(()=>countup(flag), 1000);
-        else localStorage.setItem("hobbytime", count);
+        if(localStorage.getItem("ishobby") != 0)setTimeout(()=>countUpTimer(flag), 1000);
+        else localStorage.setItem("hobbyTimeSeconds", count);
     }
-    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(1, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
+    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
 }
 
-document.getElementById("historybutton").addEventListener('click', event => {
-    let history = document.getElementsByClassName('grid')[0];
-    if(history.style.display != 'grid'){
-        history.style.display = 'grid';
-    }else{
-        history.style.display = 'none';
-    }
-});
-
-function count_history(events, row){
+function countHistory(events, row){
     let studytime = 0; hobbytime = 0;
     for(let i = 0; i < events.length; i++){
         if(events[i].color == 3){

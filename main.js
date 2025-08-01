@@ -29,11 +29,11 @@ const options = {
 };
 
 window.onload = function(){
-    let text = date_string(todayDate, "-", 0, true, true);
+    let text = date_string(todayDate, "-", {"required": ["year", "hour"]});
     document.getElementById("form").start.value = text;
     document.getElementById("form").end.value = text;
-    document.getElementById("form3").start.value = date_string(date, "-", 0, true, false);
-    document.getElementById("form3").end.value = date_string(date, "-", 2, true, false);
+    document.getElementById("form3").start.value = date_string(date, "-", {"required": ["year"]});
+    document.getElementById("form3").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
     urlget();
     getCalendarEventsFromDB();
     if(localStorage.getItem("links")){
@@ -46,14 +46,14 @@ window.onload = function(){
     countUpTimer(true, true);countUpTimer(false, true);
 }
 
-function date_string(date, separator, month_offset, year_required, hour_required){
+function date_string(date, separator, options){
     let date_string = "";
-    date.setMonth(date.getMonth() + month_offset);
-    if(year_required)date_string += date.getFullYear().toString();
+    if(options.month_offset != undefined)date.setMonth(date.getMonth() + options.month_offset);
+    if(options.required.includes("year"))date_string += date.getFullYear().toString();
     date_string += separator + (date.getMonth() + 1).toString().padStart(2, "0")
     date_string += separator + date.getDate().toString().padStart(2, "0")
-    if(hour_required && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":00";
-    if(hour_required && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
+    if(options.required.includes("hour") && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":00";
+    if(options.required.includes("hour") && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
     return date_string;
 }
 
@@ -136,25 +136,29 @@ function delete_event(data, delete_cell){
     });
 }
 
-function createE(tag, classname, id, text){
+function createE(tag, options, styles){
     let element = document.createElement(tag);
-    element.className = classname;
-    element.id = id;
-    if(text != undefined)element.innerText = text;
+    for(let key in options){
+        element[key] = options[key];
+    }
+    for(let key in styles){
+        element.style[key] = styles[key];
+    }
     return element;
 }
 
 function display(events, task_renew_required){
     if(document.getElementById("cell"))document.getElementById("cell").remove();
-    let cell = createE("div", "small_container", "cell");
+    let cell = createE("div", {"className": "small_container", "id": "cell"});
     let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     date_start.setDate(date_start.getDate()-(date_start.getDay()+5)%7-1);
     date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
     let display_none_cells = new Array((date_end-date_start)/86400000);
     let timelines = new Array((date_end-date_start)/86400000);
+    console.log("display start")
     for(let date_monday = new Date(date_start), i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
-        let week_cell = createE("div", "week_cell", "");
+        let week_cell = createE("div", {"className": "week_cell"});
         // let time_index = createE("div", "time_index");
         // for(let j = 0; j < 8; j++){
         //     let memori = createE("div", "div");
@@ -167,13 +171,13 @@ function display(events, task_renew_required){
         for(let j = 0; j < 7; j++){
             // let date_start = new Date(events[i].date_start);
             // let date_end = new Date(events[i].date_end);
-            let day_cell = createE("div", "day_cell", "");
-            let date_index_cell = createE("div", "date_index_cell", "", date.getMonth()+1+"/"+date.getDate()+"("+days[j]+")");
+            let day_cell = createE("div", {"className": "day_cell"});
+            let date_index_cell = createE("div", {"className": "date_index_cell", "innerText": date.getMonth()+1+"/"+date.getDate()+"("+days[j]+")"});
             if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
             else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
-            let day_div = createE("div", "div");
-            let display_none_cell = createE("div", "display_none_cell");
-            let timeline = createE("div", "timeline");
+            let day_div = createE("div", {"className": "div"});
+            let display_none_cell = createE("div", {"className": "display_none_cell"});
+            let timeline = createE("div", {"className": "timeline"});
             day_cell.appendChild(date_index_cell);
             day_cell.appendChild(timeline);
             display_none_cell.appendChild(day_cell);
@@ -182,10 +186,7 @@ function display(events, task_renew_required){
             display_none_cells[7*i+j] = display_none_cell;
             timelines[7*i+j] = timeline;
             for(let k= 0; k<5; k++){
-                let line = createE("div", "display_none_cell");
-                line.style.borderTop = "dotted #808080 1px";
-                line.style.gridRow = 3*(k+1)+1;
-                line.style.gridColumn = "1/6";
+                let line = createE("div", {"className": "display_none_cell"}, {"borderTop": "dotted #808080 1px", "gridRow": 3*(k+1)+1, "gridColumn": "1/6"});
                 timeline.appendChild(line);
             }
             date.setDate(date.getDate()+1);
@@ -198,6 +199,7 @@ function display(events, task_renew_required){
     let mondayStartDate = new Date(Date.parse(document.getElementById("form3").start.value));
     mondayStartDate.setDate(mondayStartDate.getDate()-(mondayStartDate.getDay()+5)%7-1);
     mondayStartDate.setHours(0);
+    let startHour
     let oldStartDate;
     let oldStartHour;
     let date_end_long = new Array(5);
@@ -207,18 +209,17 @@ function display(events, task_renew_required){
             // console.log(events[i].date_start)
             let date_start = new Date(events[i].date_start);
             let date_end = new Date(events[i].date_end);
-            let date_cell = createE("div", "date_cell", "", date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0"));
-            let event_cell = createE("div", "event_cell");
-            let event_container = createE("div", "event_container", "");
+            let date_cell = createE("div", {"className": "date_cell", "innerText": date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0")});
+            let event_cell = createE("div", {"className": "event_cell", "innerText": events[i].title});
+            let event_container = createE("div", {"className": "event_container"});
             if(date_start.getFullYear() != date_end.getFullYear()){
-                date_cell.innerText += "\n～" + date_string(date_end, "/", 0, true, true);
+                date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
             }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
-                date_cell.innerText += "\n～" + date_string(date_end, "/", 0, false, true);
+                date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
             }else if(date_start.getHours() != date_end.getHours()){
                 date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
             }
             let color = colorCodes[events[i].color];
-            event_cell.innerText = events[i].title;
             if(color == undefined)color = "#404040";
             if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
                 event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
@@ -238,7 +239,7 @@ function display(events, task_renew_required){
             else event_cell.style.color = color;
             event_container.appendChild(date_cell);
             event_container.appendChild(event_cell);
-            let delete_cell = createE("button", "delete_cell", "", "削除");
+            let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
             delete_cell.addEventListener('click', () => {
                 var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
                 if(result){
@@ -261,10 +262,10 @@ function display(events, task_renew_required){
                 if(date_start.getDate() == oldStartDate.getDate() && startHour == oldStartHour)duplicate_a += 1;
                 else duplicate_a = 0;
                 if(duplicate_b && date_end_long[duplicate_b-1] < date_start){
-                    console.log(date_end_long[duplicate_b-1])
+                    // console.log(date_end_long[duplicate_b-1])
                     duplicate_b -= 1;
                 }
-                console.log(duplicate_a,duplicate_b)
+                // console.log(duplicate_a,duplicate_b)
             }
             let duplicate = duplicate_a + duplicate_b + 1;
             let i_hour = Math.max((date_start_0-mondayStartDate)/86400000, 0)*18+Math.min(Math.max(date_start.getHours()-5, 1), 20);
@@ -273,38 +274,45 @@ function display(events, task_renew_required){
                 event_container.style.gridColumn = duplicate+"/6";
                 event_container_containers[i_hour].appendChild(event_container);
             } else {
-                let event_container_container = createE("div", "event_grid");
-                event_container_container.style.gridRow = startHour+"/"+endHour;
+                let event_container_container = createE("div", {"className": "event_grid"}, {"gridRow": startHour+"/"+endHour, "gridColumn": "1/6"});
                 if(date_start_0 < mondayStartDate)event_container_container.style.gridRow = "1/2";
-                event_container_container.style.gridColumn = "1/6";
                 event_container.style.gridColumn = duplicate+"/6";
                 event_container_container.appendChild(event_container);
                 event_container_containers[i_hour] = event_container_container;
                 timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)].appendChild(event_container_container);
             }
             let number = (date_start_0-mondayStartDate)/86400000;
-            console.log("date_start: ", date_start, "  date_end: ", date_end)
+            let options = {"startHour": startHour, "endHour": startHour, "start_column": duplicate, "i": i, "timelines": timelines, "number": number, "wide": true};
             if(date_start.getDate() == date_end.getDate()){
-                createEventBackground(startHour, endHour, duplicate, i, timelines, number, "wide");
+                createEventBackground(options);
             } else {
                 date_end_long[duplicate_b] = date_end;
                 duplicate_b += 1;
                 if(number >= 0){
-                    createEventBackground(startHour, startHour+1, duplicate+1, i, timelines, number, "wide");
-                    createEventBackground(startHour, 19, duplicate, i, timelines, number);
-                }else createEventBackground(1, 2, duplicate+1, i, timelines, 0, "wide");
+                    options.endHour = startHour+1; options.start_column = duplicate+1;
+                    createEventBackground(options);
+                    options.endHour = 19; options.start_column = duplicate; options.wide = false;
+                    createEventBackground(options);
+                }else {
+                    options.startHour = 1; options.endHour = 2;
+                    options.start_column = duplicate+1; options.number = 0;
+                    createEventBackground(options);
+                }
                 let days = Math.floor((date_end - date_start_0)/86400000);
                 let j = 1
+                options.startHour = 1; options.endHour = 19;
+                options.start_column = duplicate; options.number = number + j; options.wide = true;
                 for(; j < days; j++){
-                    if(number+j >= 0)createEventBackground(1, 19, duplicate, i, timelines, number+j);
+                    if(number+j >= 0)createEventBackground(options);
                 }
-                createEventBackground(1, endHour, duplicate, i, timelines, number+j);
+                options.endHour = endHour;
+                createEventBackground(options);
             }
             display_none_cells[Math.max((date_start_0-mondayStartDate)/86400000, 0)].style.display = "flex";
             skip = 0;
-            oldStartDate = date_start;
-            oldStartHour = startHour;
         }else skip++;
+        oldStartDate = date_start;
+        oldStartHour = startHour;
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);
@@ -317,7 +325,7 @@ function renewTask(event_data, date, color){
         'id': event_data.id
     };
     delete_event(data);
-    let new_date = date;
+    let new_date = new Date(date);
     console.log("old_date", new_date);
     if(color == 4)new_date.setDate(date.getDate()+1);
     if(color == 1)new_date.setDate(date.getDate()+7);
@@ -350,18 +358,18 @@ function cellPendingAnimation(cell, type){
     }
 }
 
-function createEventBackground(startHour, endHour, start_column, i, timelines, number, wide){
-    let event_back = createE("div", "display_none_cell");
-    event_back.style.backgroundColor = "hsla("+i*159+", 100%, 50%, 0.05)";
-    event_back.style.border = "solid 0.1px hsla("+i*159+", 100%, 0%, 0.2)";
-    event_back.style.gridRow = startHour+"/"+endHour;
-    if(wide == "wide"){
+function createEventBackground(options){
+    let event_back = createE("div", {"className": "display_none_cell"}, {
+        "backgroundColor": "hsla("+options.i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+options.i*159+", 100%, 0%, 0.2)", 
+        "gridRow": options.startHour+"/"+options.endHour
+    });
+    if(options.wide){
         end_column = 6;
         event_back.style.borderLeft = "transparent";
         event_back.style.borderRight = "transparent";
-    } else end_column = start_column + 1;
-    event_back.style.gridColumn = start_column+"/"+end_column;
-    timelines[Math.max(number, 0)].appendChild(event_back);
+    } else end_column = options.start_column + 1;
+    event_back.style.gridColumn = options.start_column+"/"+end_column;
+    options.timelines[Math.max(options.number, 0)].appendChild(event_back);
 }
 
 document.getElementById("form").addEventListener('submit', (event) => {
@@ -643,6 +651,15 @@ function countUpTimer(flag, no_save){
     document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
 }
 
+document.getElementById("historybutton").addEventListener('click', event => {
+    let history = document.getElementsByClassName('grid')[0];
+    if(history.style.display != 'grid'){
+        history.style.display = 'grid';
+    }else{
+        history.style.display = 'none';
+    }
+});
+
 function countHistory(events, row){
     let studytime = 0; hobbytime = 0;
     for(let i = 0; i < events.length; i++){
@@ -655,12 +672,10 @@ function countHistory(events, row){
             }
         }
     }
-    let studyhistory = createE("div", "", "", Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0));
-    studyhistory.style.gridRow = row;
-    studyhistory.style.gridColumn = 2;
-    let hobbyhistory = createE("div", "", "", Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0));
-    hobbyhistory.style.gridRow = row;
-    hobbyhistory.style.gridColumn = 3;
+    let studyhistory = createE("div", {"innerText": Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0)}, 
+    {"gridRow": row, "gridColumn": 2});
+    let hobbyhistory = createE("div", {"innerText": Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0)},
+    {"gridRow": row, "gridColumn": 3});
     document.getElementsByClassName('grid')[0].appendChild(hobbyhistory);
     document.getElementsByClassName('grid')[0].appendChild(studyhistory);
 }

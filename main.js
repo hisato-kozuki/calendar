@@ -1,3 +1,4 @@
+import { date_string, get_events, post_event, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -12,21 +13,11 @@ if ('serviceWorker' in navigator) {
 
 const date = new Date();
 let todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-let colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 let eventList;
 let apiUrl;
 let urlLinks = {};//よく使うサイトのリンク
-const days = ["月", "火", "水", "木", "金", "土", "日"];
 let studyTimeSeconds=0, hobbyTimeSeconds=0;
 let isStudying=false, isHavingHobby=false;
-
-const options = {
-    'method' : 'post',
-    'headers': {
-        'Content-Type': "application/x-www-form-urlencoded",
-    },
-    'body' : '' //送りたいデータをpayloadに配置してJSON形式変換。
-};
 
 window.onload = function(){
     let text = date_string(todayDate, "-", {"required": ["year", "hour"]});
@@ -34,8 +25,8 @@ window.onload = function(){
     document.getElementById("form").end.value = text;
     document.getElementById("form3").start.value = date_string(date, "-", {"required": ["year"]});
     document.getElementById("form3").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
-    urlget();
-    getCalendarEventsFromDB();
+    apiUrl = getApiUrlFromDB();
+    getCalendarEventsFromDB(apiUrl);
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);
@@ -44,334 +35,6 @@ window.onload = function(){
         }
     }
     countUpTimer(true, true);countUpTimer(false, true);
-}
-
-function date_string(date, separator, options){
-    let date_string = "";
-    if(options.month_offset != undefined)date.setMonth(date.getMonth() + options.month_offset);
-    if(options.required.includes("year"))date_string += date.getFullYear().toString();
-    date_string += separator + (date.getMonth() + 1).toString().padStart(2, "0")
-    date_string += separator + date.getDate().toString().padStart(2, "0")
-    if(options.required.includes("hour") && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":00";
-    if(options.required.includes("hour") && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
-    return date_string;
-}
-
-function get_events(startDate, endDate){
-    return new Promise((resolve, reject) => {
-            //res = UrlFetchApp.fetch(apiUrl,options); // <- Post リクエスト
-        if(startDate == undefined){
-            startDate = new Date();
-            endDate =  new Date();
-            startDate.setDate(startDate.getDate()-1);
-            startDate.setHours(0);
-            endDate.setMonth(endDate.getMonth()+2);
-        }
-        const data = {
-            'type': "get",
-            'date_start': startDate,
-            'date_end': endDate
-        };
-        options.body=JSON.stringify(data);
-        fetch(apiUrl, options)
-        .then(response => response.text())
-        .then(data => {
-            let received_data=JSON.parse(data);
-            document.getElementById("postbutton").innerText = "送信";
-            document.getElementById("getbutton").innerText = "完了";
-            resolve(received_data);
-        })
-        .catch(error => {
-            console.log("reload not complete")
-            console.error("Error:", error);
-            document.getElementById("p").innerText = error;
-            document.getElementById("getbutton").innerText = "Error";
-            reject(error);
-        });
-    });
-}
-
-function post_event(data, get_required){
-    return new Promise((resolve, reject) => {
-        //res = UrlFetchApp.fetch(apiUrl,options); // <- Post リクエスト
-        let received_data;
-        options.body=JSON.stringify(data);
-
-        fetch(apiUrl, options)
-        .then(response => response.text())
-        .then(data => {
-            // console.log(data);
-            resolve(true);
-            if(get_required){
-                cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
-                get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
-            console.log("post events 完了")});
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            document.getElementById("p").innerText = error;
-            reject(false);
-            document.getElementById("postbutton").innerText = "Error";
-        });
-    })
-}
-
-function delete_event(data, delete_cell){
-    //res = UrlFetchApp.fetch(apiUrl,options); // <- Post リクエスト
-    let received_data;
-    options.body=JSON.stringify(data);
-
-    fetch(apiUrl, options)
-    .then(response => response.text())
-    .then(data => {
-        // console.log(received_data=JSON.parse(data));
-        // console.log(data);
-        if(delete_cell != undefined)delete_cell.innerText = "完了";
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        document.getElementById("p").innerText = error;
-        delete_cell.innerText = "Error";
-    });
-}
-
-function createE(tag, options, styles){
-    let element = document.createElement(tag);
-    for(let key in options){
-        element[key] = options[key];
-    }
-    for(let key in styles){
-        element.style[key] = styles[key];
-    }
-    return element;
-}
-
-function display(events, task_renew_required){
-    if(document.getElementById("cell"))document.getElementById("cell").remove();
-    let cell = createE("div", {"className": "small_container", "id": "cell"});
-    let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
-    let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
-    date_start.setDate(date_start.getDate()-(date_start.getDay()+5)%7-1);
-    date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
-    let display_none_cells = new Array((date_end-date_start)/86400000);
-    let timelines = new Array((date_end-date_start)/86400000);
-    console.log("display start")
-    for(let date_monday = new Date(date_start), i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
-        let week_cell = createE("div", {"className": "week_cell"});
-        // let time_index = createE("div", "time_index");
-        // for(let j = 0; j < 8; j++){
-        //     let memori = createE("div", "div");
-        //     memori.style.width = "100%";
-        //     memori.style.borderBottom = "solid black 1px";
-        //     time_index.appendChild(memori)
-        // }
-        // week_cell.appendChild(time_index);
-        let date = new Date(date_monday);
-        for(let j = 0; j < 7; j++){
-            // let date_start = new Date(events[i].date_start);
-            // let date_end = new Date(events[i].date_end);
-            let day_cell = createE("div", {"className": "day_cell"});
-            let date_index_cell = createE("div", {"className": "date_index_cell", "innerText": date.getMonth()+1+"/"+date.getDate()+"("+days[j]+")"});
-            if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
-            else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
-            let day_div = createE("div", {"className": "div"});
-            let display_none_cell = createE("div", {"className": "display_none_cell"});
-            let timeline = createE("div", {"className": "timeline"});
-            day_cell.appendChild(date_index_cell);
-            day_cell.appendChild(timeline);
-            display_none_cell.appendChild(day_cell);
-            day_div.appendChild(display_none_cell);
-            week_cell.appendChild(day_div);
-            display_none_cells[7*i+j] = display_none_cell;
-            timelines[7*i+j] = timeline;
-            for(let k= 0; k<5; k++){
-                let line = createE("div", {"className": "display_none_cell"}, {"borderTop": "dotted #808080 1px", "gridRow": 3*(k+1)+1, "gridColumn": "1/6"});
-                timeline.appendChild(line);
-            }
-            date.setDate(date.getDate()+1);
-        }
-        cell.appendChild(week_cell);
-    }
-    let skip = 0;
-    let duplicate_a = 0;
-    let duplicate_b = 0;
-    let mondayStartDate = new Date(Date.parse(document.getElementById("form3").start.value));
-    mondayStartDate.setDate(mondayStartDate.getDate()-(mondayStartDate.getDay()+5)%7-1);
-    mondayStartDate.setHours(0);
-    let startHour;
-    let eventStartDate = new Date(date_start);
-    let oldStartDate;
-    let oldStartHour;
-    let date_end_long = new Array(5);
-    let event_container_containers = new Array((date_end-date_start)/86400000*18);
-    for(let i = 0; i < events.length; i++){
-        if(events[i].color != 3){
-            // console.log(events[i].date_start)
-            eventStartDate = new Date(events[i].date_start);
-            let date_end = new Date(events[i].date_end);
-            let date_cell = createE("div", {"className": "date_cell", "innerText": eventStartDate.getHours().toString() + ":" + eventStartDate.getMinutes().toString().padStart(2, "0")});
-            let event_cell = createE("div", {"className": "event_cell", "innerText": events[i].title});
-            let event_container = createE("div", {"className": "event_container"});
-            if(eventStartDate.getFullYear() != date_end.getFullYear()){
-                date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
-            }else if(eventStartDate.getMonth() != date_end.getMonth() || eventStartDate.getDate() != date_end.getDate()){
-                date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
-            }else if(eventStartDate.getHours() != date_end.getHours()){
-                date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
-            }
-            let color = colorCodes[events[i].color];
-            if(color == undefined)color = "#404040";
-            if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
-                event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
-                // console.log((eventStartDate - todayDate)/3600000);
-                if(task_renew_required){
-                    if(events[i].color == 4 && eventStartDate - todayDate < 86400000){ // 現在日程の一日後より前の時刻の場合に
-                        renewTask(events[i], eventStartDate, 4);
-                    }
-                    if(events[i].color == 1 && eventStartDate - todayDate < 172800000){ // 現在日程の2日後より前の時刻の場合に
-                        renewTask(events[i], eventStartDate, 1);
-                    }
-                    if(events[i].color == 9 && eventStartDate - todayDate < 604800000){ // 現在日程の１週間後より前の時刻の場合に
-                        renewTask(events[i], eventStartDate, 9);
-                    }
-                }
-            }
-            else event_cell.style.color = color;
-            event_container.appendChild(date_cell);
-            event_container.appendChild(event_cell);
-            let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
-            delete_cell.addEventListener('click', () => {
-                var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
-                if(result){
-                    const data = {
-                        'type': "delete",
-                        'id': events[i].id
-                    };
-                    cellPendingAnimation(delete_cell)
-                    delete_event(data, delete_cell);
-                }
-            });
-            event_container.appendChild(delete_cell);
-            let date_start_0 = new Date(eventStartDate.getFullYear(), eventStartDate.getMonth(), eventStartDate.getDate());
-            // console.log(eventStartDate,mondayStartDate);
-            // console.log((date_start_0-mondayStartDate)/86400000);
-            // event_container.style.top = (eventStartDate.getHours()/24*350+30)+"px";
-            startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
-            endHour= Math.min(Math.max(date_end.getHours()-5, startHour+1), 20);
-            if(i){
-                console.log(eventStartDate.getDate() , oldStartDate.getDate(), startHour , oldStartHour)
-                if(eventStartDate.getDate() == oldStartDate.getDate() && startHour == oldStartHour)duplicate_a += 1;
-                else duplicate_a = 0;
-                if(duplicate_b && date_end_long[duplicate_b-1] < eventStartDate){
-                    // console.log(date_end_long[duplicate_b-1])
-                    duplicate_b -= 1;
-                }
-                // console.log(duplicate_a,duplicate_b)
-            }
-            let duplicate = duplicate_a + duplicate_b + 1;
-            let i_hour = Math.max((date_start_0-mondayStartDate)/86400000, 0)*18+Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
-            if(date_start_0 < mondayStartDate)i_hour = 0;
-            if(event_container_containers[i_hour] != undefined){
-                event_container.style.gridColumn = duplicate+"/6";
-                event_container_containers[i_hour].appendChild(event_container);
-            } else {
-                let event_container_container = createE("div", {"className": "event_grid"}, {"gridRow": startHour+"/"+endHour, "gridColumn": "1/6"});
-                if(date_start_0 < mondayStartDate)event_container_container.style.gridRow = "1/2";
-                event_container.style.gridColumn = duplicate+"/6";
-                event_container_container.appendChild(event_container);
-                event_container_containers[i_hour] = event_container_container;
-                timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)].appendChild(event_container_container);
-            }
-            let number = (date_start_0-mondayStartDate)/86400000;
-            let options = {"startHour": startHour, "endHour": startHour, "start_column": duplicate, "i": i, "timelines": timelines, "number": number, "wide": true};
-            if(eventStartDate.getDate() == date_end.getDate()){
-                createEventBackground(options);
-            } else {
-                date_end_long[duplicate_b] = date_end;
-                duplicate_b += 1;
-                if(number >= 0){
-                    options.endHour = startHour+1; options.start_column = duplicate+1;
-                    createEventBackground(options);
-                    options.endHour = 19; options.start_column = duplicate; options.wide = false;
-                    createEventBackground(options);
-                }else {
-                    options.startHour = 1; options.endHour = 2;
-                    options.start_column = duplicate+1; options.number = 0;
-                    createEventBackground(options);
-                }
-                let days = Math.floor((date_end - date_start_0)/86400000);
-                let j = 1
-                options.startHour = 1; options.endHour = 19;
-                options.start_column = duplicate; options.number = number + j; options.wide = true;
-                for(; j < days; j++){
-                    if(number+j >= 0)createEventBackground(options);
-                }
-                options.endHour = endHour;
-                createEventBackground(options);
-            }
-            display_none_cells[Math.max((date_start_0-mondayStartDate)/86400000, 0)].style.display = "flex";
-            skip = 0;
-        }else skip++;
-        oldStartDate = eventStartDate;
-        oldStartHour = startHour;
-    }
-    // console.log("cell classname",cell.style.className);
-    document.getElementsByClassName("container")[0].appendChild(cell);
-}
-
-function renewTask(event_data, date, color){
-    console.log("detected");
-    let data = {
-        'type': "delete",
-        'id': event_data.id
-    };
-    delete_event(data);
-    let new_date = new Date(date);
-    console.log("old_date", new_date);
-    if(color == 4)new_date.setDate(date.getDate()+1);
-    if(color == 1)new_date.setDate(date.getDate()+7);
-    if(color == 9)new_date.setMonth(date.getMonth()+1);
-    console.log("new_date", new_date);
-    data = {
-        'type': 'post',
-        'title': event_data.title,
-        'date_start': new_date,
-        'date_end': new_date,
-        'color': color,
-    };
-    if(data.title != ""){
-        document.getElementById("postbutton").innerText = "……";
-        post_event(data, 0).then((data) => {
-            if(data)document.getElementById("postbutton").innerText = "完了";
-            else document.getElementById("postbutton").innerText = "Error";
-        });
-    }
-}
-
-function cellPendingAnimation(cell, type){
-    if(cell.innerText == "完了" || cell.innerText == "Error"){
-        if(cell.innerText == "完了" && type == "getbutton")cell.innerText = "リロード";
-    }else{
-        if(cell.innerText == ">")cell.innerText = ">>";
-        else if(cell.innerText == ">>")cell.innerText = ">>>";
-        else cell.innerText = ">";
-        setTimeout(() => cellPendingAnimation(cell, type), 500);
-    }
-}
-
-function createEventBackground(options){
-    let event_back = createE("div", {"className": "display_none_cell"}, {
-        "backgroundColor": "hsla("+options.i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+options.i*159+", 100%, 0%, 0.2)", 
-        "gridRow": options.startHour+"/"+options.endHour
-    });
-    if(options.wide){
-        end_column = 6;
-        event_back.style.borderLeft = "transparent";
-        event_back.style.borderRight = "transparent";
-    } else end_column = options.start_column + 1;
-    event_back.style.gridColumn = options.start_column+"/"+end_column;
-    options.timelines[Math.max(options.number, 0)].appendChild(event_back);
 }
 
 document.getElementById("form").addEventListener('submit', (event) => {
@@ -404,7 +67,7 @@ document.getElementById("form2").addEventListener('submit', event => {
     apiUrl=document.getElementById("form2").url.value;
     document.getElementById("form2").style.visibility="hidden";
     saveApiUrlToDB(apiUrl);
-    get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
+    get_events().then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
             console.log("url更新 完了")
         document.getElementById("getbutton").innerText = "リロード";});
 });
@@ -416,7 +79,7 @@ document.getElementById("form3").addEventListener('submit', event => {
     let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
     let button = document.getElementById("getbutton");
     if(button.innerText == "リロード"){
-        get_events(date_start, date_end).then((data)=>{display(data, true);saveCalendarEventsToDB(data);
+        get_events(date_start, date_end).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
             console.log("リロード 完了")});
         cellPendingAnimation(button, "getbutton");
     }else button.innerText = "リロード";
@@ -452,107 +115,6 @@ document.getElementById("urlform").addEventListener('submit', event => {
         }
     }else document.getElementById("urlformbutton").innerText="登録";
 });
-
-function getCalendarEventsFromDB(){
-    dbOperation("get", "calendar");
-}
-
-function saveCalendarEventsToDB(received_data){
-    dbOperation("save", "calendar", received_data);
-}
-
-function urlget(){
-    dbOperation("get", "url");
-}
-
-function saveApiUrlToDB(url){
-    dbOperation("save", "url", url);
-}
-
-function dbOperation(mode, storeName, received_data){
-    var dbName;
-    if(storeName=="calendar")dbName = 'sampleDB';
-    if(storeName=="url")dbName = 'GasUrlDB';
-    var dbVersion = '1';
-    //　DB名を指定して接続
-    var openReq  = indexedDB.open(dbName, dbVersion);
-    // 接続に失敗
-    openReq.onerror = function (event) {
-        console.log('接続失敗');
-    }
-    if(mode=="get"){
-        //DBのバージョン更新(DBの新規作成も含む)時のみ実行
-        openReq.onupgradeneeded = function (event) {
-            var db = event.target.result;
-            const objectStore = db.createObjectStore(storeName, {keyPath : 'id'});
-            objectStore.createIndex("id", "id", { unique: true });
-            if(storeName=="calendar")objectStore.createIndex("events", "events", { unique: false });
-            if(storeName=="url")objectStore.createIndex("url", "url", { unique: false });
-
-            console.log('DB更新');
-        }
-    }
-
-    //onupgradeneededの後に実行。更新がない場合はこれだけ実行
-    openReq.onsuccess = function (event) {
-        var db = event.target.result;
-        var trans = db.transaction(storeName, "readwrite");
-        var store = trans.objectStore(storeName);
-        if(mode=="get"){
-            var getReq_g = store.get(1);
-            getReq_g.onsuccess = function (event) {
-                if (typeof event.target.result != 'undefined') {
-                    if(storeName=="calendar"){
-                        let events = event.target.result.events;
-                        console.log("stored_event", event);
-                        display(events, false);
-                    }
-                    if(storeName=="url"){
-                        let stored_url = event.target.result.url;
-                        apiUrl = stored_url;
-                        console.log("stored_url",apiUrl);
-                        const promise1 = new Promise((resolve) =>get_events().then((data)=>resolve(data)));
-                        const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
-                        let date_old = new Date(todayDate - 86400000);
-                        const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-                        date_old = new Date(todayDate - 604800000);
-                        const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-                        Promise.all([promise1, promise2, promise3, promise4])
-                        .then((results) => {
-                            display(results[0], true);saveCalendarEventsToDB(results[0]);
-                            countHistory(results[1], 2);
-                            countHistory(results[2], 3);
-                            countHistory(results[3], 4);
-                            document.getElementById("getbutton").innerText="リロード";
-                            console.log("予定読み込み，履歴読み込み完了");
-                        })
-                    }
-                }else{
-                    if(storeName=="url")document.getElementById("form2").style.visibility="visible";
-                }
-            }
-        }
-        if(mode=="save"){
-            if(storeName=="calendar"){
-                var putReq = store.put({
-                    id: 1,
-                    events: received_data
-                });
-            }
-            if(storeName=="url"){
-                var putReq = store.put({
-                    id: 1,
-                    url: received_data
-                });
-
-            }
-            // putReq.onsuccess = function (event) {
-            //     console.log('更新成功');
-            //     console.log("saved:"+received_data);
-            // }
-        }
-    }
-}
 
 document.getElementById("studybutton").addEventListener('click', event => {
     if(localStorage.getItem("isstudy") != 1){
@@ -661,23 +223,3 @@ document.getElementById("historybutton").addEventListener('click', event => {
         history.style.display = 'none';
     }
 });
-
-function countHistory(events, row){
-    let studytime = 0; hobbytime = 0;
-    for(let i = 0; i < events.length; i++){
-        if(events[i].color == 3){
-            if(events[i].title.slice(0, 5) === "sssss"){
-                studytime += Number(events[i].title.slice(5, 10));
-            }
-            if(events[i].title.slice(0, 5) === "hhhhh"){
-                hobbytime += Number(events[i].title.slice(5, 10));
-            }
-        }
-    }
-    let studyhistory = createE("div", {"innerText": Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0)}, 
-    {"gridRow": row, "gridColumn": 2});
-    let hobbyhistory = createE("div", {"innerText": Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0)},
-    {"gridRow": row, "gridColumn": 3});
-    document.getElementsByClassName('grid')[0].appendChild(hobbyhistory);
-    document.getElementsByClassName('grid')[0].appendChild(studyhistory);
-}

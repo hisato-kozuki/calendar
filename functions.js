@@ -177,7 +177,7 @@ export function createEventBackground(options){
         "gridRow": options.startHour+"/"+options.endHour, "gridColumn": options.start_column+"/"+options.start_column + 1
     });
     if(options.wide){
-        event_back.style.gridColumn = 6;
+        event_back.style.gridColumn = options.start_column+"/6";
         event_back.style.borderLeft = "transparent";
         event_back.style.borderRight = "transparent";
     }

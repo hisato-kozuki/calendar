@@ -1,4 +1,4 @@
-import { date_string, get_events, post_event, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB } from "./functions.js";
+import { date_string, get_events, post_event, cellPendingAnimation, display, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -21,11 +21,11 @@ let isStudying=false, isHavingHobby=false;
 
 window.onload = function(){
     let text = date_string(todayDate, "-", {"required": ["year", "hour"]});
-    document.getElementById("form").start.value = text;
-    document.getElementById("form").end.value = text;
-    document.getElementById("form3").start.value = date_string(date, "-", {"required": ["year"]});
-    document.getElementById("form3").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
-    apiUrl = getApiUrlFromDB();
+    document.getElementById("register_form").start.value = text;
+    document.getElementById("register_form").end.value = text;
+    document.getElementById("reload_form").start.value = date_string(date, "-", {"required": ["year"]});
+    document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
+    getApiUrlFromDB().then((data)=>{apiUrl = data});
     getCalendarEventsFromDB(apiUrl);
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
@@ -37,9 +37,9 @@ window.onload = function(){
     countUpTimer(true, true);countUpTimer(false, true);
 }
 
-document.getElementById("form").addEventListener('submit', (event) => {
+document.getElementById("register_form").addEventListener('submit', (event) => {
     // イベントを停止する
-    let form = document.getElementById("form");
+    let form = document.getElementById("register_form");
     let button = document.getElementById("postbutton");
     event.preventDefault();
     let date_start = new Date(Date.parse(form.start.value));
@@ -61,37 +61,37 @@ document.getElementById("form").addEventListener('submit', (event) => {
     }
 });
 
-document.getElementById("form2").addEventListener('submit', event => {
+document.getElementById("apiurl_form").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
-    apiUrl=document.getElementById("form2").url.value;
-    document.getElementById("form2").style.visibility="hidden";
+    apiUrl=document.getElementById("apiurl_form").url.value;
+    document.getElementById("apiurl_form").style.visibility="hidden";
     saveApiUrlToDB(apiUrl);
-    get_events().then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
+    get_events(apiUrl).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
             console.log("url更新 完了")
-        document.getElementById("getbutton").innerText = "リロード";});
+        document.getElementById("getbutton").innerText = "更新";});
 });
 
-document.getElementById("form3").addEventListener('submit', event => {
+document.getElementById("reload_form").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
-    let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
-    let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
+    let date_start = new Date(Date.parse(document.getElementById("reload_form").start.value));
+    let date_end = new Date(Date.parse(document.getElementById("reload_form").end.value));
     let button = document.getElementById("getbutton");
-    if(button.innerText == "リロード"){
-        get_events(date_start, date_end).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
-            console.log("リロード 完了")});
+    if(button.innerText == "更新"){
+        get_events(apiUrl, date_start, date_end).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
+            console.log("更新 完了")});
         cellPendingAnimation(button, "getbutton");
-    }else button.innerText = "リロード";
+    }else button.innerText = "更新";
 });
 
 document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する
     event.preventDefault();
     
-    text = document.getElementById("form").start.value;
+    let text = document.getElementById("register_form").start.value;
     console.log(text);
-    document.getElementById("form").end.value = text;
+    document.getElementById("register_form").end.value = text;
 });
 
 document.getElementById("urlform").addEventListener('submit', event => {

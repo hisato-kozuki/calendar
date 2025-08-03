@@ -23,7 +23,7 @@ export function date_string(date, separator, options){
 
 export function cellPendingAnimation(cell, type){
     if(cell.innerText == "完了" || cell.innerText == "Error"){
-        if(cell.innerText == "完了" && type == "getbutton")cell.innerText = "リロード";
+        if(cell.innerText == "完了" && type == "getbutton")cell.innerText = "更新";
     }else{
         if(cell.innerText == ">")cell.innerText = ">>";
         else if(cell.innerText == ">>")cell.innerText = ">>>";
@@ -187,8 +187,8 @@ export function createEventBackground(options){
 export function display(apiUrl, events, task_renew_required){
     if(document.getElementById("cell"))document.getElementById("cell").remove();
     let cell = createE("div", {"className": "small_container", "id": "cell"});
-    let date_start = new Date(Date.parse(document.getElementById("form3").start.value));
-    let date_end = new Date(Date.parse(document.getElementById("form3").end.value));
+    let date_start = new Date(Date.parse(document.getElementById("reload_form").start.value));
+    let date_end = new Date(Date.parse(document.getElementById("reload_form").end.value));
     date_start.setDate(date_start.getDate()-(date_start.getDay()+5)%7-1);
     date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
     let display_none_cells = new Array((date_end-date_start)/86400000);
@@ -233,7 +233,7 @@ export function display(apiUrl, events, task_renew_required){
     let skip = 0;
     let duplicate_a = 0;
     let duplicate_b = 0;
-    let mondayStartDate = new Date(Date.parse(document.getElementById("form3").start.value));
+    let mondayStartDate = new Date(Date.parse(document.getElementById("reload_form").start.value));
     mondayStartDate.setDate(mondayStartDate.getDate()-(mondayStartDate.getDay()+5)%7-1);
     mondayStartDate.setHours(0);
     let startHour;
@@ -297,7 +297,7 @@ export function display(apiUrl, events, task_renew_required){
             startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
             let endHour= Math.min(Math.max(date_end.getHours()-5, startHour+1), 20);
             if(i){
-                console.log(eventStartDate.getDate() , oldStartDate.getDate(), startHour , oldStartHour)
+                // console.log(eventStartDate.getDate() , oldStartDate.getDate(), startHour , oldStartHour)
                 if(eventStartDate.getDate() == oldStartDate.getDate() && startHour == oldStartHour)duplicate_a += 1;
                 else duplicate_a = 0;
                 if(duplicate_b && date_end_long[duplicate_b-1] < eventStartDate){
@@ -363,83 +363,85 @@ function dbOperation(mode, storeName, received_data, apiUrl){
     if(storeName=="url")dbName = 'GasUrlDB';
     var dbVersion = '1';
     //　DB名を指定して接続
-    var openReq  = indexedDB.open(dbName, dbVersion);
-    // 接続に失敗
-    openReq.onerror = function (event) {
-        console.log('接続失敗');
-    }
-    if(mode=="get"){
-        //DBのバージョン更新(DBの新規作成も含む)時のみ実行
-        openReq.onupgradeneeded = function (event) {
-            var db = event.target.result;
-            const objectStore = db.createObjectStore(storeName, {keyPath : 'id'});
-            objectStore.createIndex("id", "id", { unique: true });
-            if(storeName=="calendar")objectStore.createIndex("events", "events", { unique: false });
-            if(storeName=="url")objectStore.createIndex("url", "url", { unique: false });
-
-            console.log('DB更新');
+    return new Promise((resolve)=>{
+        var openReq  = indexedDB.open(dbName, dbVersion);
+        // 接続に失敗
+        openReq.onerror = function (event) {
+            console.log('接続失敗');
         }
-    }
-
-    //onupgradeneededの後に実行。更新がない場合はこれだけ実行
-    openReq.onsuccess = function (event) {
-        var db = event.target.result;
-        var trans = db.transaction(storeName, "readwrite");
-        var store = trans.objectStore(storeName);
         if(mode=="get"){
-            var getReq_g = store.get(1);
-            getReq_g.onsuccess = function (event) {
-                if (typeof event.target.result != 'undefined') {
-                    if(storeName=="calendar"){
-                        let events = event.target.result.events;
-                        console.log("stored_event", event);
-                        display(apiUrl, events, false);
+            //DBのバージョン更新(DBの新規作成も含む)時のみ実行
+            openReq.onupgradeneeded = function (event) {
+                var db = event.target.result;
+                const objectStore = db.createObjectStore(storeName, {keyPath : 'id'});
+                objectStore.createIndex("id", "id", { unique: true });
+                if(storeName=="calendar")objectStore.createIndex("events", "events", { unique: false });
+                if(storeName=="url")objectStore.createIndex("url", "url", { unique: false });
+
+                console.log('DB更新');
+            }
+        }
+
+        //onupgradeneededの後に実行。更新がない場合はこれだけ実行
+        openReq.onsuccess = function (event) {
+            var db = event.target.result;
+            var trans = db.transaction(storeName, "readwrite");
+            var store = trans.objectStore(storeName);
+            if(mode=="get"){
+                var getReq_g = store.get(1);
+                getReq_g.onsuccess = function (event) {
+                    if (typeof event.target.result != 'undefined') {
+                        if(storeName=="calendar"){
+                            let events = event.target.result.events;
+                            console.log("stored_event", event);
+                            display(apiUrl, events, false);
+                        }
+                        if(storeName=="url"){
+                            let stored_url = event.target.result.url;
+                            console.log("stored_url",stored_url);
+                            const promise1 = new Promise((resolve) =>get_events(stored_url).then((data)=>resolve(data)));
+                            const promise2 = new Promise((resolve) =>get_events(stored_url, todayDate, date, false).then((data)=>resolve(data)));
+                            let date_old = new Date(todayDate - 86400000);
+                            const promise3 = new Promise((resolve) =>get_events(stored_url, date_old, todayDate, false).then((data)=>resolve(data)));
+                            date_old = new Date(todayDate - 604800000);
+                            const promise4 = new Promise((resolve) =>get_events(stored_url, date_old, todayDate, false).then((data)=>resolve(data)));
+                            Promise.all([promise1, promise2, promise3, promise4])
+                            .then((results) => {
+                                display(stored_url, results[0], true);saveCalendarEventsToDB(results[0]);
+                                countHistory(results[1], 2);
+                                countHistory(results[2], 3);
+                                countHistory(results[3], 4);
+                                document.getElementById("getbutton").innerText="更新";
+                                console.log("予定読み込み，履歴読み込み完了");
+                                resolve(stored_url);
+                            })
+                        }
+                    }else{
+                        if(storeName=="url")document.getElementById("apiurl_form").style.visibility="visible";
                     }
-                    if(storeName=="url"){
-                        let stored_url = event.target.result.url;
-                        console.log("stored_url",stored_url);
-                        const promise1 = new Promise((resolve) =>get_events(stored_url).then((data)=>resolve(data)));
-                        const promise2 = new Promise((resolve) =>get_events(stored_url, todayDate, date, false).then((data)=>resolve(data)));
-                        let date_old = new Date(todayDate - 86400000);
-                        const promise3 = new Promise((resolve) =>get_events(stored_url, date_old, todayDate, false).then((data)=>resolve(data)));
-                        date_old = new Date(todayDate - 604800000);
-                        const promise4 = new Promise((resolve) =>get_events(stored_url, date_old, todayDate, false).then((data)=>resolve(data)));
-                        Promise.all([promise1, promise2, promise3, promise4])
-                        .then((results) => {
-                            display(stored_url, results[0], true);saveCalendarEventsToDB(results[0]);
-                            countHistory(results[1], 2);
-                            countHistory(results[2], 3);
-                            countHistory(results[3], 4);
-                            document.getElementById("getbutton").innerText="リロード";
-                            console.log("予定読み込み，履歴読み込み完了");
-                        })
-                        return stored_url;
-                    }
-                }else{
-                    if(storeName=="url")document.getElementById("form2").style.visibility="visible";
                 }
             }
-        }
-        if(mode=="save"){
-            if(storeName=="calendar"){
-                var putReq = store.put({
-                    id: 1,
-                    events: received_data
-                });
-            }
-            if(storeName=="url"){
-                var putReq = store.put({
-                    id: 1,
-                    url: received_data
-                });
+            if(mode=="save"){
+                if(storeName=="calendar"){
+                    var putReq = store.put({
+                        id: 1,
+                        events: received_data
+                    });
+                }
+                if(storeName=="url"){
+                    var putReq = store.put({
+                        id: 1,
+                        url: received_data
+                    });
 
+                }
+                // putReq.onsuccess = function (event) {
+                //     console.log('更新成功');
+                //     console.log("saved:"+received_data);
+                // }
             }
-            // putReq.onsuccess = function (event) {
-            //     console.log('更新成功');
-            //     console.log("saved:"+received_data);
-            // }
         }
-    }
+    })
 }
 
 export function getCalendarEventsFromDB(apiUrl){
@@ -451,7 +453,7 @@ export function saveCalendarEventsToDB(received_data){
 }
 
 export function getApiUrlFromDB(){
-    return dbOperation("get", "url");
+    return new Promise((resolve)=>{dbOperation("get", "url").then((data)=>resolve(data))});
 }
 
 export function saveApiUrlToDB(url){

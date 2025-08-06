@@ -174,7 +174,8 @@ function countHistory(events, row){
 export function createEventBackground(options){
     let event_back = createE("div", {"className": "display_none_cell"}, {
         "backgroundColor": "hsla("+options.i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+options.i*159+", 100%, 0%, 0.2)", 
-        "gridRow": options.startHour+"/"+options.endHour, "gridColumn": options.start_column+"/"+options.start_column + 1
+        "gridRow": options.startHour+"/"+options.endHour, "gridColumn": options.start_column+"/"+options.start_column + 1,
+        "position": "relative", "top": (3*(options.start_column-1))+"px"
     });
     if(options.wide){
         event_back.style.gridColumn = options.start_column+"/6";
@@ -248,7 +249,8 @@ export function display(apiUrl, events, task_renew_required){
             eventStartDate = new Date(events[i].date_start);
             let date_end = new Date(events[i].date_end);
             let date_cell = createE("div", {"className": "date_cell", "innerText": eventStartDate.getHours().toString() + ":" + eventStartDate.getMinutes().toString().padStart(2, "0")});
-            let event_cell = createE("div", {"className": "event_cell", "innerText": events[i].title});
+            let event_cell = createE("div", {"className": "event_cell display_land_none_cell", "innerText": events[i].title});
+            let event_cell2 = createE("div", {"className": "event_cell display_none_cell", "innerText": events[i].title});
             let event_container = createE("div", {"className": "event_container"});
             if(eventStartDate.getFullYear() != date_end.getFullYear()){
                 date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
@@ -261,6 +263,7 @@ export function display(apiUrl, events, task_renew_required){
             if(color == undefined)color = "#404040";
             if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
                 event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
+                event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell2.innerHTML;
                 // console.log((eventStartDate - todayDate)/3600000);
                 if(task_renew_required){
                     if(events[i].color == 4 && eventStartDate - todayDate < 86400000){ // 現在日程の一日後より前の時刻の場合に
@@ -274,9 +277,18 @@ export function display(apiUrl, events, task_renew_required){
                     }
                 }
             }
-            else event_cell.style.color = color;
+            else {event_cell.style.color = color;event_cell2.style.color = color;}
+            event_cell2.addEventListener('click', event => {
+                console.log(event.target.style.height)
+                if(event.target.style.height != "fit-content"){
+                    event.target.style.height = "fit-content";                 
+                } else {
+                    event.target.style.height = "20px";
+                }
+            })
             event_container.appendChild(date_cell);
             event_container.appendChild(event_cell);
+            event_container.appendChild(event_cell2);
             let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
             delete_cell.addEventListener('click', () => {
                 var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
@@ -309,17 +321,6 @@ export function display(apiUrl, events, task_renew_required){
             let duplicate = duplicate_a + duplicate_b + 1;
             let i_hour = Math.max((date_start_0-mondayStartDate)/86400000, 0)*18+Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
             if(date_start_0 < mondayStartDate)i_hour = 0;
-            if(event_container_containers[i_hour] != undefined){
-                event_container.style.gridColumn = duplicate+"/6";
-                event_container_containers[i_hour].appendChild(event_container);
-            } else {
-                let event_container_container = createE("div", {"className": "event_grid"}, {"gridRow": startHour+"/"+endHour, "gridColumn": "1/6"});
-                if(date_start_0 < mondayStartDate)event_container_container.style.gridRow = "1/2";
-                event_container.style.gridColumn = duplicate+"/6";
-                event_container_container.appendChild(event_container);
-                event_container_containers[i_hour] = event_container_container;
-                timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)].appendChild(event_container_container);
-            }
             let number = (date_start_0-mondayStartDate)/86400000;
             let options = {"startHour": startHour, "endHour": startHour, "start_column": duplicate, "i": i, "timelines": timelines, "number": number, "wide": true};
             if(eventStartDate.getDate() == date_end.getDate()){
@@ -346,6 +347,17 @@ export function display(apiUrl, events, task_renew_required){
                 }
                 options.endHour = endHour;
                 createEventBackground(options);
+            }
+            if(event_container_containers[i_hour] != undefined){
+                event_container.style.gridColumn = duplicate+"/6";
+                event_container_containers[i_hour].appendChild(event_container);
+            } else {
+                let event_container_container = createE("div", {"className": "event_grid"}, {"gridRow": startHour+"/"+endHour, "gridColumn": "1/6"});
+                if(date_start_0 < mondayStartDate)event_container_container.style.gridRow = "1/2";
+                event_container.style.gridColumn = duplicate+"/6";
+                event_container_container.appendChild(event_container);
+                event_container_containers[i_hour] = event_container_container;
+                timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)].appendChild(event_container_container);
             }
             display_none_cells[Math.max((date_start_0-mondayStartDate)/86400000, 0)].style.display = "flex";
             skip = 0;
@@ -458,4 +470,28 @@ export function getApiUrlFromDB(){
 
 export function saveApiUrlToDB(url){
     dbOperation("save", "url", url);
+}
+
+export function countUpTimer(flag, no_save){
+    let date_start;
+    let date = new Date();
+    let count;
+    let id;
+    if(!flag){
+        id = "studytimer";
+        date_start = new Date(localStorage.getItem("study_start_date"));
+        count = Number(localStorage.getItem("studyTimeSeconds"));
+        if(no_save == undefined)count += Math.floor((date - date_start)/1000);
+        if(localStorage.getItem("isstudy") != 0)setTimeout(()=>countUpTimer(flag), 1000);
+        else localStorage.setItem("studyTimeSeconds", count);
+    }
+    else {
+        id = "hobbytimer";
+        date_start = new Date(localStorage.getItem("hobby_start_date"));
+        count = Number(localStorage.getItem("hobbyTimeSeconds"));
+        if(no_save == undefined)count += Math.floor((date - date_start)/1000);
+        if(localStorage.getItem("ishobby") != 0)setTimeout(()=>countUpTimer(flag), 1000);
+        else localStorage.setItem("hobbyTimeSeconds", count);
+    }
+    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
 }

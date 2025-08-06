@@ -1,4 +1,4 @@
-import { date_string, get_events, post_event, cellPendingAnimation, display, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB } from "./functions.js";
+import { date_string, get_events, post_event, cellPendingAnimation, display, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB, countUpTimer } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -39,7 +39,7 @@ window.onload = function(){
 
 document.getElementById("register_form").addEventListener('submit', (event) => {
     // イベントを停止する
-    let form = document.getElementById("register_form");
+    let form = event.target;
     let button = document.getElementById("postbutton");
     event.preventDefault();
     let date_start = new Date(Date.parse(form.start.value));
@@ -64,8 +64,8 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
 document.getElementById("apiurl_form").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
-    apiUrl=document.getElementById("apiurl_form").url.value;
-    document.getElementById("apiurl_form").style.visibility="hidden";
+    apiUrl=event.target.url.value;
+    event.target.style.visibility="hidden";
     saveApiUrlToDB(apiUrl);
     get_events(apiUrl).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
             console.log("url更新 完了")
@@ -75,8 +75,8 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
 document.getElementById("reload_form").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
-    let date_start = new Date(Date.parse(document.getElementById("reload_form").start.value));
-    let date_end = new Date(Date.parse(document.getElementById("reload_form").end.value));
+    let date_start = new Date(Date.parse(event.target.start.value));
+    let date_end = new Date(Date.parse(event.target.end.value));
     let button = document.getElementById("getbutton");
     if(button.innerText == "更新"){
         get_events(apiUrl, date_start, date_end).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
@@ -97,23 +97,24 @@ document.getElementById("date_default").addEventListener('click', event => {
 document.getElementById("urlform").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
-    if(document.getElementById("urlformbutton").innerText=="表示"){
+    let urlformbutton = document.getElementById("urlformbutton");
+    if(urlformbutton.innerText=="表示"){
         document.getElementById("urls").style.visibility = "visible";
         document.getElementById("urls").style.height = "fit-content";
         document.getElementById("nameinput").style.visibility = "visible";
         document.getElementById("urlinput").style.visibility = "visible";
-        document.getElementById("urlformbutton").innerText="登録";
+        urlformbutton.innerText="登録";
     }
-    else if(document.getElementById("urlformbutton").innerText=="登録"){
-        urlLinks[document.getElementById("urlform").name.value] = document.getElementById("formform").url.value;
+    else if(urlformbutton.innerText=="登録"){
+        urlLinks[event.target.name.value] = document.getElementById("formform").url.value;
         localStorage.setItem("links", JSON.stringify(urlLinks));
-        document.getElementById("urlformbutton").innerText="完了";
+        urlformbutton.innerText="完了";
         document.getElementById("urls").innerHTML = "";
         let key = Object.keys(urlLinks);
         for(let i = 0; i < key.length; i++){
             document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
         }
-    }else document.getElementById("urlformbutton").innerText="登録";
+    }else urlformbutton.innerText="登録";
 });
 
 document.getElementById("studybutton").addEventListener('click', event => {
@@ -139,7 +140,7 @@ document.getElementById("hobbybutton").addEventListener('click', event => {
 });
 
 document.getElementById("studysend").addEventListener('click', event => {
-    let cell = document.getElementById("studysend");
+    let cell = event.target;
     if(cell.innerText == "完了")cell.innerText = "送信";
     else{
         data = {
@@ -162,7 +163,7 @@ document.getElementById("studysend").addEventListener('click', event => {
 });
 
 document.getElementById("hobbysend").addEventListener('click', event => {
-    let cell = document.getElementById("hobbysend");
+    let cell = event.target;
     if(cell.innerText == "完了")cell.innerText = "送信";
     else{
         data = {
@@ -190,30 +191,6 @@ document.getElementById("clear").addEventListener('click', event => {
     document.getElementById("studytimer").innerText=0;
     document.getElementById("hobbytimer").innerText=0;
 });
-
-function countUpTimer(flag, no_save){
-    let date_start;
-    let date = new Date();
-    let count;
-    let id;
-    if(!flag){
-        id = "studytimer";
-        date_start = new Date(localStorage.getItem("study_start_date"));
-        count = Number(localStorage.getItem("studyTimeSeconds"));
-        if(no_save == undefined)count += Math.floor((date - date_start)/1000);
-        if(localStorage.getItem("isstudy") != 0)setTimeout(()=>countUpTimer(flag), 1000);
-        else localStorage.setItem("studyTimeSeconds", count);
-    }
-    else {
-        id = "hobbytimer";
-        date_start = new Date(localStorage.getItem("hobby_start_date"));
-        count = Number(localStorage.getItem("hobbyTimeSeconds"));
-        if(no_save == undefined)count += Math.floor((date - date_start)/1000);
-        if(localStorage.getItem("ishobby") != 0)setTimeout(()=>countUpTimer(flag), 1000);
-        else localStorage.setItem("hobbyTimeSeconds", count);
-    }
-    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
-}
 
 document.getElementById("historybutton").addEventListener('click', event => {
     let history = document.getElementsByClassName('grid')[0];

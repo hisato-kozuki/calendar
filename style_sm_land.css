@@ -75,12 +75,10 @@
         height:0px;
         display: grid;
         grid-template-columns: repeat(4, 5%) 80%;
-        grid-template-rows: 100%;
     }
     .event_container{
         position: relative;
         height: fit-content;
-        grid-row-start:span 2;
         visibility: visible;
     }
     .date_cell{
@@ -90,6 +88,8 @@
     .event_cell{
         position: relative;
         font-size: 12px;
+        height: 20px;
+        overflow: scroll;
         align-content: center;
         padding-left: 2px;
     }
@@ -144,5 +144,8 @@
         padding: 3px;
         text-align: center;
         border: solid black 1px;
+    }
+    .display_land_none_cell{
+        display: none;
     }
 }

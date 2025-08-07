@@ -80,7 +80,7 @@ export function post_event(apiUrl, data, get_required){
             resolve(true);
             if(get_required){
                 cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
-                get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
+                get_events(apiUrl).then((data)=>{display(data, true);saveCalendarEventsToDB(data);
             console.log("post events 完了")});
             }
         })

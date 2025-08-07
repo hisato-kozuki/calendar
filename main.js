@@ -106,7 +106,7 @@ document.getElementById("urlform").addEventListener('submit', event => {
         urlformbutton.innerText="登録";
     }
     else if(urlformbutton.innerText=="登録"){
-        urlLinks[event.target.name.value] = document.getElementById("formform").url.value;
+        urlLinks[event.target.name.value] = event.target.url.value;
         localStorage.setItem("links", JSON.stringify(urlLinks));
         urlformbutton.innerText="完了";
         document.getElementById("urls").innerHTML = "";

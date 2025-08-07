@@ -54,7 +54,7 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     };
     if(data.title != "" && button.innerText == "送信"){
         cellPendingAnimation(button);
-        post_event(data, 1).then((data) => {
+        post_event(apiUrl, data, 1).then((data) => {
             if(data)document.getElementById("postbutton").innerText = "完了";
             else document.getElementById("postbutton").innerText = "Error";
         });

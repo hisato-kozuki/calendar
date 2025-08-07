@@ -143,7 +143,7 @@ document.getElementById("studysend").addEventListener('click', event => {
     let cell = event.target;
     if(cell.innerText == "完了")cell.innerText = "送信";
     else{
-        data = {
+        let data = {
             'type': 'post',
             'title': "sssss"+(localStorage.getItem("studyTimeSeconds")).toString().padStart(5, "0"),
             'date_start': todayDate,
@@ -166,7 +166,7 @@ document.getElementById("hobbysend").addEventListener('click', event => {
     let cell = event.target;
     if(cell.innerText == "完了")cell.innerText = "送信";
     else{
-        data = {
+        let data = {
             'type': 'post',
             'title': "hhhhh"+(localStorage.getItem("hobbyTimeSeconds")).toString().padStart(5, "0"),
             'date_start': todayDate,

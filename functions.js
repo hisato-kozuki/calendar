@@ -76,6 +76,7 @@ export function post_event(apiUrl, data, get_required){
         .then(response => response.text())
         .then(data => {
             // console.log(data);
+            JSON.parse(data)
             resolve(true);
             if(get_required){
                 cellPendingAnimation(document.getElementById("getbutton"), "getbutton");

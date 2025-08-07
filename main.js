@@ -151,7 +151,7 @@ document.getElementById("studysend").addEventListener('click', event => {
             'color': 3,
         };
         localStorage.setItem("studyTimeSeconds", 0);
-        post_event(data, false).then((data) => {
+        post_event(apiUrl, data, false).then((data) => {
             if(data){
                 cell.innerText = "完了";
                 document.getElementById("studytimer").innerText = 0;
@@ -174,7 +174,7 @@ document.getElementById("hobbysend").addEventListener('click', event => {
             'color': 3,
         };
         localStorage.setItem("hobbyTimeSeconds", 0);
-        post_event(data, false).then((data) => {
+        post_event(apiUrl, data, false).then((data) => {
             if(data){
                 cell.innerText = "完了";
                 document.getElementById("hobbytimer").innerText = 0;

@@ -89,7 +89,7 @@
         position: relative;
         font-size: 12px;
         height: 20px;
-        overflow: scroll;
+        overflow: hidden;
         align-content: center;
         padding-left: 2px;
     }

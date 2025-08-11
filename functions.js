@@ -32,7 +32,7 @@ export function cellPendingAnimation(cell, type){
     }
 }
 
-export function get_events(apiUrl, startDate, endDate){
+export function get_events(startDate, endDate){
     return new Promise((resolve, reject) => {
             //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
         if(startDate == undefined){
@@ -42,16 +42,18 @@ export function get_events(apiUrl, startDate, endDate){
             startDate.setHours(0);
             endDate.setMonth(endDate.getMonth()+2);
         }
+        // console.log(startDate, endDate)
         const data = {
             'type': "get",
             'date_start': startDate,
             'date_end': endDate
         };
         http_options.body=JSON.stringify(data);
-        fetch(apiUrl, http_options)
+        fetch(localStorage["apiUrl"], http_options)
         .then(response => response.text())
         .then(data => {
             let received_data=JSON.parse(data);
+            // console.log(received_data);
             document.getElementById("postbutton").innerText = "送信";
             document.getElementById("getbutton").innerText = "完了";
             resolve(received_data);
@@ -66,13 +68,13 @@ export function get_events(apiUrl, startDate, endDate){
     });
 }
 
-export function post_event(apiUrl, data, get_required){
+export function post_event(data, get_required){
     return new Promise((resolve, reject) => {
         //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
         let received_data;
         http_options.body=JSON.stringify(data);
 
-        fetch(apiUrl, http_options)
+        fetch(localStorage["apiUrl"], http_options)
         .then(response => response.text())
         .then(data => {
             // console.log(data);
@@ -80,7 +82,7 @@ export function post_event(apiUrl, data, get_required){
             resolve(true);
             if(get_required){
                 cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
-                get_events(apiUrl).then((data)=>{display(data, true);saveCalendarEventsToDB(data);
+                get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
             console.log("post events 完了")});
             }
         })
@@ -93,12 +95,12 @@ export function post_event(apiUrl, data, get_required){
     })
 }
 
-export function delete_event(apiUrl, data, delete_cell){
+export function delete_event(data, delete_cell){
     //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
     let received_data;
     http_options.body=JSON.stringify(data);
 
-    fetch(apiUrl, http_options)
+    fetch(localStorage["apiUrl"], http_options)
     .then(response => response.text())
     .then(data => {
         // console.log(received_data=JSON.parse(data));
@@ -123,13 +125,13 @@ export function createE(tag, options, styles){
     return element;
 }
 
-export function renewTask(apiUrl, event_data, date, color){
+export function renewTask(event_data, date, color){
     console.log("detected");
     let data = {
         'type': "delete",
         'id': event_data.id
     };
-    delete_event(apiUrl, data);
+    delete_event(data);
     let new_date = new Date(date);
     console.log("old_date", new_date);
     if(color == 4)new_date.setDate(date.getDate()+1);
@@ -145,7 +147,7 @@ export function renewTask(apiUrl, event_data, date, color){
     };
     if(data.title != ""){
         document.getElementById("postbutton").innerText = "……";
-        post_event(apiUrl, data, 0).then((data) => {
+        post_event(data, 0).then((data) => {
             if(data)document.getElementById("postbutton").innerText = "完了";
             else document.getElementById("postbutton").innerText = "Error";
         });
@@ -186,7 +188,7 @@ export function createEventBackground(options){
     options.timelines[Math.max(options.number, 0)].appendChild(event_back);
 }
 
-export function display(apiUrl, events, task_renew_required){
+export function display(events, task_renew_required){
     if(document.getElementById("cell"))document.getElementById("cell").remove();
     let cell = createE("div", {"className": "small_container", "id": "cell"});
     let date_start = new Date(Date.parse(document.getElementById("reload_form").start.value));
@@ -268,13 +270,13 @@ export function display(apiUrl, events, task_renew_required){
                 // console.log((eventStartDate - todayDate)/3600000);
                 if(task_renew_required){
                     if(events[i].color == 4 && eventStartDate - todayDate < 86400000){ // 現在日程の一日後より前の時刻の場合に
-                        renewTask(apiUrl, events[i], eventStartDate, 4);
+                        renewTask(events[i], eventStartDate, 4);
                     }
                     if(events[i].color == 1 && eventStartDate - todayDate < 172800000){ // 現在日程の2日後より前の時刻の場合に
-                        renewTask(apiUrl, events[i], eventStartDate, 1);
+                        renewTask(events[i], eventStartDate, 1);
                     }
                     if(events[i].color == 9 && eventStartDate - todayDate < 604800000){ // 現在日程の１週間後より前の時刻の場合に
-                        renewTask(apiUrl, events[i], eventStartDate, 9);
+                        renewTask(events[i], eventStartDate, 9);
                     }
                 }
             }
@@ -299,7 +301,7 @@ export function display(apiUrl, events, task_renew_required){
                         'id': events[i].id
                     };
                     cellPendingAnimation(delete_cell)
-                    delete_event(apiUrl, data, delete_cell);
+                    delete_event(data, delete_cell);
                 }
             });
             event_container.appendChild(delete_cell);
@@ -370,7 +372,7 @@ export function display(apiUrl, events, task_renew_required){
     document.getElementsByClassName("container")[0].appendChild(cell);
 }
 
-function dbOperation(mode, storeName, received_data, apiUrl){
+function dbOperation(mode, storeName, received_data){
     var dbName;
     if(storeName=="calendar")dbName = 'sampleDB';
     if(storeName=="url")dbName = 'GasUrlDB';
@@ -407,26 +409,26 @@ function dbOperation(mode, storeName, received_data, apiUrl){
                         if(storeName=="calendar"){
                             let events = event.target.result.events;
                             console.log("stored_event", event);
-                            display(apiUrl, events, false);
+                            display(events, false);
                         }
                         if(storeName=="url"){
                             let stored_url = event.target.result.url;
                             console.log("stored_url",stored_url);
-                            const promise1 = new Promise((resolve) =>get_events(stored_url).then((data)=>resolve(data)));
-                            const promise2 = new Promise((resolve) =>get_events(stored_url, todayDate, date, false).then((data)=>resolve(data)));
+                            resolve(stored_url);
+                            const promise1 = new Promise((resolve) =>get_events().then((data)=>resolve(data)));
+                            const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
                             let date_old = new Date(todayDate - 86400000);
-                            const promise3 = new Promise((resolve) =>get_events(stored_url, date_old, todayDate, false).then((data)=>resolve(data)));
+                            const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
                             date_old = new Date(todayDate - 604800000);
-                            const promise4 = new Promise((resolve) =>get_events(stored_url, date_old, todayDate, false).then((data)=>resolve(data)));
+                            const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
                             Promise.all([promise1, promise2, promise3, promise4])
                             .then((results) => {
-                                display(stored_url, results[0], true);saveCalendarEventsToDB(results[0]);
+                                display(results[0], true);saveCalendarEventsToDB(results[0]);
                                 countHistory(results[1], 2);
                                 countHistory(results[2], 3);
                                 countHistory(results[3], 4);
                                 document.getElementById("getbutton").innerText="更新";
                                 console.log("予定読み込み，履歴読み込み完了");
-                                resolve(stored_url);
                             })
                         }
                     }else{
@@ -442,11 +444,11 @@ function dbOperation(mode, storeName, received_data, apiUrl){
                     });
                 }
                 if(storeName=="url"){
-                    var putReq = store.put({
-                        id: 1,
-                        url: received_data
-                    });
-
+                    // var putReq = store.put({
+                    //     id: 1,
+                    //     url: received_data
+                    // });
+                    localStorage["apiUrl"] = received_data;
                 }
                 // putReq.onsuccess = function (event) {
                 //     console.log('更新成功');
@@ -457,8 +459,8 @@ function dbOperation(mode, storeName, received_data, apiUrl){
     })
 }
 
-export function getCalendarEventsFromDB(apiUrl){
-    dbOperation("get", "calendar", "", apiUrl);
+export function getCalendarEventsFromDB(){
+    dbOperation("get", "calendar", "");
 }
 
 export function saveCalendarEventsToDB(received_data){

@@ -26,7 +26,7 @@ window.onload = function(){
     document.getElementById("reload_form").start.value = date_string(date, "-", {"required": ["year"]});
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
     getApiUrlFromDB().then((data)=>{apiUrl = data});
-    getCalendarEventsFromDB(apiUrl);
+    getCalendarEventsFromDB();
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);
@@ -54,7 +54,7 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     };
     if(data.title != "" && button.innerText == "送信"){
         cellPendingAnimation(button);
-        post_event(apiUrl, data, 1).then((data) => {
+        post_event(data, 1).then((data) => {
             if(data)document.getElementById("postbutton").innerText = "完了";
             else document.getElementById("postbutton").innerText = "Error";
         });
@@ -66,8 +66,9 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     event.preventDefault();
     apiUrl=event.target.url.value;
     event.target.style.visibility="hidden";
-    saveApiUrlToDB(apiUrl);
-    get_events(apiUrl).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
+    localStorage["apiUrl"] = apiUrl;
+    // saveApiUrlToDB(apiUrl);
+    get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
             console.log("url更新 完了")
         document.getElementById("getbutton").innerText = "更新";});
 });
@@ -79,7 +80,7 @@ document.getElementById("reload_form").addEventListener('submit', event => {
     let date_end = new Date(Date.parse(event.target.end.value));
     let button = document.getElementById("getbutton");
     if(button.innerText == "更新"){
-        get_events(apiUrl, date_start, date_end).then((data)=>{display(apiUrl, data, true);saveCalendarEventsToDB(data);
+        get_events(date_start, date_end).then((data)=>{display(data, true);saveCalendarEventsToDB(data);
             console.log("更新 完了")});
         cellPendingAnimation(button, "getbutton");
     }else button.innerText = "更新";
@@ -151,7 +152,7 @@ document.getElementById("studysend").addEventListener('click', event => {
             'color': 3,
         };
         localStorage.setItem("studyTimeSeconds", 0);
-        post_event(apiUrl, data, false).then((data) => {
+        post_event(data, false).then((data) => {
             if(data){
                 cell.innerText = "完了";
                 document.getElementById("studytimer").innerText = 0;
@@ -174,7 +175,7 @@ document.getElementById("hobbysend").addEventListener('click', event => {
             'color': 3,
         };
         localStorage.setItem("hobbyTimeSeconds", 0);
-        post_event(apiUrl, data, false).then((data) => {
+        post_event(data, false).then((data) => {
             if(data){
                 cell.innerText = "完了";
                 document.getElementById("hobbytimer").innerText = 0;

@@ -99,14 +99,7 @@ document.getElementById("urlform").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
     let urlformbutton = document.getElementById("urlformbutton");
-    if(urlformbutton.innerText=="表示"){
-        document.getElementById("urls").style.visibility = "visible";
-        document.getElementById("urls").style.height = "fit-content";
-        document.getElementById("nameinput").style.visibility = "visible";
-        document.getElementById("urlinput").style.visibility = "visible";
-        urlformbutton.innerText="登録";
-    }
-    else if(urlformbutton.innerText=="登録"){
+    if(urlformbutton.innerText == "登録" && event.target.name.value != "" && event.target.url.value != ""){
         urlLinks[event.target.name.value] = event.target.url.value;
         localStorage.setItem("links", JSON.stringify(urlLinks));
         urlformbutton.innerText="完了";
@@ -187,8 +180,8 @@ document.getElementById("hobbysend").addEventListener('click', event => {
 });
 
 document.getElementById("clear").addEventListener('click', event => {
-    localStorage.setItem("studytime", 0);
-    localStorage.setItem("hobbytime", 0);
+    localStorage.setItem("studyTimeSeconds", 0);
+    localStorage.setItem("hobbyTimeSeconds", 0);
     document.getElementById("studytimer").innerText=0;
     document.getElementById("hobbytimer").innerText=0;
 });
@@ -201,3 +194,39 @@ document.getElementById("historybutton").addEventListener('click', event => {
         history.style.display = 'none';
     }
 });
+
+function button_display(form_id){
+    console.log(form_id);
+    let form = [document.getElementById("reload_form"),
+        document.getElementById("register_form"),
+        document.getElementById("urlform"),
+        document.getElementById("timerform"),
+        document.getElementById("historyform"),
+        document.getElementById("apiurl_form") 
+    ]
+    if(document.getElementById(form_id).style.visibility == 'visible'){document.getElementById(form_id).style.visibility = 'hidden'}
+    else{
+        for(let i = 0; i < form.length; i++){
+            form[i].style.visibility = 'hidden'
+        }
+        document.getElementById(form_id).style.visibility = 'visible';
+    }
+}
+document.getElementById("register_display_button").addEventListener("click", event =>{
+    button_display('register_form');
+})
+document.getElementById("get_display_button").addEventListener("click", event =>{
+    button_display('reload_form');
+})
+document.getElementById("url_display_button").addEventListener("click", event =>{
+    button_display('urlform');
+})
+document.getElementById("timer_display_button").addEventListener("click", event =>{
+    button_display('timerform');
+})
+document.getElementById("historybutton").addEventListener("click", event =>{
+    button_display('historyform');
+})
+document.getElementById("urlbutton").addEventListener("click", event =>{
+    button_display('apiurl_form');
+})

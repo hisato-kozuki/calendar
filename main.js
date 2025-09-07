@@ -1,4 +1,4 @@
-document.getElementById("p").innerText = "更新中...";
+document.getElementById("p").innerText = "";
 import { date_string, get_events, post_event, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
@@ -28,7 +28,6 @@ window.onload = function(){
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
     // getApiUrlFromDB().then((data)=>{apiUrl = data});
     // getCalendarEventsFromDB();
-    document.getElementById("p").innerText = "更新中......";
     getCalendarEvents();
     reload(); //カレンダーを更新
     if(localStorage.getItem("links")){

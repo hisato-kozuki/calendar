@@ -81,8 +81,11 @@ export function post_event(data, get_required){
             resolve(true);
             if(get_required){
                 cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
-                get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
-            console.log("post events 完了")});
+                get_events().then((data)=>{
+                    display(data, true);//saveCalendarEventsToDB(data);
+                    saveCalendarEvents(data);
+                    console.log("post events 完了")
+                });
             }
         })
         .catch(error => {
@@ -171,6 +174,38 @@ function countHistory(events, row){
     {"gridRow": row, "gridColumn": 3});
     document.getElementsByClassName('grid')[0].appendChild(hobbyhistory);
     document.getElementsByClassName('grid')[0].appendChild(studyhistory);
+}
+export function reload(event){
+    if(event != undefined)event.preventDefault();
+    let button = document.getElementById("getbutton");
+    if(button.textContent == "更新"){
+        console.log(button);
+        if(event != undefined){
+            let date_start = new Date(Date.parse(event.target.start.value));
+            let date_end = new Date(Date.parse(event.target.end.value));
+            get_events(date_start, date_end).then((data)=>{
+                display(data, true);//saveCalendarEventsToDB(data);
+                console.log("更新 完了");
+                saveCalendarEvents(data);
+            });
+        } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);});
+        cellPendingAnimation(button, "getbutton");
+        
+        const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
+        let date_old = new Date(todayDate - 86400000);
+        const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
+        date_old = new Date(todayDate - 604800000);
+        const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
+        Promise.all([promise2, promise3, promise4])
+        .then((results) => {
+            countHistory(results[0], 2);
+            countHistory(results[1], 3);
+            countHistory(results[2], 4);
+            // button.innerText="更新";
+            console.log("ボタン更新2")
+            console.log("予定読み込み，履歴読み込み完了");
+        })
+    } else button.innerText = "更新";
 }
 
 function createEventBackground(options, indexElement){
@@ -391,107 +426,14 @@ export function display(events, task_renew_required){
     document.getElementsByClassName("container")[0].appendChild(cell);
 }
 
-function dbOperation(mode, storeName, received_data){
-    var dbName;
-    if(storeName=="calendar")dbName = 'sampleDB';
-    if(storeName=="url")dbName = 'GasUrlDB';
-    var dbVersion = '1';
-    //　DB名を指定して接続
-    return new Promise((resolve)=>{
-        var openReq  = indexedDB.open(dbName, dbVersion);
-        // 接続に失敗
-        openReq.onerror = function (event) {
-            console.log('接続失敗');
-        }
-        if(mode=="get"){
-            //DBのバージョン更新(DBの新規作成も含む)時のみ実行
-            openReq.onupgradeneeded = function (event) {
-                var db = event.target.result;
-                const objectStore = db.createObjectStore(storeName, {keyPath : 'id'});
-                objectStore.createIndex("id", "id", { unique: true });
-                if(storeName=="calendar")objectStore.createIndex("events", "events", { unique: false });
-                if(storeName=="url")objectStore.createIndex("url", "url", { unique: false });
-
-                console.log('DB更新');
-            }
-        }
-
-        //onupgradeneededの後に実行。更新がない場合はこれだけ実行
-        openReq.onsuccess = function (event) {
-            var db = event.target.result;
-            var trans = db.transaction(storeName, "readwrite");
-            var store = trans.objectStore(storeName);
-            if(mode=="get"){
-                var getReq_g = store.get(1);
-                getReq_g.onsuccess = function (event) {
-                    if (typeof event.target.result != 'undefined') {
-                        if(storeName=="calendar"){
-                            let events = event.target.result.events;
-                            console.log("stored_event", event);
-                            display(events, false);
-                        }
-                        if(storeName=="url"){
-                            let stored_url = event.target.result.url;
-                            console.log("stored_url",stored_url);
-                            resolve(stored_url);
-                            const promise1 = new Promise((resolve) =>get_events().then((data)=>resolve(data)));
-                            const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
-                            let date_old = new Date(todayDate - 86400000);
-                            const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-                            date_old = new Date(todayDate - 604800000);
-                            const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-                            Promise.all([promise1, promise2, promise3, promise4])
-                            .then((results) => {
-                                display(results[0], true);saveCalendarEventsToDB(results[0]);
-                                countHistory(results[1], 2);
-                                countHistory(results[2], 3);
-                                countHistory(results[3], 4);
-                                document.getElementById("getbutton").innerText="更新";
-                                console.log("予定読み込み，履歴読み込み完了");
-                            })
-                        }
-                    }else{
-                        if(storeName=="url")document.getElementById("apiurl_form").style.visibility="visible";
-                    }
-                }
-            }
-            if(mode=="save"){
-                if(storeName=="calendar"){
-                    var putReq = store.put({
-                        id: 1,
-                        events: received_data
-                    });
-                }
-                if(storeName=="url"){
-                    // var putReq = store.put({
-                    //     id: 1,
-                    //     url: received_data
-                    // });
-                    localStorage["apiUrl"] = received_data;
-                }
-                // putReq.onsuccess = function (event) {
-                //     console.log('更新成功');
-                //     console.log("saved:"+received_data);
-                // }
-            }
-        }
-    })
+export function getCalendarEvents(){
+    let events = JSON.parse(localStorage.getItem("stored_events"));
+    console.log("stored_event", events);
+    display(events, false);
 }
 
-export function getCalendarEventsFromDB(){
-    dbOperation("get", "calendar", "");
-}
-
-export function saveCalendarEventsToDB(received_data){
-    dbOperation("save", "calendar", received_data);
-}
-
-export function getApiUrlFromDB(){
-    return new Promise((resolve)=>{dbOperation("get", "url").then((data)=>resolve(data))});
-}
-
-export function saveApiUrlToDB(url){
-    dbOperation("save", "url", url);
+export function saveCalendarEvents(received_data){
+    localStorage.setItem("stored_events", JSON.stringify(received_data));
 }
 
 export function countUpTimer(flag, no_save){
@@ -516,4 +458,22 @@ export function countUpTimer(flag, no_save){
         else localStorage.setItem("hobbyTimeSeconds", count);
     }
     document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
+}
+
+export function button_display(form_id){
+    console.log(form_id);
+    let form = [document.getElementById("reload_form"),
+        document.getElementById("register_form"),
+        document.getElementById("urlform"),
+        document.getElementById("timerform"),
+        document.getElementById("historyform"),
+        document.getElementById("apiurl_form") 
+    ]
+    if(document.getElementById(form_id).style.visibility == 'visible'){document.getElementById(form_id).style.visibility = 'hidden'}
+    else{
+        for(let i = 0; i < form.length; i++){
+            form[i].style.visibility = 'hidden'
+        }
+        document.getElementById(form_id).style.visibility = 'visible';
+    }
 }

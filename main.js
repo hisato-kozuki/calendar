@@ -1,4 +1,4 @@
-import { date_string, get_events, post_event, cellPendingAnimation, display, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB, countUpTimer } from "./functions.js";
+import { date_string, get_events, post_event, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB, countUpTimer, button_display } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -25,8 +25,10 @@ window.onload = function(){
     document.getElementById("register_form").end.value = text;
     document.getElementById("reload_form").start.value = date_string(date, "-", {"required": ["year"]});
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
-    getApiUrlFromDB().then((data)=>{apiUrl = data});
-    getCalendarEventsFromDB();
+    // getApiUrlFromDB().then((data)=>{apiUrl = data});
+    // getCalendarEventsFromDB();
+    getCalendarEvents();
+    reload(); //カレンダーを更新
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);
@@ -58,7 +60,7 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
             if(data)document.getElementById("postbutton").innerText = "完了";
             else document.getElementById("postbutton").innerText = "Error";
         });
-    }
+    } else {button.innerText = "送信";}
 });
 
 document.getElementById("apiurl_form").addEventListener('submit', event => {
@@ -68,23 +70,15 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     event.target.style.visibility="hidden";
     localStorage["apiUrl"] = apiUrl;
     // saveApiUrlToDB(apiUrl);
-    get_events().then((data)=>{display(data, true);saveCalendarEventsToDB(data);
-            console.log("url更新 完了")
-        document.getElementById("getbutton").innerText = "更新";});
+    get_events().then((data)=>{
+        display(data, true); //saveCalendarEventsToDB(data);
+        saveCalendarEvents(data);
+        console.log("url更新 完了")
+        document.getElementById("getbutton").innerText = "更新";
+    });
 });
 
-document.getElementById("reload_form").addEventListener('submit', event => {
-    // イベントを停止する
-    event.preventDefault();
-    let date_start = new Date(Date.parse(event.target.start.value));
-    let date_end = new Date(Date.parse(event.target.end.value));
-    let button = document.getElementById("getbutton");
-    if(button.innerText == "更新"){
-        get_events(date_start, date_end).then((data)=>{display(data, true);saveCalendarEventsToDB(data);
-            console.log("更新 完了")});
-        cellPendingAnimation(button, "getbutton");
-    }else button.innerText = "更新";
-});
+document.getElementById("reload_form").addEventListener('submit', event => {reload(event)});
 
 document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する
@@ -186,23 +180,6 @@ document.getElementById("clear").addEventListener('click', event => {
     document.getElementById("hobbytimer").innerText=0;
 });
 
-function button_display(form_id){
-    console.log(form_id);
-    let form = [document.getElementById("reload_form"),
-        document.getElementById("register_form"),
-        document.getElementById("urlform"),
-        document.getElementById("timerform"),
-        document.getElementById("historyform"),
-        document.getElementById("apiurl_form") 
-    ]
-    if(document.getElementById(form_id).style.visibility == 'visible'){document.getElementById(form_id).style.visibility = 'hidden'}
-    else{
-        for(let i = 0; i < form.length; i++){
-            form[i].style.visibility = 'hidden'
-        }
-        document.getElementById(form_id).style.visibility = 'visible';
-    }
-}
 document.getElementById("register_display_button").addEventListener("click", event =>{
     button_display('register_form');
 })

@@ -161,9 +161,9 @@
     }
     #historyform{
         position: fixed;
-        left:20%;
+        left:10%;
         bottom: 20%;
-        width: 60%;
+        width: 80%;
         background-color: white;
         visibility: hidden;
     }

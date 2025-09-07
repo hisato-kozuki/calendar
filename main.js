@@ -186,15 +186,6 @@ document.getElementById("clear").addEventListener('click', event => {
     document.getElementById("hobbytimer").innerText=0;
 });
 
-document.getElementById("historybutton").addEventListener('click', event => {
-    let history = document.getElementsByClassName('grid')[0];
-    if(history.style.display != 'grid'){
-        history.style.display = 'grid';
-    }else{
-        history.style.display = 'none';
-    }
-});
-
 function button_display(form_id){
     console.log(form_id);
     let form = [document.getElementById("reload_form"),

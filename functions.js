@@ -324,6 +324,7 @@ export function display(events, task_renew_required){
 
             // イベントの配置
             if(event_container_containers[i_hour] != undefined){
+                // すでに同じ時間帯にイベントがある場合
                 if(event_container_containers[i_hour].style.gridRowEnd < endHour)event_container_containers[i_hour].style.gridRowEnd = endHour;
                 event_container.style.gridColumn = duplicate+"/6";
                 event_container_containers[i_hour].appendChild(event_container);
@@ -340,6 +341,7 @@ export function display(events, task_renew_required){
                 event_container_details[i_hour].appendChild(event_container2);
                 event_container_details[i_hour].querySelector("summary").innerText = duplicate_same_hour+1;
             } else {
+                // 初めての時間帯のイベントの場合
                 let number = (date_start_0-mondayStartDate)/86400000;
                 let options = {"startHour": startHour, "endHour": endHour, "start_column": duplicate, "i": i, "timelines": timelines, "number": number, "wide": true};
                 let event_container_container = createE("div", {"className": "event_grid"}, {"backgroundColor": "hsla("+options.i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+options.i*159+", 100%, 0%, 0.2)", "gridRow": startHour+"/"+endHour});
@@ -348,7 +350,8 @@ export function display(events, task_renew_required){
                 event_container_container.appendChild(event_container);
                 event_container_container.appendChild(event_container2);
                 event_container_containers[i_hour] = event_container_container;
-                timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)].insertBefore(event_container_container, timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)].children[1]);
+                let timeline = timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)];
+                timeline.insertBefore(event_container_container, timeline.firstChild);
                 
                 // イベントの背景を作成する処理
                 /*

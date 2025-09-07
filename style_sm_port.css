@@ -38,6 +38,8 @@
     }
     .timeline{
         width: 100%;
+        display: flex;
+        flex-direction: column-reverse;
         border-left: solid 1px gray;
     }
     .event_container{
@@ -103,9 +105,27 @@
         height: 60px;
         border-radius: 30px;
         color:white;
-        font-size: 20px;
+        font-size: 16px;
         border-color: white;
         background-color: coral;
+    }
+    #get_display_button{
+        left: 5%;
+    }
+    #register_display_button{
+        left: 20%;
+    }
+    #url_display_button{
+        left: 35%;
+    }
+    #timer_display_button{
+        left: 50%;
+    }
+    #historybutton{
+        left: 65%;
+    }
+    #urlbutton{
+        left: 80%;
     }
     #reload_form{
         position: fixed;
@@ -138,7 +158,8 @@
         width: 60%;
         background-color: white;
         visibility: hidden;
-    }    #historyform{
+    }
+    #historyform{
         position: fixed;
         left:20%;
         bottom: 20%;
@@ -159,8 +180,8 @@
         background: white;
     }
     .grid{
-        width: 80%;
-        display: none;
+        width: 100%;
+        display: grid;
         grid-template-columns: 20% repeat(2, 40%);
         grid-template-rows: repeat(4, 1fr);
     }

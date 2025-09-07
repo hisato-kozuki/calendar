@@ -19,7 +19,7 @@
         </div>
         
         <!-- 更新ボタンを押すと、フォームが表示されます。 -->
-        <button id="get_display_button" class="display_button" style="left: 5%;">更新</button>
+        <button id="get_display_button" class="display_button">更新</button>
         <form id="reload_form">
             <div style="align-content: center;width: 70%;">
                 <p>開始:<input type="date" name="start" style="width: 80%"/></p>
@@ -31,7 +31,7 @@
         </form>
 
         <!-- 登録ボタンを押すと、フォームが表示されます。 -->
-        <button id="register_display_button" class="display_button" style="left: 20%;">登録</button>
+        <button id="register_display_button" class="display_button">登録</button>
         <div><form id="register_form">
             <div>
                 <p>タイトル:<input style="width: 50%;" type="text" name="title" value=""/><select name="color" style="width: 20%;">
@@ -52,7 +52,7 @@
         </form></div>
 
         <!-- URL表示ボタンを押すと、フォームが表示されます。 -->
-        <button id="url_display_button" class="display_button" style="left: 35%;">URL表示</button>
+        <button id="url_display_button" class="display_button">URL表示</button>
         <form id="urlform" style="width: 60%;flex-direction: column;align-items: center;">
             <p id="urls" style="font-size: 16px;"></p>
             <input id="nameinput" style="width: 90%;" type="text" name="name" placeholder="名"/>
@@ -61,7 +61,7 @@
         </form>
 
         <!-- タイマー -->
-        <button id="timer_display_button" class="display_button" style="left: 50%;">タイマー表示</button>
+        <button id="timer_display_button" class="display_button">タイマー表示</button>
         <div id="timerform" style="width: 40%; left: 30%; height: 200px;display: flex; flex-direction: column;border: solid black 1px;margin-top: 12px;">                
             <div style="height:40%;display: flex;justify-content: space-around;align-items: center;">
                 <p id="studytimer" style="height:80%;width:30%;border: solid black 1px;text-align: center;align-content: center;"></p>
@@ -81,7 +81,7 @@
         </div>
 
         <!-- 履歴 -->
-        <button id="historybutton" class="display_button" style="left: 65%;">履歴表示</button>
+        <button id="historybutton" class="display_button">履歴表示</button>
         <div id="historyform" style="display: flex;">
             <div class="grid">
                 <div id="studyhistory" style="grid-column: 2; grid-row: 1;">勉強時間</div>
@@ -91,7 +91,7 @@
         </div>
 
         <!-- API URL更新 -->
-        <button id="urlbutton" class="display_button" style="left: 80%;">url更新</button>
+        <button id="urlbutton" class="display_button">url更新</button>
         <div style="display: flex;">
             <form id="apiurl_form">
                 <input type="password" name="url" placeholder="urlを入力してください。"/>

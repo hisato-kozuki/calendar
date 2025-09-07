@@ -1,4 +1,4 @@
-import { date_string, get_events, post_event, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, getCalendarEventsFromDB, saveCalendarEventsToDB, getApiUrlFromDB, saveApiUrlToDB, countUpTimer, button_display } from "./functions.js";
+import { date_string, get_events, post_event, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {

@@ -27,6 +27,7 @@ window.onload = function(){
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
     // getApiUrlFromDB().then((data)=>{apiUrl = data});
     // getCalendarEventsFromDB();
+    document.getElementById("p").innerText = "更新中...";
     getCalendarEvents();
     reload(); //カレンダーを更新
     if(localStorage.getItem("links")){

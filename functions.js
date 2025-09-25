@@ -22,12 +22,12 @@ export function date_string(date, separator, options){
 }
 
 export function cellPendingAnimation(cell, type){
-    if(cell.innerText == "完了" || cell.innerText == "Error"){
-        if(cell.innerText == "完了" && type == "getbutton")cell.innerText = "更新";
+    if(cell.textContent == "完了" || cell.textContent == "Error"){
+        if(cell.textContent == "完了" && type == "getbutton")cell.textContent = "更新";
     }else{
-        if(cell.innerText == ">")cell.innerText = ">>";
-        else if(cell.innerText == ">>")cell.innerText = ">>>";
-        else cell.innerText = ">";
+        if(cell.textContent == ">")cell.textContent = ">>";
+        else if(cell.textContent == ">>")cell.textContent = ">>>";
+        else cell.textContent = ">";
         setTimeout(() => cellPendingAnimation(cell, type), 500);
     }
 }
@@ -41,7 +41,7 @@ export function get_events(startDate, endDate){
             startDate.setDate(startDate.getDate()-1);
             endDate.setMonth(endDate.getMonth()+2);
         }
-        // console.log(startDate, endDate)
+        // console.log("get_events", startDate, endDate)
         const data = {
             'type': "get",
             'date_start': startDate,
@@ -53,15 +53,15 @@ export function get_events(startDate, endDate){
         .then(data => {
             let received_data=JSON.parse(data);
             // console.log(received_data);
-            document.getElementById("postbutton").innerText = "送信";
-            document.getElementById("getbutton").innerText = "完了";
+            document.getElementById("postbutton").textContent = "送信";
+            document.getElementById("getbutton").textContent = "完了";
             resolve(received_data);
         })
         .catch(error => {
             console.log("reload not complete")
             console.error("Error:", error);
             document.getElementById("p").innerText = error;
-            document.getElementById("getbutton").innerText = "Error";
+            document.getElementById("getbutton").textContent = "Error";
             reject(error);
         });
     });
@@ -92,7 +92,7 @@ export function post_event(data, get_required){
             console.error("Error:", error);
             document.getElementById("p").innerText = error;
             reject(false);
-            document.getElementById("postbutton").innerText = "Error";
+            document.getElementById("postbutton").textContent = "Error";
         });
     })
 }
@@ -148,10 +148,10 @@ export function renewTask(event_data, date, color){
         'color': color,
     };
     if(data.title != ""){
-        document.getElementById("postbutton").innerText = "……";
+        document.getElementById("postbutton").textContent = "……";
         post_event(data, 0).then((data) => {
-            if(data)document.getElementById("postbutton").innerText = "完了";
-            else document.getElementById("postbutton").innerText = "Error";
+            if(data)document.getElementById("postbutton").textContent = "完了";
+            else document.getElementById("postbutton").textContent = "Error";
         });
     }
 }
@@ -205,7 +205,7 @@ export function reload(event){
             console.log("ボタン更新2")
             console.log("予定読み込み，履歴読み込み完了");
         })
-    } else button.innerText = "更新";
+    } else button.textContent = "更新";
 }
 
 function createEventBackground(options, indexElement){

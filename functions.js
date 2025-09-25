@@ -457,7 +457,7 @@ export function countUpTimer(flag, no_save){
         if(localStorage.getItem("ishobby") != 0)setTimeout(()=>countUpTimer(flag), 1000);
         else localStorage.setItem("hobbyTimeSeconds", count);
     }
-    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+"\n"+(count%60).toString().padStart(2, "0");
+    document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+" "+(count%60).toString().padStart(2, "0");
 }
 
 export function button_display(form_id){

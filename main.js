@@ -34,7 +34,7 @@ window.onload = function(){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);
         for(let i = 0; i < key.length; i++){
-            document.getElementById("urls").innerHTML += "<p style='font-size:20px'><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
+            document.getElementById("urls").innerHTML += "<p style='font-size:16px'><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
         }
     }
     countUpTimer(true, true);countUpTimer(false, true);

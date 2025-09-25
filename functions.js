@@ -108,6 +108,7 @@ export function delete_event(data, delete_cell){
         // console.log(received_data=JSON.parse(data));
         // console.log(data);
         if(delete_cell != undefined)delete_cell.innerText = "完了";
+        delete_cell.parentElement.remove();
     })
     .catch(error => {
         console.error("Error:", error);

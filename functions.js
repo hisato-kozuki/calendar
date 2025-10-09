@@ -303,9 +303,10 @@ export function display(events, task_renew_required){
             let color = colorCodes[events[i].color];
             if(color == undefined)color = "#404040";
             if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
-                event_cell.style.width = "53%";
+                event_cell.style.width = "56%";
                 mark_cell.value = "◆";
-                mark_cell.style.display = "block";
+                mark_cell.style.visibility = "visible";
+                mark_cell.style.width = "4%";
                 mark_cell.style.color = color;
                 event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell2.innerHTML;
                 // console.log((eventStartDate - todayDate)/3600000);

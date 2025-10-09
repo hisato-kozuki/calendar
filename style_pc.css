@@ -40,11 +40,11 @@
         display: flex;
     }
     .date_cell{
-        width: 32%;
+        width: 25%;
         font-size: 20px;
     }
     .event_cell{
-        width: 58%;
+        width: 60%;
         font-size: 20px;
     }
     .delete_cell{

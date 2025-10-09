@@ -25,10 +25,10 @@
     align-content: center;
 }
 .mark_cell{
-    width: 4%;
-    display: none;
+    width: 0%;
+    visibility: hidden;
     border: none;
-    text-align: center;
+    justify-items: center;
 }
 .event_cell{
     position: relative;

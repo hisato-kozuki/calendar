@@ -43,9 +43,6 @@
 p{
     margin: 1em;
 }
-button{
-    height: fit-content;
-}
 form{
     position: fixed;
     bottom: 20%;
@@ -61,7 +58,7 @@ form{
 .display_button{
     position:fixed;
     color:white;
-    border-color: white;
+    border: solid white;
     background-color: coral;
 }
 #reload_form{

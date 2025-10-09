@@ -1,0 +1,109 @@
+.title{
+    height: fit-content;
+    position: relative;
+    border: solid 2px darkred;
+    text-align: center;
+}
+.container{
+    height: fit-content;
+    position: relative;
+    border: solid 2px darkblue;
+}
+.week_cell{
+    position: relative;
+}
+.day_cell{
+    width: 100%;
+}
+.timeline{
+    width: 100%;
+}
+.date_cell{
+    position: relative;
+    border: none;
+    border-right: solid 2px gray;
+    align-content: center;
+}
+.mark_cell{
+    width: 4%;
+    display: none;
+    border: none;
+    text-align: center;
+}
+.event_cell{
+    position: relative;
+    border: none;
+    align-content: center;
+    padding-left: 2px;
+}
+.delete_cell{
+    align-self: center;
+    padding: 0px;
+}                              
+p{
+    margin: 1em;
+}
+button{
+    height: fit-content;
+}
+form{
+    position: fixed;
+    bottom: 20%;
+    height: 200px;
+    display: flex;
+    border: solid 1px black;
+}
+.getbutton{
+    width: 140px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+.display_button{
+    position:fixed;
+    color:white;
+    border-color: white;
+    background-color: coral;
+}
+#reload_form{
+    background-color: white;
+    visibility: hidden;
+}
+#register_form{
+    background-color: white;
+    visibility: hidden;
+}
+#urlform{
+    height: fit-content;
+    background-color: white;
+    visibility: hidden;
+}
+#timerform{
+    position: fixed;
+    bottom: 20%;
+    background-color: white;
+    visibility: hidden;
+}
+#historyform{
+    position: fixed;
+    bottom: 20%;
+    background-color: white;
+    border: solid 1px black;
+    visibility: hidden;
+}
+#apiurl_form{
+    background-color: white;
+    visibility: hidden;
+}
+.autofill{
+    background: white;
+}
+.grid{
+    width: 100%;
+    display: grid;
+    grid-template-columns: 20% repeat(2, 40%);
+    grid-template-rows: repeat(4, 1fr);
+}
+.grid div{
+    text-align: center;
+    border: solid black 1px;
+}

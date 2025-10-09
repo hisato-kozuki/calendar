@@ -287,22 +287,26 @@ export function display(events, task_renew_required){
             // console.log(events[i].date_start)
             eventStartDate = new Date(events[i].date_start);
             let date_end = new Date(events[i].date_end);
-            let date_cell = createE("div", {"className": "date_cell", "innerText": eventStartDate.getHours().toString() + ":" + eventStartDate.getMinutes().toString().padStart(2, "0")});
-            let event_cell = createE("div", {"className": "event_cell display_land_none_cell", "innerText": events[i].title});
+            let date_cell = createE("input", {"type": "text", "className": "date_cell", "value": eventStartDate.getHours().toString() + ":" + eventStartDate.getMinutes().toString().padStart(2, "0")});
+            let event_cell = createE("input", {"type": "text", "className": "event_cell display_land_none_cell", "value": events[i].title});
             let event_cell2 = createE("div", {"className": "event_cell display_none_cell", "innerText": events[i].title});
+            let mark_cell = createE("input", {"type": "text", "className": "mark_cell display_land_none_cell"});
             let event_container = createE("div", {"className": "event_container"});
             let event_container2 = createE("div", {"className": "event_container"});
             if(eventStartDate.getFullYear() != date_end.getFullYear()){
-                date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
+                date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
             }else if(eventStartDate.getMonth() != date_end.getMonth() || eventStartDate.getDate() != date_end.getDate()){
-                date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
+                date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
             }else if(eventStartDate.getHours() != date_end.getHours()){
-                date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
+                date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
             }
             let color = colorCodes[events[i].color];
             if(color == undefined)color = "#404040";
             if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
-                event_cell.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell.innerHTML;
+                event_cell.style.width = "53%";
+                mark_cell.value = "◆";
+                mark_cell.style.display = "block";
+                mark_cell.style.color = color;
                 event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell2.innerHTML;
                 // console.log((eventStartDate - todayDate)/3600000);
                 if(task_renew_required){
@@ -320,6 +324,7 @@ export function display(events, task_renew_required){
             else {event_cell.style.color = color;event_cell2.style.color = color;}
 
             event_container.appendChild(date_cell);
+            event_container.appendChild(mark_cell);
             event_container.appendChild(event_cell);
             event_container2.appendChild(event_cell2);
             let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});

@@ -76,7 +76,8 @@ export function post_event(data, get_required){
         fetch(localStorage["apiUrl"], http_options)
         .then(response => response.text())
         .then(data => {
-            // console.log(data);
+            console.log(data);
+            received_data = data;
             JSON.parse(data)
             resolve(true);
             if(get_required){
@@ -90,7 +91,7 @@ export function post_event(data, get_required){
         })
         .catch(error => {
             console.error("Error:", error);
-            document.getElementById("p").innerText = error;
+            document.getElementById("p").innerText = error + received_data;
             reject(false);
             document.getElementById("postbutton").textContent = "Error";
         });
@@ -157,19 +158,12 @@ export function renewTask(event_data, date, color){
     }
 }
 
-export function modifyEvent(event_data, new_event_data, cell){
+export function modifyEvent(id, new_event_data, cell){
     console.log("modify");
-    data = {
-        'type': 'modify',
-        'id': event_data.id,
-        'title': new_event_data.title,
-        'date_start': new_event_data.date_start,
-        'date_end': new_event_data.date_end,
-        'color': new_event_data.color,
-    };
-    if(data.title != ""){
-        cellPendingAnimation(cell);
-        post_event(data, 0).then((data) => {
+    new_event_data.type = 'modify';
+    new_event_data.id = id;
+    if(new_event_data.title != ""){
+        post_event(new_event_data, 0).then((data) => {
             if(data)cell.textContent = "完了";
             else cell.textContent = "Error";
         });
@@ -348,6 +342,7 @@ export function display(events, task_renew_required){
             event_container.appendChild(event_cell);
             event_container2.appendChild(event_cell2);
             let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
+            let modify_cell = createE("button", {"className": "delete_cell", "innerText": "変更"});
             delete_cell.addEventListener('click', () => {
                 var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
                 if(result){
@@ -359,7 +354,33 @@ export function display(events, task_renew_required){
                     delete_event(data, delete_cell);
                 }
             });
+            modify_cell.addEventListener('click', () => {
+                let new_date = event_container.querySelector(".date_cell").value.split(/~|～|\n/, 2); // 開始と終了で分割
+                if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
+                for(let i = 0; i < 2; i++){
+                    if(!new_date[i].match(/\d{4}/))new_date[i] = todayDate.getFullYear()+ "/" + new_date[i]; // 年が無い場合は今年とみなす
+                }
+                console.log(new_date)
+                if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
+                for(let i = 0; i < 2; i++){
+                    let buffer = new_date[i].split(/T|\.|日/); // 日付と時間で分割
+                    buffer[0] = buffer[0].split(/\/|年|月/).map((p) => p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
+                    if(buffer[1])buffer[1] = buffer[1].split(/\:|時|分/).map((p) => p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
+                    new_date[i] = buffer.join(" ")
+                }
+                console.log(new_date)
+                let new_event_data = {
+                    "title": event_container.querySelector(".event_cell").value,
+                    "date_start": new Date(new_date[0]),
+                    "date_end": new Date(new_date[1]),
+                    "color": event_container.querySelector(".mark_cell").value
+                }
+                console.log(new_event_data)
+                cellPendingAnimation(modify_cell)
+                modifyEvent(events[i].id, new_event_data, modify_cell)
+            });
             event_container.appendChild(delete_cell);
+            event_container.appendChild(modify_cell);
             let date_start_0 = new Date(eventStartDate.getFullYear(), eventStartDate.getMonth(), eventStartDate.getDate());
             // console.log(eventStartDate,mondayStartDate);
             // console.log((date_start_0-mondayStartDate)/86400000);

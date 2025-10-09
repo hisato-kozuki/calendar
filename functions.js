@@ -137,7 +137,7 @@ export function renewTask(event_data, date, color){
     delete_event(data);
     let new_date = new Date(date);
     console.log("old_date", new_date);
-    if(color == 4)new_date.setDate(date.getDate()+1);
+    if(color == 4)new_date.setDate(todayDate.getDate()+1);
     if(color == 1)new_date.setDate(date.getDate()+7);
     if(color == 9)new_date.setMonth(date.getMonth()+1);
     console.log("new_date", new_date);
@@ -153,6 +153,25 @@ export function renewTask(event_data, date, color){
         post_event(data, 0).then((data) => {
             if(data)document.getElementById("postbutton").textContent = "完了";
             else document.getElementById("postbutton").textContent = "Error";
+        });
+    }
+}
+
+export function modifyEvent(event_data, new_event_data, cell){
+    console.log("modify");
+    data = {
+        'type': 'modify',
+        'id': event_data.id,
+        'title': new_event_data.title,
+        'date_start': new_event_data.date_start,
+        'date_end': new_event_data.date_end,
+        'color': new_event_data.color,
+    };
+    if(data.title != ""){
+        cellPendingAnimation(cell);
+        post_event(data, 0).then((data) => {
+            if(data)cell.textContent = "完了";
+            else cell.textContent = "Error";
         });
     }
 }

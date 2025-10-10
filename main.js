@@ -40,6 +40,19 @@ window.onload = function(){
     countUpTimer(true, true);countUpTimer(false, true);
 }
 
+document.body.addEventListener('click', (event) => {
+    if(event.target.className != "display_button"){
+        let forms = document.getElementsByClassName('console_container')[0].children;
+        for(let i = 0; i < forms.length; i++){
+            forms[i].style.transform = 'scale(0, 0)';
+        }
+        let buttons = document.getElementsByClassName('button_container')[0].children;
+        for(let i = 0; i < buttons.length; i++){
+            buttons[i].style.backgroundColor = 'coral';
+        }
+    }
+})
+
 document.getElementById("register_form").addEventListener('submit', (event) => {
     // イベントを停止する
     let form = event.target;
@@ -182,20 +195,20 @@ document.getElementById("clear").addEventListener('click', event => {
 });
 
 document.getElementById("register_display_button").addEventListener("click", event =>{
-    button_display('register_form');
+    button_display(event.target, 'register_console');
 })
 document.getElementById("get_display_button").addEventListener("click", event =>{
-    button_display('reload_form');
+    button_display(event.target, 'reload_console');
 })
 document.getElementById("url_display_button").addEventListener("click", event =>{
-    button_display('urlform');
+    button_display(event.target, 'url_console');
 })
 document.getElementById("timer_display_button").addEventListener("click", event =>{
-    button_display('timerform');
+    button_display(event.target, 'timer_console');
 })
 document.getElementById("historybutton").addEventListener("click", event =>{
-    button_display('historyform');
+    button_display(event.target, 'history_console');
 })
 document.getElementById("urlbutton").addEventListener("click", event =>{
-    button_display('apiurl_form');
+    button_display(event.target, 'apiurl_console');
 })

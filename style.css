@@ -44,52 +44,46 @@ p{
     margin: 1em;
 }
 form{
-    position: fixed;
-    bottom: 20%;
-    height: 200px;
+    width: 100%;
     display: flex;
-    border: solid 1px black;
 }
 .getbutton{
     width: 140px;
     margin-top: 0px;
     margin-bottom: 0px;
 }
-.display_button{
-    position:fixed;
+.button_container{
+    position: fixed;
+    left: 20%;
+    width: 60%;
+    bottom: 1rem;
+    display: flex;
+    justify-content: space-evenly;
+    height: 60px;
+}
+.button_container button{
     color:white;
     border: solid white;
     background-color: coral;
+    margin: 0px;
+    transition: 0.2s;
 }
-#reload_form{
-    background-color: white;
-    visibility: hidden;
+.display_button_on{
+    color:white;
+    border: solid white;
+    background-color: #ff4014;
 }
-#register_form{
-    background-color: white;
-    visibility: hidden;
-}
-#urlform{
-    height: fit-content;
-    background-color: white;
-    visibility: hidden;
-}
-#timerform{
+.console_container>div{
     position: fixed;
     bottom: 20%;
-    background-color: white;
-    visibility: hidden;
-}
-#historyform{
-    position: fixed;
-    bottom: 20%;
+    height: 200px;
+    align-content: center;
     background-color: white;
     border: solid 1px black;
-    visibility: hidden;
+    transition: 0.2s;
 }
-#apiurl_form{
-    background-color: white;
-    visibility: hidden;
+#url_console{
+    height: fit-content;
 }
 .autofill{
     background: white;

@@ -67,48 +67,26 @@
         font-size: 10px;
     }
     form{
-        left:10%;
-        width: 80%;
         font-size: 14px;
     }
     .getbutton{
         height: 46px;
     }
-    .display_button{
-        bottom: 0%;
+    .button_container{
+        left: 5%;
+        width: 90%;
+    }
+    .button_container button{
         width: 60px;
-        height: 60px;
         border-radius: 30px;
         font-size: 16px;
     }
-    #get_display_button{
-        left: 5%;
-    }
-    #register_display_button{
-        left: 20%;
-    }
-    #url_display_button{
-        left: 35%;
-    }
-    #timer_display_button{
-        left: 50%;
-    }
-    #historybutton{
-        left: 65%;
-    }
-    #urlbutton{
-        left: 80%;
+    .console_container>div{
+        left:10%;
+        width: 80%;
     }
     #register_form{
         flex-direction: column;
-    }
-    #timerform{
-        left:10%;
-        width: 80%;
-    }
-    #historyform{
-        left:10%;
-        width: 80%;
     }
     .autofill{
         font-size:10px;

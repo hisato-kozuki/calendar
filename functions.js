@@ -508,20 +508,21 @@ export function countUpTimer(flag, no_save){
     document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+" "+(count%60).toString().padStart(2, "0");
 }
 
-export function button_display(form_id){
-    console.log(form_id);
-    let form = [document.getElementById("reload_form"),
-        document.getElementById("register_form"),
-        document.getElementById("urlform"),
-        document.getElementById("timerform"),
-        document.getElementById("historyform"),
-        document.getElementById("apiurl_form") 
-    ]
-    if(document.getElementById(form_id).style.visibility == 'visible'){document.getElementById(form_id).style.visibility = 'hidden'}
-    else{
-        for(let i = 0; i < form.length; i++){
-            form[i].style.visibility = 'hidden'
+export function button_display(button, console_id){
+    console.log(console_id);
+    if(document.getElementById(console_id).style.transform == 'scale(1, 1)'){
+        document.getElementById(console_id).style.transform = 'scale(0, 0)';
+        button.style.backgroundColor = "coral";
+    } else {
+        let forms = document.getElementsByClassName('console_container')[0].children;
+        for(let i = 0; i < forms.length; i++){
+            forms[i].style.transform = 'scale(0, 0)';
         }
-        document.getElementById(form_id).style.visibility = 'visible';
+        let buttons = document.getElementsByClassName('button_container')[0].children;
+        for(let i = 0; i < buttons.length; i++){
+            buttons[i].style.backgroundColor = 'coral';
+        }
+        document.getElementById(console_id).style.transform = 'scale(1, 1)';
+        button.style.backgroundColor = "#ff4014";
     }
 }

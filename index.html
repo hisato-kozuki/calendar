@@ -16,93 +16,94 @@
             <div class="event_container"></div-->
         </div>
         <p id="p">メイン関数に進む前</p>
-        <div class="container" style="border-color: transparent">
-        </div>
-        
-        <!-- 更新ボタンを押すと、フォームが表示されます。 -->
-        <button id="get_display_button" class="display_button">更新</button>
-        <form id="reload_form">
-            <div style="align-content: center;width: 70%;">
-                <p>開始:<input type="date" name="start" style="width: 80%"/></p>
-                <p>終了:<input type="date" name="end" style="width: 80%"/></p>
-            </div>
-            <div style="display: flex; align-items: center;width: 30%;">
-                <button id="getbutton" type="submit" class="getbutton" style="margin:1rem">更新</button>
-            </div>
-        </form>
- 
-        <!-- 登録ボタンを押すと、フォームが表示されます。 -->
-        <button id="register_display_button" class="display_button">登録</button>
-        <div><form id="register_form">
-            <div>
-                <p>タイトル:<input style="width: 50%;" type="text" name="title" value=""/><select name="color" style="width: 20%;">
-                    <option style="background-color:#404040" value="0">黒</option>
-                    <option style="background-color:#D50000" value="11">赤</option>
-                    <option style="background-color:#F6BF26" value="5">黄</option>
-                    <option style="background-color:#33B679" value="2">緑</option>
-                    <option style="background-color:#E67C73" value="4">ピンク</option>
-                    <option style="background-color:#7986CB" value="1">紫</option>
-                    <option style="background-color:#3F51B5" value="9">青</option>
-                    <option style="background-color:#8E24AA" value="3">ブドウ</option>
-                    <option style="background-color:#F4511E" value="6">朱</option>
-                    <option style="background-color:#039BE5" value="7">シアン</option>
-                    <option style="background-color:#616161" value="8">灰</option>
-                    <option style="background-color:#0B8043" value="10">深緑</option>
-                </select></p>
-                <p>　　開始:<input style="width: 50%;" type="datetime-local" name="start"/></p>
-                <p>　　終了:<input style="width: 50%;" type="datetime-local" name="end"/><button id="date_default" class="autofill" style="width: 20%; margin: 0px;">上に同じ</button></p>
-            </div>
-            <div style="display: flex; flex-direction: column-reverse;justify-content:center;align-items:center;">
-                <button id="postbutton" type="submit" style="width:8rem">送信</button>
-            </div>
-        </form></div>
-
-        <!-- URL表示ボタンを押すと、フォームが表示されます。 -->
-        <button id="url_display_button" class="display_button">URL表示</button>
-        <form id="urlform" style="flex-direction: column;align-items: center;">
-            <p id="urls"></p>
-            <input id="nameinput" style="width: 90%;" type="text" name="name" placeholder="名"/>
-            <input id="urlinput" style="width: 90%;" type="url" name="url" placeholder="url"/>
-            <button id="urlformbutton" style="width: 20%;" type="submit">登録</button>
-        </form>
-
-        <!-- タイマー -->
-        <button id="timer_display_button" class="display_button">タイマー表示</button>
-        <div id="timerform" style="height: 200px;display: flex; flex-direction: column; border: solid black 1px;margin-top: 12px;">                
-            <div style="height:80%; display: flex; justify-content: center">
-                <div style="width:30%;display: flex; flex-direction: column; justify-content: space-evenly;align-items: center;">
-                    <p id="studytimer" style="height:30%;width:80%; margin:0px; border: solid black 1px;text-align: center;align-content: center;"></p>
-                    <button id="studybutton" style="height:20%; margin:0px">勉強</button>
-                    <button id="studysend" style="height:20%; margin:0px">送信</button>
+        <div class="console_container">        
+            <!-- 更新ボタンを押すと、フォームが表示されます。 -->
+            <div id="reload_console"><form id="reload_form">
+                <div style="align-content: center;width: 70%;">
+                    <p>開始:<input type="date" name="start" style="width: 80%"/></p>
+                    <p>終了:<input type="date" name="end" style="width: 80%"/></p>
                 </div>
-                <div style="width:30%;display: flex; flex-direction: column; justify-content: space-evenly;align-items: center;">
-                    <p id="hobbytimer" style="height:30%;width:80%; margin:0px;border: solid black 1px;text-align: center;align-content: center;"></p>
-                    <button id="hobbybutton" style="height:20%; margin:0px">趣味</button>
-                    <button id="hobbysend" style="height:20%; margin:0px">送信</button>
+                <div style="display: flex; align-items: center;width: 30%;">
+                    <button id="getbutton" type="submit" class="getbutton" style="margin:1rem">更新</button>
+                </div>
+            </form></div>
+    
+            <!-- 登録ボタンを押すと、フォームが表示されます。 -->
+            <div id="register_console"><form id="register_form">
+                <div>
+                    <p>タイトル:<input style="width: 50%;" type="text" name="title" value=""/><select name="color" style="width: 20%;">
+                        <option style="background-color:#404040" value="0">黒</option>
+                        <option style="background-color:#D50000" value="11">赤</option>
+                        <option style="background-color:#F6BF26" value="5">黄</option>
+                        <option style="background-color:#33B679" value="2">緑</option>
+                        <option style="background-color:#E67C73" value="4">ピンク</option>
+                        <option style="background-color:#7986CB" value="1">紫</option>
+                        <option style="background-color:#3F51B5" value="9">青</option>
+                        <option style="background-color:#8E24AA" value="3">ブドウ</option>
+                        <option style="background-color:#F4511E" value="6">朱</option>
+                        <option style="background-color:#039BE5" value="7">シアン</option>
+                        <option style="background-color:#616161" value="8">灰</option>
+                        <option style="background-color:#0B8043" value="10">深緑</option>
+                    </select></p>
+                    <p>　　開始:<input style="width: 50%;" type="datetime-local" name="start"/></p>
+                    <p>　　終了:<input style="width: 50%;" type="datetime-local" name="end"/><button id="date_default" class="autofill" style="width: 20%; margin: 0px;">上に同じ</button></p>
+                </div>
+                <div style="display: flex; flex-direction: column-reverse;justify-content:center;align-items:center;">
+                    <button id="postbutton" type="submit" style="width:8rem">送信</button>
+                </div>
+            </form></div>
+
+            <!-- URL表示ボタンを押すと、フォームが表示されます。 -->
+            <div id="url_console"><form id="urlform" style="flex-direction: column;align-items: center;">
+                <p id="urls"></p>
+                <input id="nameinput" style="width: 90%;" type="text" name="name" placeholder="名"/>
+                <input id="urlinput" style="width: 90%;" type="url" name="url" placeholder="url"/>
+                <button id="urlformbutton" style="width: 20%;" type="submit">登録</button>
+            </form></div>
+
+            <!-- タイマー -->
+            <div id="timer_console" style="height: 200px;display: flex; flex-direction: column; border: solid black 1px;margin-top: 12px;">                
+                <div style="height:80%; display: flex; justify-content: center">
+                    <div style="width:30%;display: flex; flex-direction: column; justify-content: space-evenly;align-items: center;">
+                        <p id="studytimer" style="height:30%;width:80%; margin:0px; border: solid black 1px;text-align: center;align-content: center;"></p>
+                        <button id="studybutton" style="height:20%; margin:0px">勉強</button>
+                        <button id="studysend" style="height:20%; margin:0px">送信</button>
+                    </div>
+                    <div style="width:30%;display: flex; flex-direction: column; justify-content: space-evenly;align-items: center;">
+                        <p id="hobbytimer" style="height:30%;width:80%; margin:0px;border: solid black 1px;text-align: center;align-content: center;"></p>
+                        <button id="hobbybutton" style="height:20%; margin:0px">趣味</button>
+                        <button id="hobbysend" style="height:20%; margin:0px">送信</button>
+                    </div>
+                </div>
+                <div style="height:15%;display: flex;justify-content: space-around;align-items: center;">
+                    <button id="clear">clear</button>
                 </div>
             </div>
-            <div style="height:15%;display: flex;justify-content: space-around;align-items: center;">
-                <button id="clear">clear</button>
+
+            <!-- 履歴 -->
+            <div id="history_console" style="height: 200px;display: flex;">
+                <div class="grid" style="margin:1rem">
+                    <div id="studyhistory" style="grid-column: 2; grid-row: 1;">勉強時間</div>
+                    <div id="hobbyhistory" style="grid-column: 3; grid-row: 1;">趣味時間</div>
+                    <div style="grid-column: 1; grid-row: 2;">今日</div><div style="grid-column: 1; grid-row: 3;">昨日</div><div style="grid-column: 1; grid-row: 4;">一週間</div>
+                </div>
+            </div>
+
+            <!-- API URL更新 -->
+            <div id="apiurl_console" style="display: flex;">
+                <form id="apiurl_form" style="align-items: center;">
+                    <input type="password" name="url" placeholder="urlを入力してください。" style="height:3rem;margin:1rem;width:70%;"/>
+                    <button type="submit" style="width:30%;height:2rem;margin:1rem;">送信</button>
+                </form>
             </div>
         </div>
-
-        <!-- 履歴 -->
-        <button id="historybutton" class="display_button">履歴表示</button>
-        <div id="historyform" style="height: 200px;display: flex;">
-            <div class="grid" style="margin:1rem">
-                <div id="studyhistory" style="grid-column: 2; grid-row: 1;">勉強時間</div>
-                <div id="hobbyhistory" style="grid-column: 3; grid-row: 1;">趣味時間</div>
-                <div style="grid-column: 1; grid-row: 2;">今日</div><div style="grid-column: 1; grid-row: 3;">昨日</div><div style="grid-column: 1; grid-row: 4;">一週間</div>
-            </div>
-        </div>
-
-        <!-- API URL更新 -->
-        <button id="urlbutton" class="display_button">url更新</button>
-        <div style="display: flex;">
-            <form id="apiurl_form" style="align-items: center;">
-                <input type="password" name="url" placeholder="urlを入力してください。" style="height:3rem;margin:1rem;width:70%;"/>
-                <button type="submit" style="width:30%;height:2rem;margin:1rem;">送信</button>
-            </form>
+        <div class="button_container">
+            <button id="get_display_button" class="display_button">更新</button>
+            <button id="register_display_button" class="display_button">登録</button>
+            <button id="url_display_button" class="display_button">URL表示</button>
+            <button id="timer_display_button" class="display_button">タイマー表示</button>
+            <button id="historybutton" class="display_button">履歴表示</button>
+            <button id="urlbutton" class="display_button">url更新</button>
         </div>
         <script src="main.js" type="module">
         </script>

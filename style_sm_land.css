@@ -113,50 +113,24 @@
         font-size: 10px;
     }
     form{
-        left:20%;
-        width: 60%;
         display: flex;
         font-size: 14px;
     }
     .getbutton{
         height: 46px;
     }
-    .display_button{
-        bottom: 2%;
-        width: 72px;
+    .button_container{
+        bottom: 0.5rem;
         height: 48px;
+    }
+    .button_container button{
+        width: 72px;
         border-radius: 24px;
         font-size: 16px;
         margin: 0px;
     }
-    #get_display_button{
-        left: 20%;
-    }
-    #register_display_button{
-        left: 30%;
-    }
-    #url_display_button{
-        left: 40%;
-    }
-    #timer_display_button{
-        left: 50%;
-    }
-    #historybutton{
-        left: 60%;
-    }
-    #urlbutton{
-        left: 70%;
-    }
-    #register_form{
-        justify-content:center;
-        align-items: center;
-    }
-    #timerform{
+    .console_container>div{
         left:20%;
-        width: 60%;
-    }
-    #historyform{
-        left: 20%;
         width: 60%;
     }
     .autofill{

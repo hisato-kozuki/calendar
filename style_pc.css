@@ -70,43 +70,17 @@
         font-size: 16px;
     }
     form{
-        left:25%;
-        width: 50%;
         font-size: 20px;
     }
     .getbutton{
         height: 40px;
     }
-    .display_button{
-        bottom: 0%;
+    .button_container button{
         width: 90px;
-        height: 60px;
         border-radius: 30px;
         font-size: 20px;
     }
-    #get_display_button{
-        left: 25%;
-    }
-    #register_display_button{
-        left: 33%;
-    }
-    #url_display_button{
-        left: 41%;
-    }
-    #timer_display_button{
-        left: 49%;
-    }
-    #historybutton{
-        left: 57%;
-    }
-    #urlbutton{
-        left: 65%;
-    }
-    #timerform{
-        left:25%;
-        width: 50%;
-    }
-    #historyform{
+    .console_container>div{
         left:25%;
         width: 50%;
     }

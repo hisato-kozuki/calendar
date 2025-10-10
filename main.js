@@ -42,7 +42,8 @@ window.onload = function(){
 
 document.body.addEventListener('click', (event) => {
     let elements = searchParent(event.target);
-    if(event.target.className != "display_button" && !elements.includes("console_container")){
+    let console_container = document.getElementsByClassName("console_container")[0];
+    if(event.target.className != "display_button" && !elements.includes(console_container)){
         let forms = document.getElementsByClassName('console_container')[0].children;
         for(let i = 0; i < forms.length; i++){
             forms[i].style.transform = 'scale(0, 0)';

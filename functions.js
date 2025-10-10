@@ -526,3 +526,13 @@ export function button_display(button, console_id){
         button.style.backgroundColor = "#ff4014";
     }
 }
+
+export function searchParent(element){
+    let parent = element.parentElement;
+    if(parent.nodeName == "BODY")return [element];
+    else{
+        let elements = searchParent(parent);
+        elements.push(element)
+        return elements;
+    }
+}

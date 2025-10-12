@@ -337,6 +337,20 @@ export function display(events, task_renew_required){
             }
             else {event_cell.style.color = color;event_cell2.style.color = color;}
 
+            for(let element of [date_cell, event_cell]){
+                element.addEventListener("change", (event) =>{
+                    event.target.style.backgroundColor = "#fff0f0";
+                    let element_data = {
+                        "id": events[i].id
+                    }
+                    let key;
+                    if(event.target.className == "date_cell")key = "date";
+                    if(event.target.className.includes("event_cell"))key = "title";
+                    if(event.target.className.includes("mark_cell"))key = "mark";
+                    element_data[key] = event.target.value;
+                    pushLocalStorage("element_modify", element_data);
+                })
+            }
             event_container.appendChild(date_cell);
             event_container.appendChild(mark_cell);
             event_container.appendChild(event_cell);
@@ -346,10 +360,10 @@ export function display(events, task_renew_required){
             delete_cell.addEventListener('click', () => {
                 var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
                 if(result){
-                    const data = {
-                        'type': "delete",
-                        'id': events[i].id
-                    };
+                    const element_data = {'id': events[i].id};
+                    pushLocalStorage("element_delete", element_data);
+                    const data = element_data;
+                    data['type'] = "delete";
                     cellPendingAnimation(delete_cell)
                     delete_event(data, delete_cell);
                 }
@@ -512,6 +526,8 @@ export function button_display(button, console_id){
     console.log(console_id);
     if(document.getElementById(console_id).style.transform == 'scale(1, 1)'){
         document.getElementById(console_id).style.transform = 'scale(0, 0)';
+        document.getElementsByClassName("curtain")[0].style.opacity = 0;
+        document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
         button.style.backgroundColor = "coral";
     } else {
         let forms = document.getElementsByClassName('console_container')[0].children;
@@ -523,6 +539,8 @@ export function button_display(button, console_id){
             buttons[i].style.backgroundColor = 'coral';
         }
         document.getElementById(console_id).style.transform = 'scale(1, 1)';
+        document.getElementsByClassName("curtain")[0].style.opacity = 1;
+        document.getElementsByClassName("curtain")[0].style.visibility = "visible";
         button.style.backgroundColor = "#ff4014";
     }
 }
@@ -535,4 +553,11 @@ export function searchParent(element){
         elements.push(element)
         return elements;
     }
+}
+
+export function pushLocalStorage(key, data){
+    let datas = JSON.parse(localStorage.getItem(key));
+    if(datas)datas.push(data);
+    else datas = [data];
+    localStorage[key] = JSON.stringify(datas);
 }

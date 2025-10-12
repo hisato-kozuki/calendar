@@ -79,8 +79,9 @@
     .button_container button{
         width: 60px;
         border-radius: 30px;
-        font-size: 16px;
+        font-size: 24px;
     }
+    button.fontlight{font-size: 16px;}
     .console_container>div{
         left:10%;
         width: 80%;

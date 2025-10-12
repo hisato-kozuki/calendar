@@ -1,5 +1,5 @@
 document.getElementById("p").innerText = "";
-import { date_string, get_events, post_event, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent } from "./functions.js";
+import { date_string, get_events, post_event, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -37,22 +37,27 @@ window.onload = function(){
             document.getElementById("urls").innerHTML += "<p style='font-size:16px'><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
         }
     }
+    localStorage.removeItem("element_modify");
+    localStorage.removeItem("element_post");
     countUpTimer(true, true);countUpTimer(false, true);
 }
 
-document.body.addEventListener('click', (event) => {
+document.getElementsByClassName("curtain")[0].addEventListener('click', (event) => {
     let elements = searchParent(event.target);
     let console_container = document.getElementsByClassName("console_container")[0];
-    if(event.target.className != "display_button" && !elements.includes(console_container)){
+    let button_container = document.getElementsByClassName("button_container")[0];
+    // if(!elements.includes(button_container) && !elements.includes(console_container)){
         let forms = document.getElementsByClassName('console_container')[0].children;
         for(let i = 0; i < forms.length; i++){
             forms[i].style.transform = 'scale(0, 0)';
         }
+        document.getElementsByClassName("curtain")[0].style.opacity = 0;
+        document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
         let buttons = document.getElementsByClassName('button_container')[0].children;
         for(let i = 0; i < buttons.length; i++){
             buttons[i].style.backgroundColor = 'coral';
         }
-    }
+    // }
 })
 
 document.getElementById("register_form").addEventListener('submit', (event) => {
@@ -63,13 +68,15 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     let date_start = new Date(Date.parse(form.start.value));
     let date_end = new Date(Date.parse(form.end.value));
     console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
-    const data = {
-        'type': 'post',
+    const element_data = {
         'title': form.title.value,
         'date_start': date_start,
         'date_end': date_end,
         'color': form.color.value,
     };
+    pushLocalStorage("element_post", element_data);
+    const data = element_data;
+    data['type'] = 'post';
     if(data.title != "" && button.innerText == "送信"){
         cellPendingAnimation(button);
         post_event(data, 1).then((data) => {

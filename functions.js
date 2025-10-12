@@ -158,10 +158,9 @@ export function renewTask(event_data, date, color){
     }
 }
 
-export function modifyEvent(id, new_event_data, cell){
+export function modifyEvent(new_event_data, cell){
     console.log("modify");
     new_event_data.type = 'modify';
-    new_event_data.id = id;
     if(new_event_data.title != ""){
         post_event(new_event_data, 0).then((data) => {
             if(data)cell.textContent = "完了";
@@ -385,6 +384,7 @@ export function display(events, task_renew_required){
                 }
                 console.log(new_date)
                 let new_event_data = {
+                    "id": events[i].id,
                     "title": event_container.querySelector(".event_cell").value,
                     "date_start": new Date(new_date[0]),
                     "date_end": new Date(new_date[1]),
@@ -392,7 +392,7 @@ export function display(events, task_renew_required){
                 }
                 console.log(new_event_data)
                 cellPendingAnimation(modify_cell)
-                modifyEvent(events[i].id, new_event_data, modify_cell)
+                modifyEvent(new_event_data, modify_cell)
             });
             event_container.appendChild(delete_cell);
             event_container.appendChild(modify_cell);

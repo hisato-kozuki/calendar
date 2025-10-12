@@ -101,7 +101,15 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     });
 });
 
-document.getElementById("reload_form").addEventListener('submit', event => {reload(event)});
+document.getElementById("reload_form").addEventListener('submit', event => {
+    // const promise1 = post_event(localStorage["element_post"], false).then((data)=>resolve(data));
+    // const promise2 = delete_event(localStorage["element_delete"], ).then((data)=>resolve(data));
+    // const promise3 = modifyEvent(localStorage["element_modify"], ).then((data)=>resolve(data));
+    // Promise.all([promise1, promise2, promise3])
+    // .then((results) => {
+        reload(event);
+    // })
+});
 
 document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する

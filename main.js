@@ -1,5 +1,5 @@
 document.getElementById("p").innerText = "";
-import { date_string, get_events, post_event, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage } from "./functions.js";
+import { date_string, get_events, postEvents, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -75,11 +75,9 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
         'color': form.color.value,
     };
     pushLocalStorage("element_post", element_data);
-    const data = element_data;
-    data['type'] = 'post';
-    if(data.title != "" && button.innerText == "送信"){
+    if(element_data.title != "" && button.innerText == "送信"){
         cellPendingAnimation(button);
-        post_event(data, 1).then((data) => {
+        postEvents("post", [element_data], {"get_required": true}).then((data) => {
             if(data)document.getElementById("postbutton").innerText = "完了";
             else document.getElementById("postbutton").innerText = "Error";
         });
@@ -102,13 +100,46 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
 });
 
 document.getElementById("reload_form").addEventListener('submit', event => {
-    // const promise1 = post_event(localStorage["element_post"], false).then((data)=>resolve(data));
-    // const promise2 = delete_event(localStorage["element_delete"], ).then((data)=>resolve(data));
-    // const promise3 = modifyEvent(localStorage["element_modify"], ).then((data)=>resolve(data));
-    // Promise.all([promise1, promise2, promise3])
-    // .then((results) => {
-        reload(event);
-    // })
+    event.preventDefault();
+    let button = event.target.querySelector("#getbutton");
+    if(button.textContent == "更新"){
+        let promises = [];
+        if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_requiredfalse": false}));
+        if(localStorage["element_delete"])promises.push(postEvents("delete", JSON.parse(localStorage["element_delete"])));
+        let element_datas = [];
+        if(localStorage["element_modify"]){
+            element_datas = JSON.parse(localStorage["element_modify"]);
+            for(let element_data of element_datas){
+                console.log(element_data)
+                if(element_data.date){
+                    // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
+                    let new_date = element_data.date.split(/~|～|\n/, 2); // 開始と終了で分割
+                    if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
+                    for(let i = 0; i < 2; i++){
+                        let buffer = new_date[i].split(/年|月/).map((p) => p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
+                        buffer = buffer.split(/時|分/).map((p) => p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
+                        if(!buffer.match(/\d{4}/)){ // 年が無い場合は今年とみなす
+                            if(!buffer.match(/\d{2}[/-月]\d{2}/)){ // 月日が無い場合は今日とみなす
+                                buffer = (todayDate.getMonth()+1)+ "/" + todayDate.getDate()+ " " + buffer;
+                            }
+                            buffer = todayDate.getFullYear()+ "/" + buffer;
+                        }
+                        new_date[i] = buffer.split(/T|\.|日/).join(" "); // 日付と時間で分割
+                    }
+                    console.log(new_date)
+                    element_data.date_start = new_date[0];
+                    element_data.date_end = new_date[1];
+                }
+            }
+
+            promises.push(postEvents("modify", element_datas));
+        }
+        Promise.all(promises)
+        .then((results) => {
+            console.log(promises)
+            reload(event, button);
+        })
+    } else button.textContent = "更新";
 });
 
 document.getElementById("date_default").addEventListener('click', event => {
@@ -162,15 +193,14 @@ document.getElementById("studysend").addEventListener('click', event => {
     let cell = event.target;
     if(cell.innerText == "完了")cell.innerText = "送信";
     else{
-        let data = {
-            'type': 'post',
+        let data = [{
             'title': "sssss"+(localStorage.getItem("studyTimeSeconds")).toString().padStart(5, "0"),
             'date_start': todayDate,
             'date_end': todayDate,
             'color': 3,
-        };
+        }];
         localStorage.setItem("studyTimeSeconds", 0);
-        post_event(data, false).then((data) => {
+        postEvents("post", data, {"get_required": false}).then((data) => {
             if(data){
                 cell.innerText = "完了";
                 document.getElementById("studytimer").innerText = 0;
@@ -185,15 +215,14 @@ document.getElementById("hobbysend").addEventListener('click', event => {
     let cell = event.target;
     if(cell.innerText == "完了")cell.innerText = "送信";
     else{
-        let data = {
-            'type': 'post',
+        let data = [{
             'title': "hhhhh"+(localStorage.getItem("hobbyTimeSeconds")).toString().padStart(5, "0"),
             'date_start': todayDate,
             'date_end': todayDate,
             'color': 3,
-        };
+        }];
         localStorage.setItem("hobbyTimeSeconds", 0);
-        post_event(data, false).then((data) => {
+        postEvents("post", data, {"get_required": false}).then((data) => {
             if(data){
                 cell.innerText = "完了";
                 document.getElementById("hobbytimer").innerText = 0;

@@ -67,20 +67,24 @@ export function get_events(startDate, endDate){
     });
 }
 
-export function post_event(data, get_required){
+export function postEvents(type, datas, options){
     return new Promise((resolve, reject) => {
-        //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
+        console.log(type, datas);
         let received_data;
-        http_options.body=JSON.stringify(data);
+        let post_data = {"type": type, "datas": datas};
+        http_options.body=JSON.stringify(post_data);
 
         fetch(localStorage["apiUrl"], http_options)
         .then(response => response.text())
         .then(data => {
-            console.log(data);
-            received_data = data;
-            JSON.parse(data)
+            console.log(received_data = data);
+            JSON.parse(data);
             resolve(true);
-            if(get_required){
+            if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
+            if(type == "post")localStorage.removeItem("element_post");
+            if(type == "modify")localStorage.removeItem("element_modify");
+            if(type == "delete")localStorage.removeItem("element_delete");
+            if(options != undefined && options.get_required == true){
                 cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
                 get_events().then((data)=>{
                     display(data, true);//saveCalendarEventsToDB(data);
@@ -93,29 +97,9 @@ export function post_event(data, get_required){
             console.error("Error:", error);
             document.getElementById("p").innerText = error + received_data;
             reject(false);
-            document.getElementById("postbutton").textContent = "Error";
+            if(options != undefined && options.cell != undefined)options.cell.textContent = "Error";
         });
     })
-}
-
-export function delete_event(data, delete_cell){
-    //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
-    let received_data;
-    http_options.body=JSON.stringify(data);
-
-    fetch(localStorage["apiUrl"], http_options)
-    .then(response => response.text())
-    .then(data => {
-        // console.log(received_data=JSON.parse(data));
-        // console.log(data);
-        if(delete_cell != undefined)delete_cell.innerText = "完了";
-        delete_cell.parentElement.remove();
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        document.getElementById("p").innerText = error;
-        delete_cell.innerText = "Error";
-    });
 }
 
 export function createE(tag, options, styles){
@@ -131,40 +115,27 @@ export function createE(tag, options, styles){
 
 export function renewTask(event_data, date, color){
     console.log("detected");
-    let data = {
-        'type': "delete",
+    let datas = [{
         'id': event_data.id
-    };
-    delete_event(data);
+    }];
+    postEvents("delete", datas);
     let new_date = new Date(date);
     console.log("old_date", new_date);
     if(color == 4)new_date.setDate(todayDate.getDate()+1);
     if(color == 1)new_date.setDate(date.getDate()+7);
     if(color == 9)new_date.setMonth(date.getMonth()+1);
     console.log("new_date", new_date);
-    data = {
-        'type': 'post',
+    datas = [{
         'title': event_data.title,
         'date_start': new_date,
         'date_end': new_date,
         'color': color,
-    };
-    if(data.title != ""){
+    }];
+    if(datas[0].title != ""){
         document.getElementById("postbutton").textContent = "……";
-        post_event(data, 0).then((data) => {
+        postEvents("post", datas, {get_required: false}).then((data) => {
             if(data)document.getElementById("postbutton").textContent = "完了";
             else document.getElementById("postbutton").textContent = "Error";
-        });
-    }
-}
-
-export function modifyEvent(new_event_data, cell){
-    console.log("modify");
-    new_event_data.type = 'modify';
-    if(new_event_data.title != ""){
-        post_event(new_event_data, 0).then((data) => {
-            if(data)cell.textContent = "完了";
-            else cell.textContent = "Error";
         });
     }
 }
@@ -188,37 +159,32 @@ function countHistory(events, row){
     document.getElementsByClassName('grid')[0].appendChild(hobbyhistory);
     document.getElementsByClassName('grid')[0].appendChild(studyhistory);
 }
-export function reload(event){
-    if(event != undefined)event.preventDefault();
-    let button = document.getElementById("getbutton");
-    if(button.textContent == "更新"){
-        console.log(button);
-        if(event != undefined){
-            let date_start = new Date(Date.parse(event.target.start.value));
-            let date_end = new Date(Date.parse(event.target.end.value));
-            get_events(date_start, date_end).then((data)=>{
-                display(data, true);//saveCalendarEventsToDB(data);
-                console.log("更新 完了");
-                saveCalendarEvents(data);
-            });
-        } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);});
-        cellPendingAnimation(button, "getbutton");
-        
-        const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
-        let date_old = new Date(todayDate - 86400000);
-        const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-        date_old = new Date(todayDate - 604800000);
-        const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-        Promise.all([promise2, promise3, promise4])
-        .then((results) => {
-            countHistory(results[0], 2);
-            countHistory(results[1], 3);
-            countHistory(results[2], 4);
-            // button.innerText="更新";
-            console.log("ボタン更新2")
-            console.log("予定読み込み，履歴読み込み完了");
-        })
-    } else button.textContent = "更新";
+export function reload(event, button){
+    if(event != undefined){ //ボタンを押して更新する場合
+        let date_start = new Date(Date.parse(event.target.start.value));
+        let date_end = new Date(Date.parse(event.target.end.value));
+        get_events(date_start, date_end).then((data)=>{
+            display(data, true);//saveCalendarEventsToDB(data);
+            console.log("更新 完了");
+            saveCalendarEvents(data);
+        });
+    } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
+    cellPendingAnimation(button, "getbutton");
+    
+    const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
+    let date_old = new Date(todayDate - 86400000);
+    const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
+    date_old = new Date(todayDate - 604800000);
+    const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
+    Promise.all([promise2, promise3, promise4])
+    .then((results) => {
+        countHistory(results[0], 2);
+        countHistory(results[1], 3);
+        countHistory(results[2], 4);
+        // button.innerText="更新";
+        console.log("ボタン更新2")
+        console.log("予定読み込み，履歴読み込み完了");
+    })
 }
 
 function createEventBackground(options, indexElement){
@@ -343,7 +309,9 @@ export function display(events, task_renew_required){
                         "id": events[i].id
                     }
                     let key;
-                    if(event.target.className == "date_cell")key = "date";
+                    if(event.target.className == "date_cell"){
+                        key = "date";
+                    }
                     if(event.target.className.includes("event_cell"))key = "title";
                     if(event.target.className.includes("mark_cell"))key = "mark";
                     element_data[key] = event.target.value;
@@ -361,39 +329,35 @@ export function display(events, task_renew_required){
                 if(result){
                     const element_data = {'id': events[i].id};
                     pushLocalStorage("element_delete", element_data);
-                    const data = element_data;
-                    data['type'] = "delete";
-                    cellPendingAnimation(delete_cell)
-                    delete_event(data, delete_cell);
                 }
             });
-            modify_cell.addEventListener('click', () => {
-                // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
-                let new_date = event_container.querySelector(".date_cell").value.split(/~|～|\n/, 2); // 開始と終了で分割
-                if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
-                for(let i = 0; i < 2; i++){
-                    let buffer = new_date[i].split(/年|月/).map((p) => p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
-                    buffer = buffer.split(/時|分/).map((p) => p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
-                    if(!buffer.match(/\d{4}/)){ // 年が無い場合は今年とみなす
-                        if(!buffer.match(/\d{2}[/-月]\d{2}/)){ // 月日が無い場合は今日とみなす
-                            buffer = (todayDate.getMonth()+1)+ "/" + todayDate.getDate()+ " " + buffer;
-                        }
-                        buffer = todayDate.getFullYear()+ "/" + buffer;
-                    }
-                    new_date[i] = buffer.split(/T|\.|日/).join(" "); // 日付と時間で分割
-                }
-                console.log(new_date)
-                let new_event_data = {
-                    "id": events[i].id,
-                    "title": event_container.querySelector(".event_cell").value,
-                    "date_start": new Date(new_date[0]),
-                    "date_end": new Date(new_date[1]),
-                    "color": event_container.querySelector(".mark_cell").value
-                }
-                console.log(new_event_data)
-                cellPendingAnimation(modify_cell)
-                modifyEvent(new_event_data, modify_cell)
-            });
+            // modify_cell.addEventListener('click', () => {
+            //     // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
+            //     let new_date = event_container.querySelector(".date_cell").value.split(/~|～|\n/, 2); // 開始と終了で分割
+            //     if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
+            //     for(let i = 0; i < 2; i++){
+            //         let buffer = new_date[i].split(/年|月/).map((p) => p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
+            //         buffer = buffer.split(/時|分/).map((p) => p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
+            //         if(!buffer.match(/\d{4}/)){ // 年が無い場合は今年とみなす
+            //             if(!buffer.match(/\d{2}[/-月]\d{2}/)){ // 月日が無い場合は今日とみなす
+            //                 buffer = (todayDate.getMonth()+1)+ "/" + todayDate.getDate()+ " " + buffer;
+            //             }
+            //             buffer = todayDate.getFullYear()+ "/" + buffer;
+            //         }
+            //         new_date[i] = buffer.split(/T|\.|日/).join(" "); // 日付と時間で分割
+            //     }
+            //     console.log(new_date)
+            //     let new_event_data = {
+            //         "id": events[i].id,
+            //         "title": event_container.querySelector(".event_cell").value,
+            //         "date_start": new Date(new_date[0]),
+            //         "date_end": new Date(new_date[1]),
+            //         "color": event_container.querySelector(".mark_cell").value
+            //     }
+            //     console.log(new_event_data)
+            //     cellPendingAnimation(modify_cell)
+            //     modifyEvent(new_event_data, modify_cell)
+            // });
             event_container.appendChild(delete_cell);
             event_container.appendChild(modify_cell);
             let date_start_0 = new Date(eventStartDate.getFullYear(), eventStartDate.getMonth(), eventStartDate.getDate());

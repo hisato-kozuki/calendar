@@ -340,35 +340,7 @@ export function display(events, task_renew_required){
                     event_container.remove();
                 }
             });
-            // modify_cell.addEventListener('click', () => {
-            //     // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
-            //     let new_date = event_container.querySelector(".date_cell").value.split(/~|～|\n/, 2); // 開始と終了で分割
-            //     if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
-            //     for(let i = 0; i < 2; i++){
-            //         let buffer = new_date[i].split(/年|月/).map((p) => p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
-            //         buffer = buffer.split(/時|分/).map((p) => p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
-            //         if(!buffer.match(/\d{4}/)){ // 年が無い場合は今年とみなす
-            //             if(!buffer.match(/\d{2}[/-月]\d{2}/)){ // 月日が無い場合は今日とみなす
-            //                 buffer = (todayDate.getMonth()+1)+ "/" + todayDate.getDate()+ " " + buffer;
-            //             }
-            //             buffer = todayDate.getFullYear()+ "/" + buffer;
-            //         }
-            //         new_date[i] = buffer.split(/T|\.|日/).join(" "); // 日付と時間で分割
-            //     }
-            //     console.log(new_date)
-            //     let new_event_data = {
-            //         "id": events[i].id,
-            //         "title": event_container.querySelector(".event_cell").value,
-            //         "date_start": new Date(new_date[0]),
-            //         "date_end": new Date(new_date[1]),
-            //         "color": event_container.querySelector(".mark_cell").value
-            //     }
-            //     console.log(new_event_data)
-            //     cellPendingAnimation(modify_cell)
-            //     modifyEvent(new_event_data, modify_cell)
-            // });
             event_container.appendChild(delete_cell);
-            event_container.appendChild(modify_cell);
             let date_start_0 = new Date(eventStartDate.getFullYear(), eventStartDate.getMonth(), eventStartDate.getDate());
             // console.log(eventStartDate,mondayStartDate);
             // console.log((date_start_0-mondayStartDate)/86400000);

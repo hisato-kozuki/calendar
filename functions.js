@@ -21,6 +21,18 @@ export function date_string(date, separator, options){
     return date_string;
 }
 
+function str2date(date_string, defaultDate){
+    let buffer = date_string.split(/年|月/).map((p) => p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
+    buffer = buffer.split(/時|分/).map((p) => p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
+    if(!buffer.match(/\d{4}/)){ // 年が無い場合は今年とみなす
+        if(!buffer.match(/\d{2}[/-月]\d{2}/)){ // 月日が無い場合は今日とみなす
+            buffer = (defaultDate.getMonth()+1)+ "/" + defaultDate.getDate()+ " " + buffer;
+        }
+        buffer = defaultDate.getFullYear()+ "/" + buffer;
+    }
+    return new Date(buffer.split(/T|\.|日/).join(" ")); // 日付と時間で分割
+}
+
 export function cellPendingAnimation(cell, type){
     if(cell.textContent == "完了" || cell.textContent == "Error"){
         if(cell.textContent == "完了" && type == "getbutton")cell.textContent = "更新";
@@ -115,28 +127,21 @@ export function createE(tag, options, styles){
 
 export function renewTask(event_data, date, color){
     console.log("detected");
-    let datas = [{
-        'id': event_data.id
-    }];
-    postEvents("delete", datas);
     let new_date = new Date(date);
     console.log("old_date", new_date);
     if(color == 4)new_date.setDate(todayDate.getDate()+1);
     if(color == 1)new_date.setDate(date.getDate()+7);
     if(color == 9)new_date.setMonth(date.getMonth()+1);
     console.log("new_date", new_date);
-    datas = [{
+    let datas = {
+        'id': event_data.id,
         'title': event_data.title,
         'date_start': new_date,
         'date_end': new_date,
         'color': color,
-    }];
-    if(datas[0].title != ""){
-        document.getElementById("postbutton").textContent = "……";
-        postEvents("post", datas, {get_required: false}).then((data) => {
-            if(data)document.getElementById("postbutton").textContent = "完了";
-            else document.getElementById("postbutton").textContent = "Error";
-        });
+    };
+    if(datas.title != ""){
+        pushLocalStorage("element_modify", datas);
     }
 }
 
@@ -169,8 +174,7 @@ export function reload(event, button){
             saveCalendarEvents(data);
         });
     } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
-    cellPendingAnimation(button, "getbutton");
-    
+    if(button != undefined)cellPendingAnimation(button, "getbutton");
     const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
     let date_old = new Date(todayDate - 86400000);
     const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
@@ -308,13 +312,17 @@ export function display(events, task_renew_required){
                     let element_data = {
                         "id": events[i].id
                     }
-                    let key;
                     if(event.target.className == "date_cell"){
-                        key = "date";
+                        // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
+                        let new_date = event.target.value.split(/~|～|\n/, 2); // 開始と終了で分割
+                        if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
+                        for(let j = 0; j < 2; j++)new_date[j] = str2date(new_date[j], new Date(events[i].date_start));
+                        // console.log(new_date)
+                        element_data["date_start"] = new_date[0];
+                        element_data["date_end"] = new_date[0];
                     }
-                    if(event.target.className.includes("event_cell"))key = "title";
-                    if(event.target.className.includes("mark_cell"))key = "mark";
-                    element_data[key] = event.target.value;
+                    if(event.target.className.includes("event_cell"))element_data["title"] = event.target.value;
+                    if(event.target.className.includes("mark_cell"))element_data["mark"] = event.target.value;
                     pushLocalStorage("element_modify", element_data);
                 })
             }
@@ -329,6 +337,7 @@ export function display(events, task_renew_required){
                 if(result){
                     const element_data = {'id': events[i].id};
                     pushLocalStorage("element_delete", element_data);
+                    event_container.remove();
                 }
             });
             // modify_cell.addEventListener('click', () => {

@@ -106,34 +106,7 @@ document.getElementById("reload_form").addEventListener('submit', event => {
         let promises = [];
         if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_requiredfalse": false}));
         if(localStorage["element_delete"])promises.push(postEvents("delete", JSON.parse(localStorage["element_delete"])));
-        let element_datas = [];
-        if(localStorage["element_modify"]){
-            element_datas = JSON.parse(localStorage["element_modify"]);
-            for(let element_data of element_datas){
-                console.log(element_data)
-                if(element_data.date){
-                    // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
-                    let new_date = element_data.date.split(/~|～|\n/, 2); // 開始と終了で分割
-                    if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
-                    for(let i = 0; i < 2; i++){
-                        let buffer = new_date[i].split(/年|月/).map((p) => p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
-                        buffer = buffer.split(/時|分/).map((p) => p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
-                        if(!buffer.match(/\d{4}/)){ // 年が無い場合は今年とみなす
-                            if(!buffer.match(/\d{2}[/-月]\d{2}/)){ // 月日が無い場合は今日とみなす
-                                buffer = (todayDate.getMonth()+1)+ "/" + todayDate.getDate()+ " " + buffer;
-                            }
-                            buffer = todayDate.getFullYear()+ "/" + buffer;
-                        }
-                        new_date[i] = buffer.split(/T|\.|日/).join(" "); // 日付と時間で分割
-                    }
-                    console.log(new_date)
-                    element_data.date_start = new_date[0];
-                    element_data.date_end = new_date[1];
-                }
-            }
-
-            promises.push(postEvents("modify", element_datas));
-        }
+        if(localStorage["element_modify"])promises.push(postEvents("modify", JSON.parse(localStorage["element_modify"])));
         Promise.all(promises)
         .then((results) => {
             console.log(promises)

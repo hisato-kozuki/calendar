@@ -88,7 +88,6 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     // イベントを停止する
     event.preventDefault();
     apiUrl=event.target.url.value;
-    event.target.style.visibility="hidden";
     localStorage["apiUrl"] = apiUrl;
     // saveApiUrlToDB(apiUrl);
     get_events().then((data)=>{

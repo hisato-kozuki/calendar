@@ -285,7 +285,7 @@ export function display(events, task_renew_required){
             let color = colorCodes[events[i].color];
             if(color == undefined)color = "#404040";
             if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
-                event_cell.style.width = "56%";
+                event_cell.style.width = "61%";
                 mark_cell.value = "◆";
                 mark_cell.style.visibility = "visible";
                 mark_cell.style.width = "4%";
@@ -331,7 +331,6 @@ export function display(events, task_renew_required){
             event_container.appendChild(event_cell);
             event_container2.appendChild(event_cell2);
             let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
-            let modify_cell = createE("button", {"className": "delete_cell", "innerText": "変更"});
             delete_cell.addEventListener('click', () => {
                 var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
                 if(result){

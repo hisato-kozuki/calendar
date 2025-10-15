@@ -319,7 +319,7 @@ export function display(events, task_renew_required){
                         for(let j = 0; j < 2; j++)new_date[j] = str2date(new_date[j], new Date(events[i].date_start));
                         // console.log(new_date)
                         element_data["date_start"] = new_date[0];
-                        element_data["date_end"] = new_date[0];
+                        element_data["date_end"] = new_date[1];
                     }
                     if(event.target.className.includes("event_cell"))element_data["title"] = event.target.value;
                     if(event.target.className.includes("mark_cell"))element_data["mark"] = event.target.value;

@@ -8,7 +8,208 @@ const http_options = {
 const date = new Date();
 const todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
-const days = ["月", "火", "水", "木", "金", "土", "日"];
+const days = ["日", "月", "火", "水", "木", "金", "土"];
+
+class Calendar{
+    make(date_start, date_end){
+        let weeks = [];
+        for(let date_monday = new Date(date_start), i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
+            let week = new Week(new Date(date_monday))
+            weeks[i] = week;
+        }
+
+        this.weeks = weeks;
+
+        return this.weeks
+    }
+    addEvent(event, i, duplicate, new_event){
+        let date_start = new Date(event.date_start);
+        let date_end = new Date(event.date_end);
+        let num_day = Math.floor((date_start - this.weeks[0].date_sunday)/86400000);
+        let startHour = Math.min(Math.max(date_start.getHours()-5, 1), 20);
+        let endHour= Math.min(Math.max(date_end.getHours()-5, startHour+1), 20);
+        let element_event = new Event(date_start, date_end, event, new_event);
+        this.weeks[Math.floor(num_day/7)].days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate)
+    }
+    remove(){
+        for(let i = 0; this.days; i++)this.days[i].remove();
+    }
+}
+class Week{
+    constructor(date_sunday){
+        let days = [];
+        let week_cell = createE("div", {"className": "week_cell"});
+        for(let i = 0; i < 7; i++){
+            let day = new Day(date_sunday, i);
+            days[i] = day;
+            week_cell.appendChild(day.element);
+            for(let k= 0; k<5; k++){
+                let line = createE("div", {"className": "display_none_cell line"}, {"gridRow": 3*(k+1)+1});
+                day.timeline.appendChild(line);
+            }
+        }
+
+        this.date_sunday = date_sunday;
+        this.days = days;
+        this.element = week_cell;
+    }
+    remove(){
+        for(let i = 0; this.days; i++)this.days[i].remove();
+    }
+}
+
+class Day {
+    constructor(date_sunday, i) {
+        let date = new Date(date_sunday);
+        date.setDate(date.getDate() + i);
+        let date_index_cell = createE("div", {"className": "date_index_cell", "innerText": date.getMonth()+1+"/"+date.getDate()+"("+days[i]+")"});
+        let timeline = createE("div", {"className": "timeline"});
+        let day_cell = createE("div", {"className": "day_cell"});
+        let display_none_cell = createE("div", {"className": "display_none_cell"});
+        let div = createE("div", {"className": "div"});
+        if (date.getDay() == 0)date_index_cell.style.color = "orangered";
+        else if (date.getDay() == 6)date_index_cell.style.color = "darkturquoise";
+
+        this.date_index_cell = date_index_cell;
+        this.timeline = timeline;
+        this.display = display_none_cell;
+        this.element = div;
+        this.containers = [];
+
+        day_cell.appendChild(date_index_cell);
+        day_cell.appendChild(timeline);
+        display_none_cell.appendChild(day_cell);
+        div.appendChild(display_none_cell);
+    }
+    addEvent(Event, i, startHour, endHour, duplicate){
+        // イベントの配置
+        if(this.containers[startHour] != undefined){
+            // すでに同じ時間帯にイベントがある場合
+            this.containers[startHour].addEvent(Event, endHour, duplicate);
+        } else {
+            // 初めての時間帯のイベントの場合
+            this.containers[startHour] = new Container(Event, this.timeline, i, startHour, endHour, duplicate);
+        }
+        this.display.style.display = "flex";
+    }
+    remove(){
+        for(let i = 0; this.containers; i++)this.containers[i].remove();
+    }
+}
+
+class Container {
+    constructor(Event, timeline, i, startHour, endHour, duplicate) {
+        let event_container_container = createE("div", {"className": "event_grid"}, {"backgroundColor": "hsla("+i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+i*159+", 100%, 0%, 0.2)", "gridRow": startHour+"/"+endHour});
+        Event.container1.style.gridColumn = duplicate+"/6";
+        event_container_container.appendChild(Event.container1);
+        event_container_container.appendChild(Event.container2);
+        timeline.insertBefore(event_container_container, timeline.firstChild);
+        this.element = event_container_container;
+        this.events = [Event];
+    }
+    addEvent(Event, endHour, duplicate){
+        // 重複時の折りたたみ処理
+        if(this.events.length <= 1){
+            let event_container_details = createE("details", {"className": "event_grid display_none_cell"});
+            event_container_details.appendChild(createE("summary", {"innerText": ""}));
+            this.events[0].container2.querySelector(".event_cell").style.backgroundColor = "white";
+            event_container_details.appendChild(this.events[0].container2);
+            this.element.appendChild(event_container_details);
+            this.details = event_container_details;
+        }
+        if(this.element.style.gridRowEnd < endHour)this.element.style.gridRowEnd = endHour;
+        Event.container1.style.gridColumn = duplicate+"/6";
+        Event.container2.querySelector(".event_cell").style.backgroundColor = "white";
+        this.details.querySelector("summary").innerText = this.events.length+1;
+        this.element.appendChild(Event.container1);
+        this.details.appendChild(Event.container2);
+        this.events.push(Event);
+    }
+    remove(){
+        for(let i = 0; this.events; i++)this.events[i].remove();
+    }
+}
+
+class Event{
+    constructor(eventStartDate, date_end, event, new_event){
+        let date_cell = createE("input", {"type": "text", "className": "date_cell", "value": eventStartDate.getHours().toString() + ":" + eventStartDate.getMinutes().toString().padStart(2, "0")});
+        let event_cell = createE("input", {"type": "text", "className": "event_cell display_land_none_cell", "value": event.title});
+        let event_cell2 = createE("div", {"className": "event_cell display_none_cell", "innerText": event.title});
+        let mark_cell = createE("input", {"type": "text", "className": "mark_cell display_land_none_cell"});
+        let event_container = createE("div", {"className": "event_container"});
+        let event_container2 = createE("div", {"className": "event_container"});
+        if(eventStartDate.getFullYear() != date_end.getFullYear()){
+            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
+        }else if(eventStartDate.getMonth() != date_end.getMonth() || eventStartDate.getDate() != date_end.getDate()){
+            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
+        }else if(eventStartDate.getHours() != date_end.getHours()){
+            date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
+        }
+        if(new_event){
+            date_cell.style.backgroundColor = "transparent";
+            event_cell.style.backgroundColor = "transparent";
+            mark_cell.style.backgroundColor = "transparent";
+            event_container.style.backgroundColor = "#C0E0E0";
+        }
+
+        let color = colorCodes[event.color];
+        if(color == undefined)color = "#404040";
+        if(event.color == 4 || event.color == 1 || event.color == 9){
+            event_cell.style.width = "61%";
+            mark_cell.value = "◆";
+            mark_cell.style.visibility = "visible";
+            mark_cell.style.width = "4%";
+            mark_cell.style.color = color;
+            event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell2.innerHTML;
+        }
+        else {event_cell.style.color = color;event_cell2.style.color = color;}
+
+        for(let element of [date_cell, event_cell]){
+            element.addEventListener("change", (event) =>{
+                event.target.style.backgroundColor = "#fff0f0";
+                let element_data = {
+                    "id": event.id
+                }
+                if(event.target.className == "date_cell"){
+                    // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
+                    let new_date = event.target.value.split(/~|～|\n/, 2); // 開始と終了で分割
+                    if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
+                    for(let j = 0; j < 2; j++)new_date[j] = str2date(new_date[j], new Date(event.date_start));
+                    // console.log(new_date)
+                    element_data["date_start"] = new_date[0];
+                    element_data["date_end"] = new_date[1];
+                }
+                if(event.target.className.includes("event_cell"))element_data["title"] = event.target.value;
+                if(event.target.className.includes("mark_cell"))element_data["mark"] = event.target.value;
+                pushLocalStorage("element_modify", element_data);
+            })
+        }
+        let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
+        delete_cell.addEventListener('click', () => {
+            var result = confirm("本当に\""+event.title+"\"を削除しますか？");
+            if(result){
+                const element_data = {'id': event.id};
+                pushLocalStorage("element_delete", element_data);
+                this.remove();
+            }
+        });
+
+        this.container1 = event_container;
+        this.container2 = event_container2;
+
+        event_container.appendChild(date_cell);
+        event_container.appendChild(mark_cell);
+        event_container.appendChild(event_cell);
+        event_container.appendChild(delete_cell);
+        event_container2.appendChild(event_cell2);
+    }
+    remove(){
+        this.container1.remove();
+        this.container2.remove();
+    }
+}
+
+export const calendar = new Calendar();
 
 export function date_string(date, separator, options){
     let date_string = "";
@@ -208,142 +409,24 @@ export function display(events, task_renew_required){
     let cell = createE("div", {"className": "small_container", "id": "cell"});
     let date_start = new Date(Date.parse(document.getElementById("reload_form").start.value));
     let date_end = new Date(Date.parse(document.getElementById("reload_form").end.value));
-    date_start.setDate(date_start.getDate()-(date_start.getDay()+5)%7-1);
-    date_end.setDate(date_end.getDate()+(7-date_end.getDay())%7);
-    let display_none_cells = new Array((date_end-date_start)/86400000);
-    let timelines = new Array((date_end-date_start)/86400000);
-    console.log("display start")
-    for(let date_monday = new Date(date_start), i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
-        let week_cell = createE("div", {"className": "week_cell"});
-        // let time_index = createE("div", "time_index");
-        // for(let j = 0; j < 8; j++){
-        //     let memori = createE("div", "div");
-        //     memori.style.width = "100%";
-        //     memori.style.borderBottom = "solid black 1px";
-        //     time_index.appendChild(memori)
-        // }
-        // week_cell.appendChild(time_index);
-        let date = new Date(date_monday);
-        for(let j = 0; j < 7; j++){
-            // let date_start = new Date(events[i].date_start);
-            // let date_end = new Date(events[i].date_end);
-            let day_cell = createE("div", {"className": "day_cell"});
-            let date_index_cell = createE("div", {"className": "date_index_cell", "innerText": date.getMonth()+1+"/"+date.getDate()+"("+days[j]+")"});
-            if ((date.getDay()+6)%7 == 6)date_index_cell.style.color = "orangered";
-            else if ((date.getDay()+6)%7 == 5)date_index_cell.style.color = "darkturquoise";
-            let day_div = createE("div", {"className": "div"});
-            let display_none_cell = createE("div", {"className": "display_none_cell"});
-            let timeline = createE("div", {"className": "timeline"});
-            day_cell.appendChild(date_index_cell);
-            day_cell.appendChild(timeline);
-            display_none_cell.appendChild(day_cell);
-            day_div.appendChild(display_none_cell);
-            week_cell.appendChild(day_div);
-            display_none_cells[7*i+j] = display_none_cell;
-            timelines[7*i+j] = timeline;
-            for(let k= 0; k<5; k++){
-                let line = createE("div", {"className": "display_none_cell line"}, {"gridRow": 3*(k+1)+1});
-                timeline.appendChild(line);
-            }
-            date.setDate(date.getDate()+1);
-        }
-        cell.appendChild(week_cell);
+    date_start.setDate(date_start.getDate()-date_start.getDay()%7);
+    date_end.setDate(date_end.getDate()+(6-date_end.getDay())%7);
+    console.log("calendar make", calendar.make(date_start, date_end));
+    console.log("display start");
+    for(let i = 0; i < calendar.weeks.length; i++){
+        cell.appendChild(calendar.weeks[i].element);
     }
     let skip = 0;
     let duplicate_same_hour = 0;
     let duplicate_over_day = 0;
-    let mondayStartDate = new Date(Date.parse(document.getElementById("reload_form").start.value));
-    mondayStartDate.setDate(mondayStartDate.getDate()-(mondayStartDate.getDay()+5)%7-1);
-    mondayStartDate.setHours(0);
-    let startHour;
-    let eventStartDate = new Date(date_start);
-    let oldStartDate;
-    let oldStartHour;
+    let oldStartDate = new Date(date_start);
+    let oldStartHour = Math.min(Math.max(oldStartDate.getHours()-5, 1), 20);
     let date_end_long = new Array(5);
-    let event_container_containers = new Array((date_end-date_start)/86400000*18);
-    let event_container_details = new Array((date_end-date_start)/86400000*18);
     for(let i = 0; i < events.length; i++){
         if(events[i].color != 3){
             // console.log(events[i].date_start)
-            eventStartDate = new Date(events[i].date_start);
-            let date_end = new Date(events[i].date_end);
-            let date_cell = createE("input", {"type": "text", "className": "date_cell", "value": eventStartDate.getHours().toString() + ":" + eventStartDate.getMinutes().toString().padStart(2, "0")});
-            let event_cell = createE("input", {"type": "text", "className": "event_cell display_land_none_cell", "value": events[i].title});
-            let event_cell2 = createE("div", {"className": "event_cell display_none_cell", "innerText": events[i].title});
-            let mark_cell = createE("input", {"type": "text", "className": "mark_cell display_land_none_cell"});
-            let event_container = createE("div", {"className": "event_container"});
-            let event_container2 = createE("div", {"className": "event_container"});
-            if(eventStartDate.getFullYear() != date_end.getFullYear()){
-                date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
-            }else if(eventStartDate.getMonth() != date_end.getMonth() || eventStartDate.getDate() != date_end.getDate()){
-                date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
-            }else if(eventStartDate.getHours() != date_end.getHours()){
-                date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
-            }
-            let color = colorCodes[events[i].color];
-            if(color == undefined)color = "#404040";
-            if(events[i].color == 4 || events[i].color == 1 || events[i].color == 9){
-                event_cell.style.width = "61%";
-                mark_cell.value = "◆";
-                mark_cell.style.visibility = "visible";
-                mark_cell.style.width = "4%";
-                mark_cell.style.color = color;
-                event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell2.innerHTML;
-                // console.log((eventStartDate - todayDate)/3600000);
-                if(task_renew_required){
-                    if(events[i].color == 4 && eventStartDate - todayDate < 86400000){ // 現在日程の一日後より前の時刻の場合に
-                        renewTask(events[i], eventStartDate, 4);
-                    }
-                    if(events[i].color == 1 && eventStartDate - todayDate < 172800000){ // 現在日程の2日後より前の時刻の場合に
-                        renewTask(events[i], eventStartDate, 1);
-                    }
-                    if(events[i].color == 9 && eventStartDate - todayDate < 604800000){ // 現在日程の１週間後より前の時刻の場合に
-                        renewTask(events[i], eventStartDate, 9);
-                    }
-                }
-            }
-            else {event_cell.style.color = color;event_cell2.style.color = color;}
-
-            for(let element of [date_cell, event_cell]){
-                element.addEventListener("change", (event) =>{
-                    event.target.style.backgroundColor = "#fff0f0";
-                    let element_data = {
-                        "id": events[i].id
-                    }
-                    if(event.target.className == "date_cell"){
-                        // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
-                        let new_date = event.target.value.split(/~|～|\n/, 2); // 開始と終了で分割
-                        if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
-                        for(let j = 0; j < 2; j++)new_date[j] = str2date(new_date[j], new Date(events[i].date_start));
-                        // console.log(new_date)
-                        element_data["date_start"] = new_date[0];
-                        element_data["date_end"] = new_date[1];
-                    }
-                    if(event.target.className.includes("event_cell"))element_data["title"] = event.target.value;
-                    if(event.target.className.includes("mark_cell"))element_data["mark"] = event.target.value;
-                    pushLocalStorage("element_modify", element_data);
-                })
-            }
-            event_container.appendChild(date_cell);
-            event_container.appendChild(mark_cell);
-            event_container.appendChild(event_cell);
-            event_container2.appendChild(event_cell2);
-            let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
-            delete_cell.addEventListener('click', () => {
-                var result = confirm("本当に\""+events[i].title+"\"を削除しますか？");
-                if(result){
-                    const element_data = {'id': events[i].id};
-                    pushLocalStorage("element_delete", element_data);
-                    event_container.remove();
-                }
-            });
-            event_container.appendChild(delete_cell);
-            let date_start_0 = new Date(eventStartDate.getFullYear(), eventStartDate.getMonth(), eventStartDate.getDate());
-            // console.log(eventStartDate,mondayStartDate);
-            // console.log((date_start_0-mondayStartDate)/86400000);
-            // event_container.style.top = (eventStartDate.getHours()/24*350+30)+"px";
-            startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
-            let endHour= Math.min(Math.max(date_end.getHours()-5, startHour+1), 20);
+            let eventStartDate = new Date(events[i].date_start);
+            let startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
 
             // イベントの時刻の重複回数を調べる処理
             if(i){
@@ -354,77 +437,23 @@ export function display(events, task_renew_required){
                     // console.log(date_end_long[duplicate_over_day-1])
                     duplicate_over_day -= 1;
                 }
-                console.log(duplicate_same_hour,duplicate_over_day)
+                // console.log(duplicate_same_hour,duplicate_over_day)
             }
-
             let duplicate = duplicate_same_hour + duplicate_over_day + 1;
-            let i_hour = Math.max((date_start_0-mondayStartDate)/86400000, 0)*18+Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
-            if(date_start_0 < mondayStartDate)i_hour = 0;
+            calendar.addEvent(events[i], i, duplicate);
 
-            // イベントの配置
-            if(event_container_containers[i_hour] != undefined){
-                // すでに同じ時間帯にイベントがある場合
-                if(event_container_containers[i_hour].style.gridRowEnd < endHour)event_container_containers[i_hour].style.gridRowEnd = endHour;
-                event_container.style.gridColumn = duplicate+"/6";
-                event_container_containers[i_hour].appendChild(event_container);
-                // 重複時の折りたたみ処理
-                if(event_container_details[i_hour] == undefined){
-                    let event_container_detail = createE("details", {"className": "event_grid display_none_cell"});
-                    event_container_detail.appendChild(createE("summary", {"innerText": ""}));
-                    event_container_containers[i_hour].querySelectorAll(".event_container")[1].querySelector(".event_cell").style.backgroundColor = "white";
-                    event_container_detail.appendChild(event_container_containers[i_hour].querySelectorAll(".event_container")[1]);
-                    event_container_containers[i_hour].appendChild(event_container_detail);
-                    event_container_details[i_hour] = event_container_detail;
-                }
-                event_container2.querySelector(".event_cell").style.backgroundColor = "white";
-                event_container_details[i_hour].appendChild(event_container2);
-                event_container_details[i_hour].querySelector("summary").innerText = duplicate_same_hour+1;
-            } else {
-                // 初めての時間帯のイベントの場合
-                let number = (date_start_0-mondayStartDate)/86400000;
-                let options = {"startHour": startHour, "endHour": endHour, "start_column": duplicate, "i": i, "timelines": timelines, "number": number, "wide": true};
-                let event_container_container = createE("div", {"className": "event_grid"}, {"backgroundColor": "hsla("+options.i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+options.i*159+", 100%, 0%, 0.2)", "gridRow": startHour+"/"+endHour});
-                // if(date_start_0 < mondayStartDate)event_container_container.style.gridRow = "1/2";
-                event_container.style.gridColumn = duplicate+"/6";
-                event_container_container.appendChild(event_container);
-                event_container_container.appendChild(event_container2);
-                event_container_containers[i_hour] = event_container_container;
-                let timeline = timelines[Math.max((date_start_0-mondayStartDate)/86400000, 0)];
-                timeline.insertBefore(event_container_container, timeline.firstChild);
-                
-                // イベントの背景を作成する処理
-                /*
-                if(eventStartDate.getDate() == date_end.getDate()){
-                    createEventBackground(options, event_container);
-                } else {
-                    date_end_long[duplicate_over_day] = date_end;
-                    duplicate_over_day += 1;
-                    if(number >= 0){
-                        options.endHour = startHour+1; options.start_column = duplicate+1;
-                        createEventBackground(options);
-                        options.endHour = 19; options.start_column = duplicate; options.wide = false;
-                        createEventBackground(options);
-                    }else {
-                        options.startHour = 1; options.endHour = 2;
-                        options.start_column = duplicate+1; options.number = 0;
-                        createEventBackground(options);
-                    }
-                    let days = Math.floor((date_end - date_start_0)/86400000);
-                    let j = 1
-                    options.startHour = 1; options.endHour = 19;
-                    options.start_column = duplicate; options.number = number + j; options.wide = true;
-                    for(; j < days; j++){
-                        if(number+j >= 0)createEventBackground(options);
-                    }
-                    options.endHour = endHour;
-                    createEventBackground(options);
-                }*/
+            if(task_renew_required){
+                if((events[i].color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
+                || (events[i].color == 1 && eventStartDate - todayDate < 172800000) // 現在日程の2日後より前の時刻の場合に
+                || (events[i].color == 9 && eventStartDate - todayDate < 604800000) // 現在日程の１週間後より前の時刻の場合に
+                ){renewTask(events[i], eventStartDate, events[i].color);}
             }
-            display_none_cells[Math.max((date_start_0-mondayStartDate)/86400000, 0)].style.display = "flex";
+
+            oldStartDate = eventStartDate;
+            oldStartHour = startHour;
+
             skip = 0;
         }else skip++;
-        oldStartDate = eventStartDate;
-        oldStartHour = startHour;
     }
     // console.log("cell classname",cell.style.className);
     document.getElementsByClassName("container")[0].appendChild(cell);

@@ -1,5 +1,5 @@
 document.getElementById("p").innerText = "";
-import { date_string, get_events, postEvents, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage } from "./functions.js";
+import { date_string, get_events, postEvents, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage, calendar } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -74,14 +74,15 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
         'date_end': date_end,
         'color': form.color.value,
     };
+    calendar.addEvent(element_data, 0, 0, true);
     pushLocalStorage("element_post", element_data);
-    if(element_data.title != "" && button.innerText == "送信"){
-        cellPendingAnimation(button);
-        postEvents("post", [element_data], {"get_required": true}).then((data) => {
-            if(data)document.getElementById("postbutton").innerText = "完了";
-            else document.getElementById("postbutton").innerText = "Error";
-        });
-    } else {button.innerText = "送信";}
+    // if(element_data.title != "" && button.innerText == "送信"){
+    //     cellPendingAnimation(button);
+    //     postEvents("post", [element_data], {"get_required": true}).then((data) => {
+    //         if(data)document.getElementById("postbutton").innerText = "完了";
+    //         else document.getElementById("postbutton").innerText = "Error";
+    //     });
+    // } else {button.innerText = "送信";}
 });
 
 document.getElementById("apiurl_form").addEventListener('submit', event => {

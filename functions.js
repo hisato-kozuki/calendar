@@ -157,12 +157,10 @@ function countHistory(events, row){
             }
         }
     }
-    let studyhistory = createE("div", {"innerText": Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0)}, 
-    {"gridRow": row, "gridColumn": 2});
-    let hobbyhistory = createE("div", {"innerText": Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0)},
-    {"gridRow": row, "gridColumn": 3});
-    document.getElementsByClassName('grid')[0].appendChild(hobbyhistory);
-    document.getElementsByClassName('grid')[0].appendChild(studyhistory);
+    let studyhistory = document.getElementById("history"+row+"2");
+    studyhistory.innerText = Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0);
+    let hobbyhistory = document.getElementById("history"+row+"3");
+    hobbyhistory.innerText = Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0);
 }
 export function reload(event, button){
     if(event != undefined){ //ボタンを押して更新する場合

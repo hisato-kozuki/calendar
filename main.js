@@ -24,7 +24,7 @@ window.onload = function(){
     let text = date_string(todayDate, "-", {"required": ["year", "hour"]});
     document.getElementById("register_form").start.value = text;
     document.getElementById("register_form").end.value = text;
-    document.getElementById("reload_form").start.value = date_string(date, "-", {"required": ["year"]});
+    document.getElementById("reload_form").start.value = date_string(new Date(todayDate-86400000), "-", {"required": ["year"]});
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
     // getApiUrlFromDB().then((data)=>{apiUrl = data});
     // getCalendarEventsFromDB();

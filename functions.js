@@ -29,7 +29,8 @@ class Calendar{
         let startHour = Math.min(Math.max(date_start.getHours()-5, 1), 20);
         let endHour= Math.min(Math.max(date_end.getHours()-5, startHour+1), 20);
         let element_event = new Event(date_start, date_end, event, new_event);
-        this.weeks[Math.floor(num_day/7)].days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate)
+        let week = this.weeks[Math.floor(num_day/7)];
+        if(week != undefined)week.days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate);
     }
     remove(){
         for(let i = 0; this.days; i++)this.days[i].remove();
@@ -236,7 +237,7 @@ function str2date(date_string, defaultDate){
 
 export function cellPendingAnimation(cell, type){
     if(cell.textContent == "完了" || cell.textContent == "Error"){
-        if(cell.textContent == "完了" && type == "getbutton")cell.textContent = "更新";
+        if(cell.textContent == "完了" && type == "getbutton")cell.textContent = "同期";
     }else{
         if(cell.textContent == ">")cell.textContent = ">>";
         else if(cell.textContent == ">>")cell.textContent = ">>>";
@@ -266,7 +267,7 @@ export function get_events(startDate, endDate){
         .then(data => {
             let received_data=JSON.parse(data);
             // console.log(received_data);
-            document.getElementById("postbutton").textContent = "送信";
+            // document.getElementById("postbutton").textContent = "送信";
             document.getElementById("getbutton").textContent = "完了";
             resolve(received_data);
         })
@@ -407,8 +408,8 @@ function createEventBackground(options, indexElement){
 export function display(events, task_renew_required){
     if(document.getElementById("cell"))document.getElementById("cell").remove();
     let cell = createE("div", {"className": "small_container", "id": "cell"});
-    let date_start = new Date(Date.parse(document.getElementById("reload_form").start.value));
-    let date_end = new Date(Date.parse(document.getElementById("reload_form").end.value));
+    let date_start = new Date(Date.parse(events[0].date_start));
+    let date_end = new Date(Date.parse(events[events.length - 1].date_end));
     date_start.setDate(date_start.getDate()-date_start.getDay()%7);
     date_end.setDate(date_end.getDate()+(6-date_end.getDay())%7);
     console.log("calendar make", calendar.make(date_start, date_end));

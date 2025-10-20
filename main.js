@@ -102,7 +102,7 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
 document.getElementById("reload_form").addEventListener('submit', event => {
     event.preventDefault();
     let button = event.target.querySelector("#getbutton");
-    if(button.textContent == "更新"){
+    if(button.textContent == "同期"){
         let promises = [];
         if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_requiredfalse": false}));
         if(localStorage["element_delete"])promises.push(postEvents("delete", JSON.parse(localStorage["element_delete"])));
@@ -112,7 +112,7 @@ document.getElementById("reload_form").addEventListener('submit', event => {
             console.log(promises)
             reload(event, button);
         })
-    } else button.textContent = "更新";
+    } else button.textContent = "同期";
 });
 
 document.getElementById("date_default").addEventListener('click', event => {

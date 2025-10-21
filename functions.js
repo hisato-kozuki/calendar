@@ -12,9 +12,11 @@ const days = ["日", "月", "火", "水", "木", "金", "土"];
 
 class Calendar{
     make(date_start, date_end){
+        this.remove();
         let weeks = [];
-        for(let date_monday = new Date(date_start), i = 0; date_monday <= date_end; date_monday.setDate(date_monday.getDate()+7), i++){
-            let week = new Week(new Date(date_monday))
+        for(let date_sunday = new Date(date_start), i = 0; date_sunday <= date_end; date_sunday.setDate(date_sunday.getDate()+7), i++){
+            let week = new Week(date_sunday);
+            document.getElementsByClassName("container")[0].appendChild(week.element);
             weeks[i] = week;
         }
 
@@ -33,7 +35,10 @@ class Calendar{
         if(week != undefined)week.days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate);
     }
     remove(){
-        for(let i = 0; this.days; i++)this.days[i].remove();
+        if(this.weeks)for(let week of this.weeks){
+            week.remove();
+            week.element.remove();
+        }
     }
 }
 class Week{
@@ -50,12 +55,12 @@ class Week{
             }
         }
 
-        this.date_sunday = date_sunday;
+        this.date_sunday = new Date(date_sunday);
         this.days = days;
         this.element = week_cell;
     }
     remove(){
-        for(let i = 0; this.days; i++)this.days[i].remove();
+        for(let day of this.days)day.remove();
     }
 }
 
@@ -94,7 +99,7 @@ class Day {
         this.display.style.display = "flex";
     }
     remove(){
-        for(let i = 0; this.containers; i++)this.containers[i].remove();
+        for(let container of this.containers)if(container)container.remove();
     }
 }
 
@@ -127,7 +132,7 @@ class Container {
         this.events.push(Event);
     }
     remove(){
-        for(let i = 0; this.events; i++)this.events[i].remove();
+        for(let event of this.events)event.remove();
     }
 }
 
@@ -150,7 +155,7 @@ class Event{
             date_cell.style.backgroundColor = "transparent";
             event_cell.style.backgroundColor = "transparent";
             mark_cell.style.backgroundColor = "transparent";
-            event_container.style.backgroundColor = "#C0E0E0";
+            event_container.style.backgroundColor = "#A0FFA0";
         }
 
         let color = colorCodes[event.color];
@@ -406,17 +411,12 @@ function createEventBackground(options, indexElement){
 }
 
 export function display(events, task_renew_required){
-    if(document.getElementById("cell"))document.getElementById("cell").remove();
-    let cell = createE("div", {"className": "small_container", "id": "cell"});
-    let date_start = new Date(Date.parse(events[0].date_start));
-    let date_end = new Date(Date.parse(events[events.length - 1].date_end));
-    date_start.setDate(date_start.getDate()-date_start.getDay()%7);
-    date_end.setDate(date_end.getDate()+(6-date_end.getDay())%7);
-    console.log("calendar make", calendar.make(date_start, date_end));
+    let date_start = new Date(events[0].date_start);
+    let date_end = new Date(events[events.length - 1].date_end);
+    let date_start_sunday = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate()-date_start.getDay()%7);
+    let date_end_saturday = new Date(date_end.getFullYear(), date_end.getMonth(), date_end.getDate()+(6-date_end.getDay())%7);
+    console.log("calendar make", calendar.make(date_start_sunday, date_end_saturday));
     console.log("display start");
-    for(let i = 0; i < calendar.weeks.length; i++){
-        cell.appendChild(calendar.weeks[i].element);
-    }
     let skip = 0;
     let duplicate_same_hour = 0;
     let duplicate_over_day = 0;
@@ -456,8 +456,6 @@ export function display(events, task_renew_required){
             skip = 0;
         }else skip++;
     }
-    // console.log("cell classname",cell.style.className);
-    document.getElementsByClassName("container")[0].appendChild(cell);
 }
 
 export function getCalendarEvents(){

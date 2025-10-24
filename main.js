@@ -68,13 +68,16 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     let date_start = new Date(Date.parse(form.start.value));
     let date_end = new Date(Date.parse(form.end.value));
     console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
+    let id = 0;
+    if(localStorage["element_post"])id = localStorage["element_post"].length;
     const element_data = {
+        'id': id,
         'title': form.title.value,
         'date_start': date_start,
         'date_end': date_end,
         'color': form.color.value,
     };
-    calendar.addEvent(element_data, 0, 0, true);
+    calendar.addEvent(element_data, 0, 0, id);
     pushLocalStorage("element_post", element_data);
     // if(element_data.title != "" && button.innerText == "送信"){
     //     cellPendingAnimation(button);
@@ -95,7 +98,7 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
         display(data, true); //saveCalendarEventsToDB(data);
         saveCalendarEvents(data);
         console.log("url更新 完了")
-        document.getElementById("getbutton").innerText = "更新";
+        document.getElementById("getbutton").innerText = "同期";
     });
 });
 
@@ -107,11 +110,14 @@ document.getElementById("reload_form").addEventListener('submit', event => {
         if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_requiredfalse": false}));
         if(localStorage["element_delete"])promises.push(postEvents("delete", JSON.parse(localStorage["element_delete"])));
         if(localStorage["element_modify"])promises.push(postEvents("modify", JSON.parse(localStorage["element_modify"])));
+        cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
         Promise.all(promises)
         .then((results) => {
+            button.textContent = "完了";
             console.log(promises)
             reload(event, button);
         })
+        .catch(() => {button.textContent = "Error"})
     } else button.textContent = "同期";
 });
 

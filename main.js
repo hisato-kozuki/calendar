@@ -1,5 +1,5 @@
 document.getElementById("p").innerText = "";
-import { date_string, get_events, postEvents, cellPendingAnimation, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage, calendar } from "./functions.js";
+import { date_string, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage, calendar, buttons } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -78,7 +78,7 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
         'color': form.color.value,
     };
     calendar.addEvent(element_data, 0, 0, id);
-    pushLocalStorage("element_post", element_data);
+    pushLocalStorage("post", element_data);
     // if(element_data.title != "" && button.innerText == "送信"){
     //     cellPendingAnimation(button);
     //     postEvents("post", [element_data], {"get_required": true}).then((data) => {
@@ -107,17 +107,17 @@ document.getElementById("reload_form").addEventListener('submit', event => {
     let button = event.target.querySelector("#getbutton");
     if(button.textContent == "同期"){
         let promises = [];
-        if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_requiredfalse": false}));
+        if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_required": false}));
         if(localStorage["element_delete"])promises.push(postEvents("delete", JSON.parse(localStorage["element_delete"])));
         if(localStorage["element_modify"])promises.push(postEvents("modify", JSON.parse(localStorage["element_modify"])));
-        cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
+        buttons["sync"].start();
         Promise.all(promises)
         .then((results) => {
-            button.textContent = "完了";
+            buttons["sync"].stop("同期");
             console.log(promises)
-            reload(event, button);
+            reload(event);
         })
-        .catch(() => {button.textContent = "Error"})
+        .catch(() => buttons["sync"].stop("Error"));
     } else button.textContent = "同期";
 });
 
@@ -199,14 +199,14 @@ document.getElementById("studysend").addEventListener('click', event => {
             data[0].title = "hhhhh"+(localStorage.getItem("hobbyTimeSeconds")).toString().padStart(5, "0");
             localStorage.setItem("hobbyTimeSeconds", 0);
         }
+        buttons["timersend"].start();
         postEvents("post", data, {"get_required": false}).then((data) => {
             if(data){
-                cell.innerText = "完了";
+                buttons["timersend"].stop("📤");
                 document.getElementById("timer").innerText = "00:00 00";
             }
-            else cell.innerText = "Error";
+            else buttons["timersend"].stop("Error");
         });
-        cellPendingAnimation(cell);
     }
 });
 

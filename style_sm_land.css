@@ -107,9 +107,6 @@
         display: flex;
         font-size: 14px;
     }
-    .getbutton{
-        height: 46px;
-    }
     .button_container{
         bottom: 0.5rem;
         height: 48px;

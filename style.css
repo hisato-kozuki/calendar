@@ -61,11 +61,6 @@ form{
     width: 100%;
     display: flex;
 }
-.getbutton{
-    width: 100%;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
 .button_container{
     position: fixed;
     left: 20%;

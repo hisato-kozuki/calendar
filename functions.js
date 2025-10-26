@@ -187,15 +187,15 @@ class Event{
                 }
                 if(event.target.className.includes("event_cell"))element_data["title"] = event.target.value;
                 if(event.target.className.includes("mark_cell"))element_data["mark"] = event.target.value;
-                pushLocalStorage("element_modify", element_data);
+                pushLocalStorage("modify", element_data);
             })
         }
         let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
         delete_cell.addEventListener('click', () => {
             var result = confirm("本当に\""+event_data.title+"\"を削除しますか？");
             if(result){
-                if(delete_id != undefined)deleteLocalStorage("element_post", {'id': delete_id});
-                else pushLocalStorage("element_delete", {'id': event_data.id});
+                if(delete_id != undefined)deleteLocalStorage("post", {'id': delete_id});
+                else pushLocalStorage("delete", {'id': event_data.id});
                 this.remove();
             }
         });
@@ -215,13 +215,73 @@ class Event{
     }
 }
 
-class Button{
-    constructor(){
+class Counter{
+    constructor(type){
+        let divs = document.getElementById(type + "_counter").querySelectorAll("div");
+        console.log(divs)
+        this.counter = divs[0].querySelectorAll("p")[1];
+        let submit = divs[1].querySelectorAll("button")[0];
+        let clear = divs[1].querySelectorAll("button")[1];
+        let button = new Button(submit);
+        submit.addEventListener('click', event => {
+            event.preventDefault();
+            button.start();
+            if(localStorage["element_" + type]){
+                console.log(localStorage["element_" + type])
+                postEvents(type, JSON.parse(localStorage["element_" + type]), {"get_required": false})
+                .then(()=>button.stop("📤"))
+                .catch(()=>button.stop("Error"));
+            }
+        })
+        clear.addEventListener('click', event => {
+            event.preventDefault();
+            if(localStorage["element_" + type])localStorage.removeItem("element_" + type);
+            this.counter.textContent = 0;
+        })
+        return this.counter;
+    }
+    set(number){this.counter.textContent = number}
+}
 
+class Button{
+    constructor(button){
+        this.element = button;
+        this.pending = false;
+        this.text = "📤";
+    }
+    start(){
+        this.pending = true;
+        this.change();
+    }
+    change(){
+        let cell = this.element;
+        if(this.pending){
+            if(cell.textContent == ">")cell.textContent = ">>";
+            else if(cell.textContent == ">>")cell.textContent = ">>>";
+            else cell.textContent = ">";
+            setTimeout(() => this.change(), 500);
+        } else {
+            cell.textContent = "完了";
+            setTimeout(() => cell.textContent = this.text, 500);
+        }
+    }
+    stop(text){
+        this.pending = false;
+        if(text)this.text = text;
     }
 }
 
 export const calendar = new Calendar();
+
+export const counter = {
+    "post": new Counter("post"),
+    "modify": new Counter("modify"),
+    "delete": new Counter("delete"),
+}
+export const buttons = {
+    "sync": new Button(document.getElementById("getbutton")),
+    "timersend": new Button(document.getElementById("studysend")),
+}
 
 export function date_string(date, separator, options){
     let date_string = "";
@@ -261,18 +321,8 @@ function str2date(date_string, defaultDate){
     return new Date(buffer.join(" ")); // 日付と時間で分割
 }
 
-export function cellPendingAnimation(cell, type){
-    if(cell.textContent == "完了" || cell.textContent == "Error"){
-        if(cell.textContent == "完了" && type == "getbutton")cell.textContent = "同期";
-    }else{
-        if(cell.textContent == ">")cell.textContent = ">>";
-        else if(cell.textContent == ">>")cell.textContent = ">>>";
-        else cell.textContent = ">";
-        setTimeout(() => cellPendingAnimation(cell, type), 500);
-    }
-}
-
 export function get_events(startDate, endDate){
+    buttons["sync"].start();
     return new Promise((resolve, reject) => {
             //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
         if(startDate == undefined){
@@ -294,7 +344,7 @@ export function get_events(startDate, endDate){
             let received_data=JSON.parse(data);
             // console.log(received_data);
             // document.getElementById("postbutton").textContent = "送信";
-            document.getElementById("getbutton").textContent = "完了";
+            buttons["sync"].stop("同期");
             if(data.error)document.getElementById("p").innerText = data.error;
             resolve(received_data);
         })
@@ -302,7 +352,7 @@ export function get_events(startDate, endDate){
             console.log("reload not complete")
             console.error("Error:", error);
             document.getElementById("p").innerText = error;
-            document.getElementById("getbutton").textContent = "Error";
+            buttons["sync"].stop("Error");
             reject(error);
         });
     });
@@ -325,8 +375,8 @@ export function postEvents(type, datas, options){
             if(type == "post")localStorage.removeItem("element_post");
             if(type == "modify")localStorage.removeItem("element_modify");
             if(type == "delete")localStorage.removeItem("element_delete");
+            counter[type].textContent = 0;
             if(options != undefined && options.get_required == true){
-                cellPendingAnimation(document.getElementById("getbutton"), "getbutton");
                 get_events().then((data)=>{
                     display(data, true);//saveCalendarEventsToDB(data);
                     saveCalendarEvents(data);
@@ -371,7 +421,7 @@ export function renewTask(event_data, date, color){
         'color': color,
     };
     if(datas.title != ""){
-        pushLocalStorage("element_modify", datas);
+        pushLocalStorage("modify", datas);
     }
 }
 
@@ -402,7 +452,6 @@ export function reload(event, button){
             saveCalendarEvents(data);
         });
     } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
-    if(button != undefined)cellPendingAnimation(button, "getbutton");
     const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
     let date_old = new Date(todayDate - 86400000);
     const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
@@ -547,7 +596,7 @@ export function searchParent(element){
 }
 
 export function pushLocalStorage(key, data){ // ローカルストレージにデータを追加・更新する関数
-    let datas = JSON.parse(localStorage.getItem(key));
+    let datas = JSON.parse(localStorage.getItem("element_" + key));
     if(datas){
         let modified = false;
         if("id" in data){ // 変更対象がidで指定されている場合
@@ -562,11 +611,12 @@ export function pushLocalStorage(key, data){ // ローカルストレージに�
         if(!modified)datas.push(data); // 新規追加の場合
     }
     else datas = [data];
-    localStorage[key] = JSON.stringify(datas);
+    localStorage["element_" + key] = JSON.stringify(datas);
+    counter[key].textContent = datas.length;
 }
 
 export function deleteLocalStorage(key, data){ // ローカルストレージのデータを削除する関数
-    let datas = JSON.parse(localStorage.getItem(key));
+    let datas = JSON.parse(localStorage.getItem("element_" + key));
     if(datas){
         if("id" in data){ // 削除対象がidで指定されている場合
             for(let i in datas){ // 保存されているデータを総当たり
@@ -576,6 +626,7 @@ export function deleteLocalStorage(key, data){ // ローカルストレージの
                 }
             }
         }
-        localStorage[key] = JSON.stringify(datas);
+        localStorage["element_" + key] = JSON.stringify(datas);
+        counter[key].textContent = datas.length;
     }
 }

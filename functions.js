@@ -445,13 +445,13 @@ export function reload(event, button){
     if(event != undefined){ //ボタンを押して更新する場合
         let date_start = new Date(Date.parse(event.target.start.value));
         let date_end = new Date(Date.parse(event.target.end.value));
-        button["sync"].start();
+        buttons["sync"].start();
         get_events(date_start, date_end).then((data)=>{
             display(data, true);//saveCalendarEventsToDB(data);
             console.log("更新 完了");
-            buttons["sync"].start("同期");
+            buttons["sync"].stop("同期");
             saveCalendarEvents(data);
-        }).catch(()=>buttons["sync"].start("Error"));
+        }).catch(()=>buttons["sync"].stop("Error"));
     } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
     const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
     let date_old = new Date(todayDate - 86400000);

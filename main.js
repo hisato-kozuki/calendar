@@ -111,14 +111,11 @@ document.getElementById("reload_form").addEventListener('submit', event => {
         if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_required": false}));
         if(localStorage["element_delete"])promises.push(postEvents("delete", JSON.parse(localStorage["element_delete"])));
         if(localStorage["element_modify"])promises.push(postEvents("modify", JSON.parse(localStorage["element_modify"])));
-        buttons["sync"].start();
         Promise.all(promises)
         .then((results) => {
-            buttons["sync"].stop("同期");
             console.log(promises)
             reload(event);
-        })
-        .catch(() => buttons["sync"].stop("Error"));
+        });
     } else button.textContent = "同期";
 });
 

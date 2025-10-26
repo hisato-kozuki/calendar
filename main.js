@@ -34,7 +34,7 @@ window.onload = function(){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);
         for(let i = 0; i < key.length; i++){
-            document.getElementById("urls").innerHTML += "<p style='font-size:16px'><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
+            document.getElementById("urls").innerHTML += "<p><a href='" + urlLinks[key[i]] + "'>" + key[i] + "</a></p>";
         }
     }
     localStorage.removeItem("element_modify");
@@ -146,65 +146,63 @@ document.getElementById("urlform").addEventListener('submit', event => {
     }else urlformbutton.innerText="登録";
 });
 
+document.getElementById("timer_select").addEventListener('click', event =>{
+    let cell = event.target;
+    localStorage.setItem("isstudy", 0);
+    localStorage.setItem("ishobby", 0);
+    let count;
+    if(cell.textContent == "勉強"){
+        cell.textContent = "趣味";
+        count = Number(localStorage.getItem("hobbyTimeSeconds"));
+    } else {
+        cell.textContent = "勉強";
+        count = Number(localStorage.getItem("studyTimeSeconds"));
+    }
+    document.getElementById("timer").innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+" "+(count%60).toString().padStart(2, "0");
+})
 document.getElementById("studybutton").addEventListener('click', event => {
-    if(localStorage.getItem("isstudy") != 1){
-        localStorage.setItem("isstudy", 1);
-        localStorage.setItem("study_start_date", new Date());
-        countUpTimer(false);
-    }
-    else{
-        localStorage.setItem("isstudy", 0);
-    }
-});
-
-document.getElementById("hobbybutton").addEventListener('click', event => {
-    if(localStorage.getItem("ishobby") != 1){
-        localStorage.setItem("ishobby", 1);
-        localStorage.setItem("hobby_start_date", new Date());
-        countUpTimer(true);
-    }
-    else{
-        localStorage.setItem("ishobby", 0);
+    if(document.getElementById("timer_select").textContent == "勉強"){
+        if(localStorage.getItem("isstudy") != 1){
+            localStorage.setItem("isstudy", 1);
+            localStorage.setItem("study_start_date", new Date());
+            countUpTimer(false);
+        }
+        else{
+            localStorage.setItem("isstudy", 0);
+        }
+    } else if(document.getElementById("timer_select").textContent == "趣味"){
+        if(localStorage.getItem("ishobby") != 1){
+            localStorage.setItem("ishobby", 1);
+            localStorage.setItem("hobby_start_date", new Date());
+            countUpTimer(true);
+        }
+        else{
+            localStorage.setItem("ishobby", 0);
+        }
     }
 });
 
 document.getElementById("studysend").addEventListener('click', event => {
     let cell = event.target;
-    if(cell.innerText == "完了")cell.innerText = "送信";
+    let select = document.getElementById("timer_select").textContent;
+    if(cell.innerText == "完了")cell.innerText = "📤";
     else{
         let data = [{
-            'title': "sssss"+(localStorage.getItem("studyTimeSeconds")).toString().padStart(5, "0"),
             'date_start': todayDate,
             'date_end': todayDate,
             'color': 3,
         }];
-        localStorage.setItem("studyTimeSeconds", 0);
+        if(select == "勉強"){
+            data[0].title = "sssss"+(localStorage.getItem("studyTimeSeconds")).toString().padStart(5, "0");
+            localStorage.setItem("studyTimeSeconds", 0);
+        } else if(select == "趣味"){
+            data[0].title = "hhhhh"+(localStorage.getItem("hobbyTimeSeconds")).toString().padStart(5, "0");
+            localStorage.setItem("hobbyTimeSeconds", 0);
+        }
         postEvents("post", data, {"get_required": false}).then((data) => {
             if(data){
                 cell.innerText = "完了";
-                document.getElementById("studytimer").innerText = 0;
-            }
-            else cell.innerText = "Error";
-        });
-        cellPendingAnimation(cell);
-    }
-});
-
-document.getElementById("hobbysend").addEventListener('click', event => {
-    let cell = event.target;
-    if(cell.innerText == "完了")cell.innerText = "送信";
-    else{
-        let data = [{
-            'title': "hhhhh"+(localStorage.getItem("hobbyTimeSeconds")).toString().padStart(5, "0"),
-            'date_start': todayDate,
-            'date_end': todayDate,
-            'color': 3,
-        }];
-        localStorage.setItem("hobbyTimeSeconds", 0);
-        postEvents("post", data, {"get_required": false}).then((data) => {
-            if(data){
-                cell.innerText = "完了";
-                document.getElementById("hobbytimer").innerText = 0;
+                document.getElementById("timer").innerText = "00:00 00";
             }
             else cell.innerText = "Error";
         });
@@ -215,8 +213,7 @@ document.getElementById("hobbysend").addEventListener('click', event => {
 document.getElementById("clear").addEventListener('click', event => {
     localStorage.setItem("studyTimeSeconds", 0);
     localStorage.setItem("hobbyTimeSeconds", 0);
-    document.getElementById("studytimer").innerText=0;
-    document.getElementById("hobbytimer").innerText=0;
+    document.getElementById("timer").innerText = "00:00 00";
 });
 
 document.getElementById("register_display_button").addEventListener("click", event =>{

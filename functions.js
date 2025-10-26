@@ -215,6 +215,12 @@ class Event{
     }
 }
 
+class Button{
+    constructor(){
+
+    }
+}
+
 export const calendar = new Calendar();
 
 export function date_string(date, separator, options){
@@ -489,9 +495,8 @@ export function countUpTimer(flag, no_save){
     let date_start;
     let date = new Date();
     let count;
-    let id;
+    let id = "timer";
     if(!flag){
-        id = "studytimer";
         date_start = new Date(localStorage.getItem("study_start_date"));
         count = Number(localStorage.getItem("studyTimeSeconds"));
         if(no_save == undefined)count += Math.floor((date - date_start)/1000);
@@ -499,7 +504,6 @@ export function countUpTimer(flag, no_save){
         else localStorage.setItem("studyTimeSeconds", count);
     }
     else {
-        id = "hobbytimer";
         date_start = new Date(localStorage.getItem("hobby_start_date"));
         count = Number(localStorage.getItem("hobbyTimeSeconds"));
         if(no_save == undefined)count += Math.floor((date - date_start)/1000);

@@ -21,10 +21,10 @@
     .day_cell{
         display: flex;
         align-items: center;
+        font-size: 12px;
         border-bottom: solid 1px gray;
     }
     .date_index_cell{
-        font-size: 12px;
         width: 17%;
     }
     .timeline{
@@ -38,27 +38,21 @@
     }
     .date_cell{
         width: 25%;
-        font-size: 12px;
     }
     .event_cell{
         width: 65%;
-        font-size: 12px;
     }
     .delete_cell{
         width: 10%;
-        font-size:12px;
         margin: 1px;
     }
     p{
         font-size: 14px;
     }
-    input{
-        font-size: 14px;
-    }
     button{
         font-size: 14px;
-        margin-top:20px;
-        margin-bottom:20px;
+        /* margin-top:20px;
+        margin-bottom:20px; */
     }
     select{
         font-size: 14px;
@@ -82,15 +76,9 @@
         font-size: 24px;
     }
     button.fontlight{font-size: 16px;}
-    .console_container>div{
-        left:10%;
-        width: 80%;
-    }
+    .console_container{font-size: 14px;}
     #register_form{
         flex-direction: column;
-    }
-    .autofill{
-        font-size:10px;
     }
     .grid div{
         padding: 3px;

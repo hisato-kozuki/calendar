@@ -322,7 +322,6 @@ function str2date(date_string, defaultDate){
 }
 
 export function get_events(startDate, endDate){
-    buttons["sync"].start();
     return new Promise((resolve, reject) => {
             //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
         if(startDate == undefined){
@@ -344,7 +343,6 @@ export function get_events(startDate, endDate){
             let received_data=JSON.parse(data);
             // console.log(received_data);
             // document.getElementById("postbutton").textContent = "送信";
-            buttons["sync"].stop("同期");
             if(data.error)document.getElementById("p").innerText = data.error;
             resolve(received_data);
         })
@@ -352,7 +350,6 @@ export function get_events(startDate, endDate){
             console.log("reload not complete")
             console.error("Error:", error);
             document.getElementById("p").innerText = error;
-            buttons["sync"].stop("Error");
             reject(error);
         });
     });
@@ -377,11 +374,13 @@ export function postEvents(type, datas, options){
             if(type == "delete")localStorage.removeItem("element_delete");
             counter[type].textContent = 0;
             if(options != undefined && options.get_required == true){
+                buttons["sync"].start();
                 get_events().then((data)=>{
                     display(data, true);//saveCalendarEventsToDB(data);
+                    buttons["sync"].start("同期");
                     saveCalendarEvents(data);
                     console.log("post events 完了")
-                });
+                }).catch(()=>buttons["sync"].start("Error"));
             }
             if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
         })
@@ -446,11 +445,13 @@ export function reload(event, button){
     if(event != undefined){ //ボタンを押して更新する場合
         let date_start = new Date(Date.parse(event.target.start.value));
         let date_end = new Date(Date.parse(event.target.end.value));
+        button["sync"].start();
         get_events(date_start, date_end).then((data)=>{
             display(data, true);//saveCalendarEventsToDB(data);
             console.log("更新 完了");
+            buttons["sync"].start("同期");
             saveCalendarEvents(data);
-        });
+        }).catch(()=>buttons["sync"].start("Error"));
     } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
     const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
     let date_old = new Date(todayDate - 86400000);

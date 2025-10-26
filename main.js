@@ -94,11 +94,12 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     apiUrl=event.target.url.value;
     localStorage["apiUrl"] = apiUrl;
     // saveApiUrlToDB(apiUrl);
+    buttons["sync"].start();
     get_events().then((data)=>{
         display(data, true); //saveCalendarEventsToDB(data);
         saveCalendarEvents(data);
         console.log("url更新 完了")
-        document.getElementById("getbutton").innerText = "同期";
+        buttons["sync"].stop("同期");
     });
 });
 

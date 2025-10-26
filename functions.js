@@ -246,27 +246,37 @@ class Counter{
 class Button{
     constructor(button){
         this.element = button;
-        this.pending = false;
+        this.pending = false; //現在待機中であるか
+        this.end = false; //待機が終わった直後であるか
         this.text = "📤";
     }
     start(){
-        this.pending = true;
-        this.change();
+        if(!this.end){
+            this.pending = true;
+            this.change();
+        } else {//待機が終わった直後であれば0.5秒待ってから始める
+            setTimeout(() => {
+                this.pending = true;
+                this.change();
+            }, 500);
+        }
     }
     change(){
         let cell = this.element;
-        if(this.pending){
+        if(!this.end){
             if(cell.textContent == ">")cell.textContent = ">>";
             else if(cell.textContent == ">>")cell.textContent = ">>>";
             else cell.textContent = ">";
             setTimeout(() => this.change(), 500);
         } else {
             cell.textContent = "完了";
+            this.pending = false;
+            this.end = false;
             setTimeout(() => cell.textContent = this.text, 500);
         }
     }
     stop(text){
-        this.pending = false;
+        this.end = true;
         if(text)this.text = text;
     }
 }
@@ -377,10 +387,10 @@ export function postEvents(type, datas, options){
                 buttons["sync"].start();
                 get_events().then((data)=>{
                     display(data, true);//saveCalendarEventsToDB(data);
-                    buttons["sync"].start("同期");
+                    buttons["sync"].stop("同期");
                     saveCalendarEvents(data);
                     console.log("post events 完了")
-                }).catch(()=>buttons["sync"].start("Error"));
+                }).catch(()=>buttons["sync"].stop("Error"));
             }
             if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
         })
@@ -463,7 +473,6 @@ export function reload(event, button){
         countHistory(results[0], 2);
         countHistory(results[1], 3);
         countHistory(results[2], 4);
-        // button.innerText="更新";
         console.log("ボタン更新2")
         console.log("予定読み込み，履歴読み込み完了");
     })

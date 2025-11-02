@@ -108,16 +108,19 @@ document.getElementById("reload_form").addEventListener('submit', event => {
     let button = event.target.querySelector("#getbutton");
     if(button.textContent == "同期"){
         let promises = [];
-        buttons["sync"].start();
-        if(localStorage["element_post"])promises.push(postEvents("post", JSON.parse(localStorage["element_post"]), {"get_required": false}));
-        if(localStorage["element_delete"])promises.push(postEvents("delete", JSON.parse(localStorage["element_delete"])));
-        if(localStorage["element_modify"])promises.push(postEvents("modify", JSON.parse(localStorage["element_modify"])));
+        for(let type of ["post", "delete", "modify"]){
+            if(localStorage["element_"+type]){
+                buttons[type].start();
+                let promise = postEvents(type, JSON.parse(localStorage["element_"+type]), {"get_required": false});
+                promise.then(()=>buttons[type].stop("📤")).catch(()=>buttons[type].stop("Error"));
+                promises.push(promise);
+            }
+        }
         Promise.all(promises)
         .then((results) => {
             console.log(promises)
-            buttons["sync"].stop("同期");
             reload(event);
-        }).catch(()=>buttons["sync"].stop("Error"));
+        });
     } else button.textContent = "同期";
 });
 

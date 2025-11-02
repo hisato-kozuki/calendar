@@ -222,15 +222,15 @@ class Counter{
         this.counter = divs[0].querySelectorAll("p")[1];
         let submit = divs[1].querySelectorAll("button")[0];
         let clear = divs[1].querySelectorAll("button")[1];
-        let button = new Button(submit);
+        this.button = new Button(submit);
         submit.addEventListener('click', event => {
             event.preventDefault();
-            button.start();
+            this.button.start();
             if(localStorage["element_" + type]){
                 console.log(localStorage["element_" + type])
                 postEvents(type, JSON.parse(localStorage["element_" + type]), {"get_required": false})
-                .then(()=>button.stop("📤"))
-                .catch(()=>button.stop("Error"));
+                .then(()=>this.button.stop("📤"))
+                .catch(()=>this.button.stop("Error"));
             }
         })
         clear.addEventListener('click', event => {
@@ -238,7 +238,6 @@ class Counter{
             if(localStorage["element_" + type])localStorage.removeItem("element_" + type);
             this.counter.textContent = 0;
         })
-        return this.counter;
     }
     set(number){this.counter.textContent = number}
 }
@@ -283,12 +282,16 @@ class Button{
 
 export const calendar = new Calendar();
 
-export const counter = {
-    "post": new Counter("post"),
-    "modify": new Counter("modify"),
-    "delete": new Counter("delete"),
+const counter = [new Counter("post"), new Counter("modify"), new Counter("delete")]
+export const counter_elements = {
+    "post": counter[0].counter,
+    "modify": counter[1].counter,
+    "delete": counter[2].counter,
 }
 export const buttons = {
+    "post": counter[0].button,
+    "modify": counter[1].button,
+    "delete": counter[2].button,
     "sync": new Button(document.getElementById("getbutton")),
     "timersend": new Button(document.getElementById("studysend")),
 }
@@ -382,7 +385,7 @@ export function postEvents(type, datas, options){
             if(type == "post")localStorage.removeItem("element_post");
             if(type == "modify")localStorage.removeItem("element_modify");
             if(type == "delete")localStorage.removeItem("element_delete");
-            counter[type].textContent = 0;
+            counter_elements[type].textContent = 0;
             if(options != undefined && options.get_required == true){
                 buttons["sync"].start();
                 get_events().then((data)=>{
@@ -622,7 +625,7 @@ export function pushLocalStorage(key, data){ // ローカルストレージに�
     }
     else datas = [data];
     localStorage["element_" + key] = JSON.stringify(datas);
-    counter[key].textContent = datas.length;
+    counter_elements[key].textContent = datas.length;
 }
 
 export function deleteLocalStorage(key, data){ // ローカルストレージのデータを削除する関数
@@ -637,6 +640,6 @@ export function deleteLocalStorage(key, data){ // ローカルストレージの
             }
         }
         localStorage["element_" + key] = JSON.stringify(datas);
-        counter[key].textContent = datas.length;
+        counter_elements[key].textContent = datas.length;
     }
 }

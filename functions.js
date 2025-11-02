@@ -34,8 +34,13 @@ class Calendar{
         let week = this.weeks[Math.floor(num_day/7)];
         if(week != undefined)week.days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate);
     }
-    remove(){
-        if(this.weeks)for(let week of this.weeks){
+    remove(event){
+        if(event){
+            let date_start = new Date(event.date_start);
+            let num_day = Math.floor((date_start - this.weeks[0].date_sunday)/86400000);
+            let week = this.weeks[Math.floor(num_day/7)];
+            if(week != undefined)week.days[num_day%7].remove(event);
+        } else if(this.weeks)for(let week of this.weeks){
             week.remove();
             week.element.remove();
         }
@@ -98,8 +103,9 @@ class Day {
         }
         this.display.style.display = "flex";
     }
-    remove(){
-        for(let container of this.containers)if(container)container.remove();
+    remove(event){
+        if(event)for(let container of this.containers)if(container)container.remove(event);
+        else for(let container of this.containers)if(container)container.remove();
     }
 }
 
@@ -131,8 +137,9 @@ class Container {
         this.details.appendChild(Event.container2);
         this.events.push(Event);
     }
-    remove(){
-        for(let event of this.events)event.remove();
+    remove(event_data){
+        if(event_data)for(let event of this.events)event.remove(event_data);
+        else for(let event of this.events)event.remove();
     }
 }
 
@@ -192,14 +199,15 @@ class Event{
         }
         let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
         delete_cell.addEventListener('click', () => {
-            var result = confirm("本当に\""+event_data.title+"\"を削除しますか？");
-            if(result){
+            // var result = confirm("本当に\""+event_data.title+"\"を削除しますか？");
+            // if(result){
                 if(delete_id != undefined)deleteLocalStorage("post", {'id': delete_id});
-                else pushLocalStorage("delete", {'id': event_data.id});
+                else pushLocalStorage("delete", event_data);
                 this.remove();
-            }
+            // }
         });
 
+        this.id = event_data.id;
         this.container1 = event_container;
         this.container2 = event_container2;
 
@@ -209,9 +217,11 @@ class Event{
         event_container.appendChild(delete_cell);
         event_container2.appendChild(event_cell2);
     }
-    remove(){
-        this.container1.remove();
-        this.container2.remove();
+    remove(event_data){
+        if((event_data && this.id == event_data.id) || event_data == undefined){
+            this.container1.remove();
+            this.container2.remove();
+        }
     }
 }
 
@@ -233,9 +243,22 @@ class Counter{
                 .catch(()=>this.button.stop("Error"));
             }
         })
-        clear.addEventListener('click', event => {
+        clear.addEventListener('click', event => { // 予定作成、変更、削除キューの中身をクリアする
             event.preventDefault();
-            if(localStorage["element_" + type])localStorage.removeItem("element_" + type);
+            if(localStorage["element_" + type]){
+                if(type == "delete"){ // 予定削除キューをクリアした際に、表示から消した予定を再表示する
+                    for(let element_data of JSON.parse(localStorage["element_delete"])){
+                        calendar.addEvent(element_data, 0, 0);
+                    }
+                }
+                if(type == "post"){ // 予定作成キューをクリアした際に、表示した予定を削除する
+                    for(let element_data of JSON.parse(localStorage["element_post"])){
+                        console.log(element_data)
+                        calendar.remove(element_data);
+                    }
+                }
+                localStorage.removeItem("element_" + type);
+            }
             this.counter.textContent = 0;
         })
     }

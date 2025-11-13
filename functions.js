@@ -165,8 +165,9 @@ class Event{
             event_container.style.backgroundColor = "#A0FFA0";
         }
 
+const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
         let color = colorCodes[event_data.color];
-        if(color == undefined)color = "#404040";
+        if(color == undefined)color = "#039BE5";
         if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
             event_cell.style.width = "61%";
             mark_cell.value = "◆";

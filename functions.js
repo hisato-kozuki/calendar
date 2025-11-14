@@ -304,6 +304,64 @@ class Button{
     }
 }
 
+class ColorCircle{
+    constructor(div, select){
+        select.value = 1
+        this.opened_count = 0;
+        this.state = "closed"
+        this.dots = [];
+        let index = [0, 8, 7, 11, 4, 1, 9, 3, 5, 2, 6, 10];
+        let TRANSTIME = 50;
+        for(let i in colorCodes){
+            let dot = createE("div", {}, {"position":"absolute","width":"25px","height":"25px","border-radius":"5px","background-color":colorCodes[index[colorCodes.length - i - 1]],"visibility":"hidden","transition":"0.05s ease"});
+            div.appendChild(dot);
+            dot.addEventListener('click', ()=>{
+                div.style.backgroundColor = dot.style.backgroundColor;
+                select.value = index[colorCodes.length - i - 1];
+            });
+            this.dots.push(dot);
+        }
+        div.addEventListener('click', ()=>{
+            if(this.state == "closed"){
+                this.state = "opening";
+                for(let i = 0; i < 6; i++){
+                    setTimeout(()=>{this.open(Number(i)+1)}, TRANSTIME * i);
+                }
+                setTimeout(()=>{this.state = "opened"}, TRANSTIME * 6);
+            }
+            else if(this.state == "opened"){
+                this.state = "closing";
+                for(let i = 0; i < 6; i++){
+                    setTimeout(()=>{this.open(5-i)}, TRANSTIME * i);
+                }
+                setTimeout(()=>{this.state = "closed"}, TRANSTIME * 6);
+            }
+        })
+    }
+    open(count){
+        if(count <= colorCodes.length){
+            for(let i in colorCodes){
+                if((i < 4 && i >= 6 - count) || (i > 3 && i < 8 && i >= 9 - count) || (i > 7 && i < 12 && i >= 12 - count))this.dots[i].style.visibility = "visible";
+                else this.dots[i].style.visibility = "hidden";
+                if(i < 4){
+                    this.dots[i].style.transform = "translate("+(25*Math.max(Math.min(3 - i, count - 3), 0))+"px,"+(25*Math.max(Math.min(2, count - 1), 1))+"px)";
+                } else if(i < 8){
+                    this.dots[i].style.transform = "translate("+(25*Math.max(Math.min(7 - i, count - 2), 0))+"px,"+(25*Math.max(Math.min(1, count - 1), 0))+"px)";
+                } else {
+                    this.dots[i].style.transform = "translate("+(25*Math.max(Math.min(11 - i, count - 1), 0))+"px,"+(25*Math.max(Math.min(0, count - 1), -1))+"px)";
+                }
+                // if(i < count){
+                //     this.dots[colorCodes.length - i - 1].style.transform = "translate("+(60*(1 - Math.cos(Math.PI*(count - i)/6)))+"px,"+(60*Math.sin(-Math.PI*(count - i)/6))+"px)";
+                //     this.dots[colorCodes.length - i - 1].style.visibility = "visible";
+                // } else {
+                //     this.dots[colorCodes.length - i - 1].style.transform = "translate(0px, 0px)";
+                //     this.dots[colorCodes.length - i - 1].style.visibility = "hidden";
+                // }
+            }
+        }
+    }
+}
+
 export const calendar = new Calendar();
 
 const counter = [new Counter("post"), new Counter("modify"), new Counter("delete")]
@@ -319,6 +377,8 @@ export const buttons = {
     "sync": new Button(document.getElementById("getbutton")),
     "timersend": new Button(document.getElementById("studysend")),
 }
+
+new ColorCircle(document.getElementById("colorcircle"), document.getElementById("register_form").color)
 
 export function date_string(date, separator, options){
     let date_string = "";

@@ -121,9 +121,6 @@
     #register_console{
         width: 30em;
     }
-    #register_console button{
-        margin: 0px;
-    }
     .grid div{
         padding: 3px;
     }

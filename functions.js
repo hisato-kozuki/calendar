@@ -313,7 +313,7 @@ class ColorCircle{
         let index = [0, 8, 7, 11, 4, 1, 9, 3, 5, 2, 6, 10];
         let TRANSTIME = 50;
         for(let i in colorCodes){
-            let dot = createE("div", {}, {"position":"absolute","width":"25px","height":"25px","border-radius":"5px","background-color":colorCodes[index[colorCodes.length - i - 1]],"visibility":"hidden","transition":"0.05s ease"});
+            let dot = createE("div", {}, {"position":"absolute","width":"1.5em","height":"1.5em","border-radius":"5px","background-color":colorCodes[index[colorCodes.length - i - 1]],"visibility":"hidden","transition":"0.05s ease"});
             div.appendChild(dot);
             dot.addEventListener('click', ()=>{
                 div.style.backgroundColor = dot.style.backgroundColor;
@@ -344,11 +344,11 @@ class ColorCircle{
                 if((i < 4 && i >= 6 - count) || (i > 3 && i < 8 && i >= 9 - count) || (i > 7 && i < 12 && i >= 12 - count))this.dots[i].style.visibility = "visible";
                 else this.dots[i].style.visibility = "hidden";
                 if(i < 4){
-                    this.dots[i].style.transform = "translate("+(25*Math.max(Math.min(3 - i, count - 3), 0))+"px,"+(25*Math.max(Math.min(2, count - 1), 1))+"px)";
+                    this.dots[i].style.transform = "translate("+(1.5*Math.max(Math.min(3 - i, count - 3), 0))+"em,"+(1.5*Math.max(Math.min(2, count - 1), 1))+"em)";
                 } else if(i < 8){
-                    this.dots[i].style.transform = "translate("+(25*Math.max(Math.min(7 - i, count - 2), 0))+"px,"+(25*Math.max(Math.min(1, count - 1), 0))+"px)";
+                    this.dots[i].style.transform = "translate("+(1.5*Math.max(Math.min(7 - i, count - 2), 0))+"em,"+(1.5*Math.max(Math.min(1, count - 1), 0))+"em)";
                 } else {
-                    this.dots[i].style.transform = "translate("+(25*Math.max(Math.min(11 - i, count - 1), 0))+"px,"+(25*Math.max(Math.min(0, count - 1), -1))+"px)";
+                    this.dots[i].style.transform = "translate("+(1.5*Math.max(Math.min(11 - i, count - 1), 0))+"em,"+(1.5*Math.max(Math.min(0, count - 1), -1))+"em)";
                 }
                 // if(i < count){
                 //     this.dots[colorCodes.length - i - 1].style.transform = "translate("+(60*(1 - Math.cos(Math.PI*(count - i)/6)))+"px,"+(60*Math.sin(-Math.PI*(count - i)/6))+"px)";
@@ -391,7 +391,7 @@ export function date_string(date, separator, options){
     return date_string;
 }
 
-function str2date(date_string, defaultDate){
+export function str2date(date_string, defaultDate){
     let buffer = date_string.split(/[ T\.日]/);
     console.log("first", buffer)
     if(!buffer[0].match(/[/年月]/))buffer = ["", buffer[0]];

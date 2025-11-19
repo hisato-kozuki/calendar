@@ -65,32 +65,34 @@
     
             <!-- 登録ボタンを押すと、フォームが表示されます。 -->
             <div id="register_console"><form id="register_form">
-                <div style="width:22em;">
+                <div style="width:24em;">
                     <div style="display:flex">
-                        <p>タイトル:<input style="width:10em" type="text" name="title" value=""/>
-                            <select name="color" style="width:4.8em;display:none;">
-                                <option style="background-color:#616161" value="8">灰</option>
-                                <option style="background-color:#039BE5" value="7">シアン</option>
-                                <option style="background-color:#D50000" value="11">赤</option>
-                                <option style="background-color:#E67C73" value="4">ピンク</option>
-                                <option style="background-color:#7986CB" value="1">紫</option>
-                                <option style="background-color:#3F51B5" value="9">青</option>
-                                <option style="background-color:#8E24AA" value="3">ブドウ</option>
-                                <option style="background-color:#F6BF26" value="5">黄</option>
-                                <option style="background-color:#33B679" value="2">緑</option>
-                                <option style="background-color:#F4511E" value="6">朱</option>
-                                <option style="background-color:#0B8043" value="10">深緑</option>
-                            </select>
-                        </p>
-                        <div id="colorcircle" style="position:relative;width:25px;height:25px;align-self:center;text-align:center;font-size:1em;border:solid 1px black;border-radius:5px;">
+                        <div style="width:18em;">
+                            <p>タイトル:<input style="width:11.5em" type="text" name="title" value=""/>
+                                <select name="color" style="width:4.8em;display:none;">
+                                    <option style="background-color:#616161" value="8">灰</option>
+                                    <option style="background-color:#039BE5" value="7">シアン</option>
+                                    <option style="background-color:#D50000" value="11">赤</option>
+                                    <option style="background-color:#E67C73" value="4">ピンク</option>
+                                    <option style="background-color:#7986CB" value="1">紫</option>
+                                    <option style="background-color:#3F51B5" value="9">青</option>
+                                    <option style="background-color:#8E24AA" value="3">ブドウ</option>
+                                    <option style="background-color:#F6BF26" value="5">黄</option>
+                                    <option style="background-color:#33B679" value="2">緑</option>
+                                    <option style="background-color:#F4511E" value="6">朱</option>
+                                    <option style="background-color:#0B8043" value="10">深緑</option>
+                                </select>
+                            </p>
+                            <p>　　開始:<input style="width:10em" type="text" name="start" placeholder="開始日時"/><input style="width:1.5em;" type="datetime-local" name="datetime_start"/></p>
+                            <p>　　終了:<input style="width:10em" type="text" name="end" placeholder="終了日時"/><input style="width:1.5em;" type="datetime-local" name="datetime_end"/></p>
+                        </div>
+                        <div>
+                            <div id="colorcircle"></div>
+                            <button id="date_default">上に同じ</button>
                         </div>
                     </div>
-                    <p>　　開始:<input style="width:10em;" type="datetime-local" name="start"/></p>
-                    <p>　　終了:<input style="width:10em;" type="datetime-local" name="end"/><button id="date_default" class="autofill" style="width:6em;margin:0px;">上に同じ</button></p>
                 </div>
-                <div style="display:flex;justify-self:center;align-self:center;">
-                    <button id="postbutton" type="submit" style="width:5em;height:3em;">作成</button>
-                </div>
+                <button id="postbutton" type="submit">作成</button>
             </form></div>
 
             <!-- URL表示ボタンを押すと、フォームが表示されます。 -->

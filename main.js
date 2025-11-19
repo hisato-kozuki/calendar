@@ -1,5 +1,5 @@
 document.getElementById("p").innerText = "";
-import { date_string, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage, calendar, buttons } from "./functions.js";
+import { date_string, str2date, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage, calendar, buttons } from "./functions.js";
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -22,8 +22,8 @@ let isStudying=false, isHavingHobby=false;
 
 window.onload = function(){
     let text = date_string(todayDate, "-", {"required": ["year", "hour"]});
-    document.getElementById("register_form").start.value = text;
-    document.getElementById("register_form").end.value = text;
+    document.getElementById("register_form").datetime_start.value = text;
+    document.getElementById("register_form").datetime_end.value = text;
     document.getElementById("reload_form").start.value = date_string(new Date(todayDate-86400000), "-", {"required": ["year"]});
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
     // getApiUrlFromDB().then((data)=>{apiUrl = data});
@@ -65,8 +65,8 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     let form = event.target;
     let button = document.getElementById("postbutton");
     event.preventDefault();
-    let date_start = new Date(Date.parse(form.start.value));
-    let date_end = new Date(Date.parse(form.end.value));
+    let date_start = str2date(form.start.value, todayDate);
+    let date_end = str2date(form.end.value, todayDate);
     console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
     let id = 0;
     if(localStorage["element_post"])id = localStorage["element_post"].length;
@@ -87,6 +87,22 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     //     });
     // } else {button.innerText = "送信";}
 });
+
+document.getElementById("register_form").datetime_start.addEventListener('change', (event) => {
+    document.getElementById("register_form").start.value = event.target.value.replace(/-/g, "/").replace(/T/g, " ")
+})
+document.getElementById("register_form").datetime_end.addEventListener('change', (event) => {
+    document.getElementById("register_form").end.value = event.target.value.replace(/-/g, "/").replace(/T/g, " ")
+})
+document.getElementById("register_form").start.addEventListener('change', (event) => {
+    document.getElementById("register_form").datetime_start.value = date_string(str2date(event.target.value, todayDate), "-", {"required": ["year", "hour"]})
+})
+document.getElementById("register_form").end.addEventListener('change', (event) => {
+    document.getElementById("register_form").datetime_end.value = date_string(str2date(event.target.value, todayDate), "-", {"required": ["year", "hour"]})
+})
+document.getElementById("register_form").start.addEventListener('click', (event) => {
+    event.preventDefault();
+})
 
 document.getElementById("apiurl_form").addEventListener('submit', event => {
     // イベントを停止する
@@ -128,8 +144,9 @@ document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する
     event.preventDefault();
     
-    let text = document.getElementById("register_form").start.value;
+    let text = document.getElementById("register_form").datetime_start.value.replace(/-/g, "/").replace(/T/g, " ");
     console.log(text);
+    document.getElementById("register_form").start.value = text;
     document.getElementById("register_form").end.value = text;
 });
 

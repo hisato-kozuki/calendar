@@ -246,7 +246,7 @@ document.getElementById("studysend").addEventListener('click', event => {
     }
 });
 
-document.getElementById("clear").addEventListener('click', event => {
+document.getElementById("clear_timer").addEventListener('click', event => {
     localStorage.setItem("studyTimeSeconds", 0);
     localStorage.setItem("hobbyTimeSeconds", 0);
     document.getElementById("timer").innerText = "00:00 00";

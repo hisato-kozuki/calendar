@@ -1,4 +1,4 @@
-import { createE, date_string } from "./function.js";
+import { createE, date_string, button_display } from "./function.js";
 
 const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 const days = ["日", "月", "火", "水", "木", "金", "土"];
@@ -201,6 +201,18 @@ class Event{
                 this.remove();
             // }
         });
+
+        for(let container of [event_container, event_container2]){
+            container.addEventListener("click", (event) => {
+                button_display(document.getElementById("register_display_button"), 'register_console');
+                let form = document.getElementById("register_form");
+                form.title.value = event_data.title;
+                form.start.value = date_string(eventStartDate, "/", {"required":["year","hour"]});
+                form.end.value = date_string(date_end, "/", {"required":["year","hour"]});
+                form.color.value = event_data.color;
+                document.getElementById("colorcircle").style.backgroundColor = color;
+            })
+        }
 
         this.id = event_data.id;
         this.container1 = event_container;

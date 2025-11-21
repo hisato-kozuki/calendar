@@ -3,6 +3,12 @@ var CACHE_NAME = 'pwa-mycalendar-caches';
 var urlsToCache = [
     '/calendar/index.html',
     '/calendar/main.js',
+    '/calendar/function.js',
+    '/calendar/class.js',
+    '/calendar/style.css',
+    '/calendar/style_pc.css',
+    '/calendar/style_sm_land.css',
+    '/calendar/style_sm_port.css',
 ];
 
 // インストール処理

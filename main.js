@@ -1,5 +1,7 @@
 document.getElementById("p").innerText = "";
-import { date_string, str2date, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage, calendar, buttons } from "./functions.js";
+import { date_string, str2date, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage } from "./function.js";
+import { calendar, buttons } from "./class.js";
+
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {

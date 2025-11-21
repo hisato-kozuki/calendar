@@ -1,4 +1,4 @@
-import { calendar, counter_elements } from "./class.js";
+import { calendar, counter_elements, buttons } from "./class.js";
 
 const http_options = {
     'method' : 'post',

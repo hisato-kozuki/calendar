@@ -38,7 +38,7 @@ export function str2date(date_string, defaultDate){
         }
         buffer[0] = defaultDate.getFullYear()+ "-" + buffer[0];
     }
-    buffer[1] = buffer[1].split(/時|分/).map((p) => p = p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
+    buffer[1] = buffer[1].split(/[:時分]/).map((p) => p = p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
     if(!buffer[1].match(/^\d{2}:\d{2}/)){ // 時、分が無い場合
         if(buffer[1].match(/^\d{2}/)){ // 分が有る場合は:00を付け足す
             buffer[1] += ":00";

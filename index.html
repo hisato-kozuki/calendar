@@ -67,9 +67,9 @@
             <div id="register_console"><form id="register_form">
                 <div style="width:24em;">
                     <div style="display:flex">
-                        <div style="width:18em;">
-                            <p>タイトル:<input style="width:11.5em" type="text" name="title" value=""/>
-                                <select name="color" style="width:4.8em;display:none;">
+                        <div style="width:15em;">
+                            <p><input style="width:13em" type="text" name="title" placeholder="タイトル"/>
+                                <select name="color" style="width:4.8em;display:none;" value="8">
                                     <option style="background-color:#616161" value="8">灰</option>
                                     <option style="background-color:#039BE5" value="7">シアン</option>
                                     <option style="background-color:#D50000" value="11">赤</option>
@@ -83,11 +83,12 @@
                                     <option style="background-color:#0B8043" value="10">深緑</option>
                                 </select>
                             </p>
-                            <p>　　開始:<input style="width:10em" type="text" name="start" placeholder="開始日時"/><input style="width:1.5em;" type="datetime-local" name="datetime_start"/></p>
-                            <p>　　終了:<input style="width:10em" type="text" name="end" placeholder="終了日時"/><input style="width:1.5em;" type="datetime-local" name="datetime_end"/></p>
+                            <p><input style="width:11.5em" type="text" name="start" placeholder="開始日時"/><input style="width:1.5em;" type="datetime-local" name="datetime_start"/></p>
+                            <p><input style="width:11.5em" type="text" name="end" placeholder="終了日時"/><input style="width:1.5em;" type="datetime-local" name="datetime_end"/></p>
                         </div>
-                        <div>
-                            <div id="colorcircle"></div>
+                        <div style="width:8em;">
+                            <div id="colorcircle" style="background-color:#616161;"></div>
+                            <button id="clear">クリア</button>
                             <button id="date_default">上に同じ</button>
                         </div>
                     </div>

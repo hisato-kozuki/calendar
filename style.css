@@ -105,18 +105,24 @@ form{
 }
 #colorcircle{
     position:relative;
-    width:1.5em;
-    height:1.5em;
+    width:1.8em;
+    height:1.8em;
     align-self:center;
     text-align:center;
     font-size:1em;
     border:solid 1px black;
     border-radius:5px;
-    margin:1em 0;
+    margin-top:1em;
+}
+#clear{
+    width:6em;
+    margin-top:1em;
+    background: white;
+    font-size: 0.8em;
 }
 #date_default{
     width:6em;
-    margin:3em 0 0;
+    margin-top:1em;
     background: white;
     font-size: 0.8em;
 }

@@ -142,6 +142,20 @@ document.getElementById("reload_form").addEventListener('submit', event => {
     } else button.textContent = "同期";
 });
 
+document.getElementById("clear").addEventListener('click', event => {
+    // イベントを停止する
+    event.preventDefault();
+    
+    let form = document.getElementById("register_form");
+    form.title.value = "";
+    form.start.value = "";
+    form.end.value = "";
+    form.datetime_start.value = "";
+    form.datetime_end.value = "";
+    form.color.value = 8;
+    document.getElementById("colorcircle").style.backgroundColor = "#616161";
+});
+
 document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する
     event.preventDefault();

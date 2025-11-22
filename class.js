@@ -154,7 +154,7 @@ class Event{
         let date_cell = createE("input", {"type": "text", "className": "date_cell"});
         let event_cell = createE("input", {"type": "text", "className": "event_cell display_land_none_cell"});
         let event_cell2 = createE("div", {"className": "event_cell display_none_cell"});
-        let mark_cell = createE("input", {"type": "text", "className": "mark_cell display_land_none_cell"});
+        let mark_cell = createE("div", {"className": "mark_cell display_land_none_cell"});
         let event_container = createE("div", {"className": "event_container"});
         let event_container2 = createE("div", {"className": "event_container"});
         
@@ -240,14 +240,14 @@ class Event{
         }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
             date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
         }else if(date_start.getHours() != date_end.getHours()){
-            date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
+            date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":" + date_end.getMinutes().toString().padStart(2, "0");
         }
 
         let color = colorCodes[event_data.color];
         if(color == undefined)color = "#039BE5";
         if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
             event_cell.style.width = "61%";
-            mark_cell.value = "◆";
+            mark_cell.innerHTML = "<p>◆</p>";
             mark_cell.style.visibility = "visible";
             mark_cell.style.width = "4%";
             mark_cell.style.color = color;

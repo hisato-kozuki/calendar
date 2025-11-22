@@ -156,8 +156,6 @@ document.getElementById("clear").addEventListener('click', event => {
     form.title.value = "";
     form.start.value = "";
     form.end.value = "";
-    form.datetime_start.value = "";
-    form.datetime_end.value = "";
     form.color.value = 8;
     document.getElementById("colorcircle").style.backgroundColor = "#616161";
 });
@@ -166,9 +164,8 @@ document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する
     event.preventDefault();
     
-    let text = document.getElementById("register_form").datetime_start.value.replace(/-/g, "/").replace(/T/g, " ");
+    let text = document.getElementById("register_form").start.value;
     console.log(text);
-    document.getElementById("register_form").start.value = text;
     document.getElementById("register_form").end.value = text;
 });
 

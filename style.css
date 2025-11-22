@@ -39,6 +39,11 @@
     visibility: hidden;
     border: none;
     justify-items: center;
+    align-content: center;
+}
+.mark_cell p{
+    font-size: 1em;
+    margin: 0;
 }
 .event_cell{
     position: relative;

@@ -1,4 +1,4 @@
-import { createE, date_string, button_display } from "./function.js";
+import { createE, date_string, str2date, button_display, pushLocalStorage } from "./function.js";
 
 const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 const days = ["日", "月", "火", "水", "木", "金", "土"];
@@ -26,6 +26,11 @@ class Calendar{
         let element_event = new Event(date_start, date_end, event, delete_id);
         let week = this.weeks[Math.floor(num_day/7)];
         if(week != undefined)week.days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate);
+    }
+    modifyEvent(event_data){
+        for(let week of this.weeks){
+            for(let day of week.days)day.modifyEvent(event_data);
+        }
     }
     remove(event){
         if(event){
@@ -97,6 +102,13 @@ class Day {
         }
         this.display.style.display = "flex";
     }
+    modifyEvent(event_data){
+        for(let container of this.containers){
+            if(container)for(let event of container.events){
+                if(event && event.id == event_data.id)event.modifyEvent(event_data);
+            }
+        }
+    }
     remove(event){
         if(event)for(let container of this.containers)if(container)container.remove(event);
         else for(let container of this.containers)if(container)container.remove();
@@ -139,38 +151,29 @@ class Container {
 
 class Event{
     constructor(eventStartDate, date_end, event_data, delete_id){
-        let date_cell = createE("input", {"type": "text", "className": "date_cell", "value": eventStartDate.getHours().toString() + ":" + eventStartDate.getMinutes().toString().padStart(2, "0")});
-        let event_cell = createE("input", {"type": "text", "className": "event_cell display_land_none_cell", "value": event_data.title});
-        let event_cell2 = createE("div", {"className": "event_cell display_none_cell", "innerText": event_data.title});
+        let date_cell = createE("input", {"type": "text", "className": "date_cell"});
+        let event_cell = createE("input", {"type": "text", "className": "event_cell display_land_none_cell"});
+        let event_cell2 = createE("div", {"className": "event_cell display_none_cell"});
         let mark_cell = createE("input", {"type": "text", "className": "mark_cell display_land_none_cell"});
         let event_container = createE("div", {"className": "event_container"});
         let event_container2 = createE("div", {"className": "event_container"});
-        if(eventStartDate.getFullYear() != date_end.getFullYear()){
-            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
-        }else if(eventStartDate.getMonth() != date_end.getMonth() || eventStartDate.getDate() != date_end.getDate()){
-            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
-        }else if(eventStartDate.getHours() != date_end.getHours()){
-            date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
-        }
+        
+        event_container.appendChild(date_cell);
+        event_container.appendChild(mark_cell);
+        event_container.appendChild(event_cell);
+
+        this.set(event_container, event_data);
+
+        let color = colorCodes[event_data.color];
+        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9)event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_data.title;
+        else {event_cell2.innerHTML = event_data.title;event_cell2.style.color = color;}
+
         if(delete_id != undefined){
             date_cell.style.backgroundColor = "transparent";
             event_cell.style.backgroundColor = "transparent";
             mark_cell.style.backgroundColor = "transparent";
             event_container.style.backgroundColor = "#A0FFA0";
         }
-
-        const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
-        let color = colorCodes[event_data.color];
-        if(color == undefined)color = "#039BE5";
-        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
-            event_cell.style.width = "61%";
-            mark_cell.value = "◆";
-            mark_cell.style.visibility = "visible";
-            mark_cell.style.width = "4%";
-            mark_cell.style.color = color;
-            event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_cell2.innerHTML;
-        }
-        else {event_cell.style.color = color;event_cell2.style.color = color;}
 
         for(let element of [date_cell, event_cell]){
             element.addEventListener("change", (event) =>{
@@ -203,26 +206,60 @@ class Event{
         });
 
         for(let container of [event_container, event_container2]){
-            container.addEventListener("click", (event) => {
+            container.addEventListener("dblclick", (event) => {
                 button_display(document.getElementById("register_display_button"), 'register_console');
                 let form = document.getElementById("register_form");
+                form.id.value = event_data.id;
                 form.title.value = event_data.title;
                 form.start.value = date_string(eventStartDate, "/", {"required":["year","hour"]});
                 form.end.value = date_string(date_end, "/", {"required":["year","hour"]});
                 form.color.value = event_data.color;
                 document.getElementById("colorcircle").style.backgroundColor = color;
+                document.getElementById("postbutton").textContent = "変更";
             })
         }
 
         this.id = event_data.id;
         this.container1 = event_container;
         this.container2 = event_container2;
+        this.mousedown_position = false;
 
-        event_container.appendChild(date_cell);
-        event_container.appendChild(mark_cell);
-        event_container.appendChild(event_cell);
         event_container.appendChild(delete_cell);
         event_container2.appendChild(event_cell2);
+    }
+    set(event_container, event_data){
+        let date_cell = event_container.querySelector(".date_cell");
+        let event_cell = event_container.querySelector(".event_cell");
+        let mark_cell = event_container.querySelector(".mark_cell");
+        let date_start = new Date(event_data.date_start);
+        let date_end = new Date(event_data.date_end);
+        date_cell.value = date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
+        event_cell.value = event_data.title;
+        if(date_start.getFullYear() != date_end.getFullYear()){
+            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
+        }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
+            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
+        }else if(date_start.getHours() != date_end.getHours()){
+            date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":00";
+        }
+
+        let color = colorCodes[event_data.color];
+        if(color == undefined)color = "#039BE5";
+        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
+            event_cell.style.width = "61%";
+            mark_cell.value = "◆";
+            mark_cell.style.visibility = "visible";
+            mark_cell.style.width = "4%";
+            mark_cell.style.color = color;
+        }
+        else {event_cell.style.color = color;}
+    }
+    modifyEvent(event_data){
+        this.set(this.container1, event_data);
+        let event_cell2 = this.container2.querySelector(".event_cell");
+        let color = colorCodes[event_data.color];
+        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9)event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_data.title;
+        else {event_cell2.innerHTML = event_data.title;event_cell2.style.color = color;}
     }
     remove(event_data){
         if((event_data && this.id == event_data.id) || event_data == undefined){

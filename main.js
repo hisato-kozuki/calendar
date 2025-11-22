@@ -71,7 +71,8 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     let date_end = str2date(form.end.value, todayDate);
     console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
     let id = 0;
-    if(localStorage["element_post"])id = localStorage["element_post"].length;
+    if(button.textContent == "作成" && localStorage["element_post"])id = localStorage["element_post"].length;
+    else if(button.textContent == "変更")id = form.id.value;
     const element_data = {
         'id': id,
         'title': form.title.value,
@@ -79,8 +80,13 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
         'date_end': date_end,
         'color': form.color.value,
     };
-    calendar.addEvent(element_data, 0, 0, id);
-    pushLocalStorage("post", element_data);
+    if(button.textContent == "作成"){
+        calendar.addEvent(element_data, 0, 0, id);
+        pushLocalStorage("post", element_data);
+    } else if (button.textContent == "変更"){
+        calendar.modifyEvent(element_data);
+        pushLocalStorage("modify", element_data);
+    }
     // if(element_data.title != "" && button.innerText == "送信"){
     //     cellPendingAnimation(button);
     //     postEvents("post", [element_data], {"get_required": true}).then((data) => {
@@ -254,6 +260,7 @@ document.getElementById("clear_timer").addEventListener('click', event => {
 
 document.getElementById("register_display_button").addEventListener("click", event =>{
     button_display(event.target, 'register_console');
+    document.getElementById("postbutton").textContent = "作成";
 })
 document.getElementById("get_display_button").addEventListener("click", event =>{
     button_display(event.target, 'reload_console');

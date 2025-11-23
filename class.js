@@ -151,8 +151,8 @@ class Container {
 
 class Event{
     constructor(eventStartDate, date_end, event_data, delete_id){
-        let date_cell = createE("input", {"type": "text", "className": "date_cell"});
-        let event_cell = createE("input", {"type": "text", "className": "event_cell display_land_none_cell"});
+        let date_cell = createE("div", {"className": "date_cell"});
+        let event_cell = createE("div", {"className": "event_cell display_land_none_cell"});
         let event_cell2 = createE("div", {"className": "event_cell display_none_cell"});
         let mark_cell = createE("div", {"className": "mark_cell display_land_none_cell"});
         let event_container = createE("div", {"className": "event_container"});
@@ -213,6 +213,8 @@ class Event{
                 form.title.value = event_data.title;
                 form.start.value = date_string(eventStartDate, "/", {"required":["year","hour"]});
                 form.end.value = date_string(date_end, "/", {"required":["year","hour"]});
+                form.datetime_start.value = date_string(eventStartDate, "-", {"required":["year","hour"]});
+                form.datetime_end.value = date_string(date_end, "-", {"required":["year","hour"]});
                 form.color.value = event_data.color;
                 document.getElementById("colorcircle").style.backgroundColor = color;
                 document.getElementById("postbutton").textContent = "変更";
@@ -233,21 +235,21 @@ class Event{
         let mark_cell = event_container.querySelector(".mark_cell");
         let date_start = new Date(event_data.date_start);
         let date_end = new Date(event_data.date_end);
-        date_cell.value = date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
-        event_cell.value = event_data.title;
+        date_cell.innerText = date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
+        event_cell.innerText = event_data.title;
         if(date_start.getFullYear() != date_end.getFullYear()){
-            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
+            date_cell.innerHTML += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
         }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
-            date_cell.value += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
+            date_cell.innerText += "\n～" + date_string(date_end, "/", {"required": ["hour"]});
         }else if(date_start.getHours() != date_end.getHours()){
-            date_cell.value += "～" + date_end.getHours().toString().padStart(2, "0") + ":" + date_end.getMinutes().toString().padStart(2, "0");
+            date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":" + date_end.getMinutes().toString().padStart(2, "0");
         }
 
         let color = colorCodes[event_data.color];
         if(color == undefined)color = "#039BE5";
         if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
             event_cell.style.width = "61%";
-            mark_cell.innerHTML = "<p>◆</p>";
+            mark_cell.innerText = "◆";
             mark_cell.style.visibility = "visible";
             mark_cell.style.width = "4%";
             mark_cell.style.color = color;

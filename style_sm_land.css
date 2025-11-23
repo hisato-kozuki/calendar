@@ -85,7 +85,7 @@
     }
     .event_cell{
         height: fit-content;
-        overflow: hidden;
+        white-space: normal;
     }
     .delete_cell{
         display: none;

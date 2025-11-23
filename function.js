@@ -16,7 +16,7 @@ export function date_string(date, separator, options){
     if(options.required.includes("year"))date_string += date.getFullYear().toString();
     date_string += separator + (date.getMonth() + 1).toString().padStart(2, "0")
     date_string += separator + date.getDate().toString().padStart(2, "0")
-    if(options.required.includes("hour") && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":00";
+    if(options.required.includes("hour") && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");;
     if(options.required.includes("hour") && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
     return date_string;
 }

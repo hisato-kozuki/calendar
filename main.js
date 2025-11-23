@@ -164,8 +164,8 @@ document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する
     event.preventDefault();
     
-    let text = document.getElementById("register_form").start.value;
-    console.log(text);
+    let text = document.getElementById("register_form").datetime_start.value.replace(/-/g, "/").replace(/T/, " ");
+    document.getElementById("register_form").start.value = text;
     document.getElementById("register_form").end.value = text;
 });
 

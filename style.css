@@ -48,8 +48,10 @@
 .event_cell{
     position: relative;
     border: none;
-    align-content: center;
+    align-self: center;
     padding-left: 2px;
+    white-space: nowrap;
+    overflow: hidden;
 }
 .delete_cell{
     align-self: center;

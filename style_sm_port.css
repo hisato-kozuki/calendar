@@ -28,6 +28,7 @@
         width: 17%;
     }
     .timeline{
+        width: 83%;
         display: flex;
         flex-direction: column-reverse;
         border-left: solid 1px gray;

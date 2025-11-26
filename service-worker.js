@@ -1,5 +1,5 @@
 // キャッシュファイルの指定
-var CACHE_NAME = 'pwa-mycalendar-caches';
+var CACHE_NAME = 'pwa-mycalendar-caches-25-11-26';
 var urlsToCache = [
     '/calendar/index.html',
     '/calendar/main.js',

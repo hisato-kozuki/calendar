@@ -62,10 +62,10 @@ document.getElementsByClassName("curtain")[0].addEventListener('click', (event) 
     // }
 })
 
-document.getElementById("register_form").addEventListener('submit', (event) => {
+document.getElementById("postbutton").addEventListener('click', (event) => {
     // イベントを停止する
-    let form = event.target;
-    let button = document.getElementById("postbutton");
+    let form = event.target.parentElement;
+    let button = event.target;
     event.preventDefault();
     let date_start = str2date(form.start.value, todayDate);
     let date_end = str2date(form.end.value, todayDate);
@@ -86,6 +86,10 @@ document.getElementById("register_form").addEventListener('submit', (event) => {
     } else if (button.textContent == "変更"){
         calendar.modifyEvent(element_data);
         pushLocalStorage("modify", element_data);
+        document.getElementById("register_console").style.transform = 'scale(0, 0)';
+        document.getElementsByClassName("curtain")[0].style.opacity = 0;
+        document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
+        document.getElementById("register_display_button").style.backgroundColor = "coral";
     }
     // if(element_data.title != "" && button.innerText == "送信"){
     //     cellPendingAnimation(button);
@@ -164,9 +168,11 @@ document.getElementById("date_default").addEventListener('click', event => {
     // イベントを停止する
     event.preventDefault();
     
-    let text = document.getElementById("register_form").datetime_start.value.replace(/-/g, "/").replace(/T/, " ");
-    document.getElementById("register_form").start.value = text;
-    document.getElementById("register_form").end.value = text;
+    let text_date = document.getElementById("register_form").datetime_start.value;
+    document.getElementById("register_form").datetime_end.value = text_date;
+    text_date = text_date.replace(/-/g, "/").replace(/T/, " ");
+    document.getElementById("register_form").start.value = text_date;
+    document.getElementById("register_form").end.value = text_date;
 });
 
 document.getElementById("urlform").addEventListener('submit', event => {

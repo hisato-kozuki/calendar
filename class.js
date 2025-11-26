@@ -175,26 +175,6 @@ class Event{
             event_container.style.backgroundColor = "#A0FFA0";
         }
 
-        for(let element of [date_cell, event_cell]){
-            element.addEventListener("change", (event) =>{
-                event.target.style.backgroundColor = "#fff0f0";
-                let element_data = {
-                    "id": event_data.id
-                }
-                if(event.target.className == "date_cell"){
-                    // 日付の区切り：-, /　時間の区切り：:　日付と時間の区切り：/,  , T
-                    let new_date = event.target.value.split(/~|～|\n/, 2); // 開始と終了で分割
-                    if(new_date[1] == undefined)new_date[1] = new_date[0]; // 終了が無い場合は開始と同じとみなす
-                    for(let j = 0; j < 2; j++)new_date[j] = str2date(new_date[j], new Date(event_data.date_start));
-                    // console.log(new_date)
-                    element_data["date_start"] = new_date[0];
-                    element_data["date_end"] = new_date[1];
-                }
-                if(event.target.className.includes("event_cell"))element_data["title"] = event.target.value;
-                if(event.target.className.includes("mark_cell"))element_data["mark"] = event.target.value;
-                pushLocalStorage("modify", element_data);
-            })
-        }
         let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
         delete_cell.addEventListener('click', () => {
             // var result = confirm("本当に\""+event_data.title+"\"を削除しますか？");
@@ -205,8 +185,8 @@ class Event{
             // }
         });
 
-        for(let container of [event_container, event_container2]){
-            container.addEventListener("dblclick", (event) => {
+        for(let cell of [date_cell, event_cell, event_cell2, mark_cell]){
+            cell.addEventListener("click", (event) => {
                 button_display(document.getElementById("register_display_button"), 'register_console');
                 let form = document.getElementById("register_form");
                 form.id.value = event_data.id;
@@ -223,8 +203,8 @@ class Event{
 
         this.id = event_data.id;
         this.container1 = event_container;
-        this.container2 = event_container2;
-        this.mousedown_position = false;
+        this.container2 = event_container2;        
+        this.initial_data = event_data;
 
         event_container.appendChild(delete_cell);
         event_container2.appendChild(event_cell2);
@@ -257,6 +237,12 @@ class Event{
         else {event_cell.style.color = color;}
     }
     modifyEvent(event_data){
+        if(event_data.candel != true){
+            this.container1.style.backgroundColor = "#fff0f0";
+        } else {
+            event_data = this.initial_data;
+            this.container1.style.backgroundColor = "white";
+        }
         this.set(this.container1, event_data);
         let event_cell2 = this.container2.querySelector(".event_cell");
         let color = colorCodes[event_data.color];
@@ -295,6 +281,12 @@ class Counter{
                 if(type == "delete"){ // 予定削除キューをクリアした際に、表示から消した予定を再表示する
                     for(let element_data of JSON.parse(localStorage["element_delete"])){
                         calendar.addEvent(element_data, 0, 0);
+                    }
+                }
+                if(type == "modify"){ // 予定変更キューをクリアした際に、変更した予定の内容を戻す
+                    for(let element_data of JSON.parse(localStorage["element_modify"])){
+                        element_data["candel"] = true;
+                        calendar.modifyEvent(element_data);
                     }
                 }
                 if(type == "post"){ // 予定作成キューをクリアした際に、表示した予定を削除する

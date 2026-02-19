@@ -113,7 +113,7 @@ export function postEvents(type, datas, options){
         })
         .catch(error => {
             console.error("Error:", error);
-            document.getElementById("p").innerText = error + received_data;
+            document.getElementById("p").innerText = error + "\n" + received_data;
             reject(false);
             if(options != undefined && options.cell != undefined)options.cell.textContent = "Error";
         });
@@ -177,6 +177,7 @@ export function reload(event, button){
             display(data, true);//saveCalendarEventsToDB(data);
             console.log("更新 完了");
             buttons["sync"].stop("同期");
+            buttons["get_display"].stop("🔄");
             saveCalendarEvents(data);
         }).catch(()=>buttons["sync"].stop("Error"));
     } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
@@ -301,7 +302,7 @@ export function button_display(button, console_id){
         for(let i = 0; i < forms.length; i++){
             forms[i].style.transform = 'scale(0, 0)';
         }
-        let buttons = document.getElementsByClassName('button_container')[0].children;
+        let buttons = document.getElementsByClassName('button_container')[0].querySelectorAll("button");
         for(let i = 0; i < buttons.length; i++){
             buttons[i].style.backgroundColor = 'coral';
         }

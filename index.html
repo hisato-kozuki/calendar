@@ -25,8 +25,8 @@
                         <p>開始:<input type="date" name="start" style="width:12em"/></p>
                         <p>終了:<input type="date" name="end" style="width:12em"/></p>
                     </div>
-                    <div style="display:flex;align-items:center;width:7em;">
-                        <button id="getbutton" type="submit" style="width:5em;height:3em;margin:0px;">同期</button>
+                    <div style="display:flex;align-items:center;justify-items:center;width:7em;">
+                        <div style="position:relative;align-content:center;"><button id="getbutton" type="submit" style="width:5em;height:3em;margin:0px;">同期</button></div>
                     </div>
                 </div>
                 <div style="display: flex;">
@@ -35,9 +35,9 @@
                             <p style="margin:0px;width:3em;text-align:end;">作成：</p>
                             <p style="margin:0px;width:1em;">0</p>
                         </div>
-                        <div style="display: flex;">
-                            <button style="width:2em;height:2em;margin:0.5em">📤</button>
-                            <button style="width:2em;height:2em;margin:0.5em">消</button>
+                        <div style="position: relative;display: flex;">
+                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">📤</button></div>
+                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
                         </div>
                     </div>
                     <div id="modify_counter" style="justify-items:center;align-items:center;width:7em;">
@@ -45,9 +45,9 @@
                             <p style="margin:0px;width:3em;text-align:end;">変更：</p>
                             <p style="margin:0px;width:1em;">0</p>
                         </div>
-                        <div style="display: flex;">
-                            <button style="width:2em;height:2em;margin:0.5em">📤</button>
-                            <button style="width:2em;height:2em;margin:0.5em">消</button>
+                        <div style="position: relative;display: flex;">
+                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">📤</button></div>
+                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
                         </div>
                     </div>
                     <div id="delete_counter" style="justify-items:center;align-items:center;width:7em;">
@@ -55,9 +55,9 @@
                             <p style="margin:0px;width:3em;text-align:end;">削除：</p>
                             <p style="margin:0px;width:1em;">0</p>
                         </div>
-                        <div style="display: flex;">
-                            <button style="width:2em;height:2em;margin:0.5em;justify-content:center;">📤</button>
-                            <button style="width:2em;height:2em;margin:0.5em">消</button>
+                        <div style="position: relative;display: flex;">
+                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em;justify-content:center;">📤</button></div>
+                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
                         </div>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                 <p id="timer" style="width:11em;height:4em;margin:0.5em;border:solid black 1px;text-align:center;align-content: center;"></p>
                 <div style="display:flex;justify-content:center;">
                     <button id="studybutton" style="width:3em;height:3em;margin:0.5em">⏯</button>
-                    <button id="studysend" style="width:3em;height:3em;margin:0.5em">📤</button>
+                    <div style="position: relative;"><button id="studysend" style="width:3em;height:3em;margin:0.5em">📤</button></div>
                     <button id="clear_timer" style="width:3em;height:3em;margin:0.5em">clear</button>
                 </div>
             </div>
@@ -140,7 +140,7 @@
             </div>
         </div>
         <div class="button_container">
-            <button id="get_display_button">🔄</button>
+            <div style="position: relative;"><button id="get_display_button">🔄</button></div>
             <button id="register_display_button">🖋</button>
             <button id="url_display_button" class="fontlight">URL</button>
             <button id="timer_display_button">🕒</button>

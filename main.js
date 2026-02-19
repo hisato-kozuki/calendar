@@ -55,7 +55,7 @@ document.getElementsByClassName("curtain")[0].addEventListener('click', (event) 
         }
         document.getElementsByClassName("curtain")[0].style.opacity = 0;
         document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
-        let buttons = document.getElementsByClassName('button_container')[0].children;
+        let buttons = document.getElementsByClassName('button_container')[0].querySelectorAll("button");
         for(let i = 0; i < buttons.length; i++){
             buttons[i].style.backgroundColor = 'coral';
         }
@@ -136,6 +136,7 @@ document.getElementById("reload_form").addEventListener('submit', event => {
     let button = event.target.querySelector("#getbutton");
     if(button.textContent == "同期"){
         let promises = [];
+        buttons["get_display"].start();
         for(let type of ["post", "delete", "modify"]){
             if(localStorage["element_"+type]){
                 buttons[type].start();
@@ -148,6 +149,9 @@ document.getElementById("reload_form").addEventListener('submit', event => {
         .then((results) => {
             console.log(promises)
             reload(event);
+        })
+        .catch((error) => {
+            buttons["get_display"].stop("Error");
         });
     } else button.textContent = "同期";
 });

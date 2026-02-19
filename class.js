@@ -1,4 +1,4 @@
-import { createE, date_string, str2date, button_display, pushLocalStorage } from "./function.js";
+import { createE, date_string, str2date, button_display, postEvents, pushLocalStorage, deleteLocalStorage } from "./function.js";
 
 const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 const days = ["日", "月", "火", "水", "木", "金", "土"];
@@ -267,13 +267,13 @@ class Counter{
         this.button = new Button(submit);
         submit.addEventListener('click', event => {
             event.preventDefault();
-            this.button.start();
             if(localStorage["element_" + type]){
+                this.button.start();
                 console.log(localStorage["element_" + type])
                 postEvents(type, JSON.parse(localStorage["element_" + type]), {"get_required": false})
                 .then(()=>this.button.stop("📤"))
                 .catch(()=>this.button.stop("Error"));
-            }
+            } else clearTimeout(this.button.timeout);
         })
         clear.addEventListener('click', event => { // 予定作成、変更、削除キューの中身をクリアする
             event.preventDefault();
@@ -306,48 +306,58 @@ class Counter{
 class Button{
     constructor(button){
         this.element = button;
-        this.pending = false; //現在待機中であるか
-        this.end = false; //待機が終わった直後であるか
         this.text = "📤";
+        this.timeout = null;
     }
     start(){
-        if(!this.end){
-            this.pending = true;
-            this.change();
-        } else {//待機が終わった直後であれば0.5秒待ってから始める
+        clearTimeout(this.timeout);
+        let dots = [];
+        for(let i = 0; i < 8; i++){
+            let dot = createE("div", {}, {
+                "position":"absolute","left":"50%","top":"50%",
+                "height":"10%","aspect-ratio":"1/1","transform":"translate(-50%, -50%)",
+                "border-radius":"50%","border":"solid 1px lightcyan","background-color":"teal","visibility":"hidden","transition":"0.5s ease"});
+            this.element.parentElement.appendChild(dot);
+            dots.push(dot);
+        }
+        this.dots = dots;
+        for(let i = 0; i < 8; i++){
             setTimeout(() => {
-                this.pending = true;
-                this.change();
-            }, 500);
+                this.dots[i].style.visibility = "visible";
+                this.dots[i].style.left = (50+35*Math.cos(Math.PI*i/4))+"%";
+                this.dots[i].style.top = (50+35*Math.sin(Math.PI*i/4))+"%";
+            }, 0);
         }
+        this.change(0);
     }
-    change(){
-        let cell = this.element;
-        if(!this.end){
-            if(cell.textContent == ">")cell.textContent = ">>";
-            else if(cell.textContent == ">>")cell.textContent = ">>>";
-            else cell.textContent = ">";
-            setTimeout(() => this.change(), 500);
-        } else {
-            cell.textContent = "完了";
-            this.pending = false;
-            this.end = false;
-            setTimeout(() => cell.textContent = this.text, 500);
-        }
+    change(i){
+        this.dots[(i+3)%4].style.height = "10%";
+        this.dots[(i+3)%4+4].style.height = "10%";
+        this.dots[i%4].style.height = "20%";
+        this.dots[i%4+4].style.height = "20%";
+        this.dots[0].style.visibility = "visible";
+        this.timeout = setTimeout(() => this.change(i+1), 250);
     }
     stop(text){
-        this.end = true;
-        if(text)this.text = text;
+        clearTimeout(this.timeout);
+        for(let i = 0; i < 8; i++){
+            this.dots[i].style.left = "50%";
+            this.dots[i].style.top = "50%";            
+            setTimeout(() => this.dots[i].remove(), 500);
+        }
+        if(text){
+            this.element.textContent = "完了";
+            this.timeout = setTimeout(() => this.element.textContent = text, 500);
+        }
     }
 }
 
 class ColorCircle{
     constructor(div, select){
-        select.value = 0;
         this.opened_count = 0;
         this.state = "closed"
         this.dots = [];
-        let index = [0, 8, 7, 11, 4, 1, 9, 3, 5, 2, 6, 10];
+        let index = [8, 8, 7, 11, 4, 1, 9, 3, 5, 2, 6, 10];
         let TRANSTIME = 50;
         for(let i in colorCodes){
             let dot = createE("div", {}, {"position":"absolute","width":"1.8em","height":"1.8em","border-radius":"0.4em","border":"solid 1px gray","background-color":colorCodes[index[colorCodes.length - i - 1]],"visibility":"hidden","transition":"0.05s ease"});
@@ -411,6 +421,7 @@ export const buttons = {
     "modify": counter[1].button,
     "delete": counter[2].button,
     "sync": new Button(document.getElementById("getbutton")),
+    "get_display": new Button(document.getElementById("get_display_button")),
     "timersend": new Button(document.getElementById("studysend")),
 }
 

@@ -113,6 +113,7 @@
     }
     .button_container button{
         width: 72px;
+        height: 100%;
         border-radius: 24px;
         font-size: 24px;
     }

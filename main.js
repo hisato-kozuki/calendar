@@ -123,11 +123,13 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     localStorage["apiUrl"] = apiUrl;
     // saveApiUrlToDB(apiUrl);
     buttons["sync"].start();
+    buttons["get_display"].start();
     get_events().then((data)=>{
         display(data, true); //saveCalendarEventsToDB(data);
         saveCalendarEvents(data);
         console.log("url更新 完了")
         buttons["sync"].stop("同期");
+        buttons["get_display"].stop("🔄");
     });
 });
 

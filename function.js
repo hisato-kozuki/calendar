@@ -102,12 +102,14 @@ export function postEvents(type, datas, options){
             counter_elements[type].textContent = 0;
             if(options != undefined && options.get_required == true){
                 buttons["sync"].start();
+                buttons["get_display"].start();
                 get_events().then((data)=>{
                     display(data, true);//saveCalendarEventsToDB(data);
                     buttons["sync"].stop("同期");
+                    buttons["get_display"].stop("🔄");
                     saveCalendarEvents(data);
                     console.log("post events 完了")
-                }).catch(()=>buttons["sync"].stop("Error"));
+                }).catch(()=>{buttons["sync"].stop("Error");buttons["get_display"].stop("🔄");});
             }
             if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
         })
@@ -256,6 +258,7 @@ export function display(events, task_renew_required){
             skip = 0;
         }else skip++;
     }
+    if(localStorage["element_modify"] != undefined)postEvents("modify", JSON.parse(localStorage["element_modify"]), {"get_required": true});
 }
 
 export function getCalendarEvents(){

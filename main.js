@@ -32,6 +32,7 @@ window.onload = function(){
     // getCalendarEventsFromDB();
     getCalendarEvents();
     reload(); //カレンダーを更新
+    if(!localStorage["apiUrl"])localStorage["links"] = JSON.stringify({"Youtube": "https://www.youtube.com/", "番組表": "https://www.tvkingdom.jp/chart/40.action", "やる気スイッチ": "https://hisato-kozuki.github.io/yaruki-switch/index.html", "記憶ゲーム": "https://hisato-kozuki.github.io/reversi-memory-game/index.html"});
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);

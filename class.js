@@ -311,6 +311,7 @@ class Button{
     }
     start(){
         clearTimeout(this.timeout);
+        if(this.dots)for(let i = 0; i < 8; i++)this.dots[i].remove();
         let dots = [];
         for(let i = 0; i < 8; i++){
             let dot = createE("div", {}, {

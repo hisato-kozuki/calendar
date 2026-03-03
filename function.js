@@ -1,4 +1,4 @@
-import { calendar, counter_elements, buttons } from "./class.js";
+import { calendar, reload_console } from "./class.js";
 
 const http_options = {
     'method' : 'post',
@@ -99,17 +99,17 @@ export function postEvents(type, datas, options){
             if(type == "post")localStorage.removeItem("element_post");
             if(type == "modify")localStorage.removeItem("element_modify");
             if(type == "delete")localStorage.removeItem("element_delete");
-            counter_elements[type].textContent = 0;
+            reload_console.counters[type].counter.textContent = 0;
             if(options != undefined && options.get_required == true){
-                buttons["sync"].start();
-                buttons["get_display"].start();
+                reload_console.sync_button.start();
+                reload_console.display_button.start();
                 get_events().then((data)=>{
                     display(data, true);//saveCalendarEventsToDB(data);
-                    buttons["sync"].stop("同期");
-                    buttons["get_display"].stop("🔄");
+                    reload_console.sync_button.stop("同期");
+                    reload_console.display_button.stop("🔄");
                     saveCalendarEvents(data);
                     console.log("post events 完了")
-                }).catch(()=>{buttons["sync"].stop("Error");buttons["get_display"].stop("🔄");});
+                }).catch(()=>{reload_console.sync_button.stop("Error");reload_console.display_button.stop("🔄");});
             }
             if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
         })
@@ -174,14 +174,14 @@ export function reload(event, button){
     if(event != undefined){ //ボタンを押して更新する場合
         let date_start = new Date(Date.parse(event.target.start.value));
         let date_end = new Date(Date.parse(event.target.end.value));
-        buttons["sync"].start();
+        reload_console.sync_button.start();
         get_events(date_start, date_end).then((data)=>{
             display(data, true);//saveCalendarEventsToDB(data);
             console.log("更新 完了");
-            buttons["sync"].stop("同期");
-            buttons["get_display"].stop("🔄");
+            reload_console.sync_button.stop("同期");
+            reload_console.display_button.stop("🔄");
             saveCalendarEvents(data);
-        }).catch(()=>buttons["sync"].stop("Error"));
+        }).catch(()=>reload_console.sync_button.stop("Error"));
     } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
     const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
     let date_old = new Date(todayDate - 86400000);
@@ -293,29 +293,6 @@ export function countUpTimer(flag, no_save){
     document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+" "+(count%60).toString().padStart(2, "0");
 }
 
-export function button_display(button, console_id){
-    console.log(console_id);
-    if(document.getElementById(console_id).style.transform == 'scale(1, 1)'){
-        document.getElementById(console_id).style.transform = 'scale(0, 0)';
-        document.getElementsByClassName("curtain")[0].style.opacity = 0;
-        document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
-        button.style.backgroundColor = "coral";
-    } else {
-        let forms = document.getElementsByClassName('console_container')[0].children;
-        for(let i = 0; i < forms.length; i++){
-            forms[i].style.transform = 'scale(0, 0)';
-        }
-        let buttons = document.getElementsByClassName('button_container')[0].querySelectorAll("button");
-        for(let i = 0; i < buttons.length; i++){
-            buttons[i].style.backgroundColor = 'coral';
-        }
-        document.getElementById(console_id).style.transform = 'scale(1, 1)';
-        document.getElementsByClassName("curtain")[0].style.opacity = 1;
-        document.getElementsByClassName("curtain")[0].style.visibility = "visible";
-        button.style.backgroundColor = "#ff4014";
-    }
-}
-
 export function searchParent(element){
     let parent = element.parentElement;
     if(parent.nodeName == "BODY")return [element];
@@ -343,7 +320,7 @@ export function pushLocalStorage(key, data){ // ローカルストレージに�
     }
     else datas = [data];
     localStorage["element_" + key] = JSON.stringify(datas);
-    counter_elements[key].textContent = datas.length;
+    reload_console.counters[key].counter.textContent = datas.length;
 }
 
 export function deleteLocalStorage(key, data){ // ローカルストレージのデータを削除する関数
@@ -358,6 +335,6 @@ export function deleteLocalStorage(key, data){ // ローカルストレージの
             }
         }
         localStorage["element_" + key] = JSON.stringify(datas);
-        counter_elements[key].textContent = datas.length;
+        reload_console.counters[key].counter.textContent = datas.length;
     }
 }

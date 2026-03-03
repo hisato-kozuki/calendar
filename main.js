@@ -1,6 +1,6 @@
 document.getElementById("p").innerText = "";
-import { date_string, str2date, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, button_display, searchParent, pushLocalStorage } from "./function.js";
-import { calendar, buttons } from "./class.js";
+import { date_string, str2date, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, searchParent, pushLocalStorage } from "./function.js";
+import { calendar, reload_console, register_console, timer_console } from "./class.js";
 
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
@@ -62,7 +62,7 @@ document.getElementsByClassName("curtain")[0].addEventListener('click', (event) 
     // }
 })
 
-document.getElementById("postbutton").addEventListener('click', (event) => {
+register_console.element.querySelectorAll("button")[2].addEventListener('click', (event) => {
     // イベントを停止する
     let form = event.target.parentElement;
     let button = event.target;
@@ -86,18 +86,8 @@ document.getElementById("postbutton").addEventListener('click', (event) => {
     } else if (button.textContent == "変更"){
         calendar.modifyEvent(element_data);
         pushLocalStorage("modify", element_data);
-        document.getElementById("register_console").style.transform = 'scale(0, 0)';
-        document.getElementsByClassName("curtain")[0].style.opacity = 0;
-        document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
-        document.getElementById("register_display_button").style.backgroundColor = "coral";
+        register_console.shrink();
     }
-    // if(element_data.title != "" && button.innerText == "送信"){
-    //     cellPendingAnimation(button);
-    //     postEvents("post", [element_data], {"get_required": true}).then((data) => {
-    //         if(data)document.getElementById("postbutton").innerText = "完了";
-    //         else document.getElementById("postbutton").innerText = "Error";
-    //     });
-    // } else {button.innerText = "送信";}
 });
 
 document.getElementById("register_form").datetime_start.addEventListener('change', (event) => {
@@ -122,28 +112,30 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     apiUrl=event.target.url.value;
     localStorage["apiUrl"] = apiUrl;
     // saveApiUrlToDB(apiUrl);
-    buttons["sync"].start();
-    buttons["get_display"].start();
+    reload_console.sync_button.start();
+    reload_console.display_button.start();
     get_events().then((data)=>{
         display(data, true); //saveCalendarEventsToDB(data);
         saveCalendarEvents(data);
         console.log("url更新 完了")
-        buttons["sync"].stop("同期");
-        buttons["get_display"].stop("🔄");
+        reload_console.sync_button.stop("同期");
+        reload_console.display_button.stop("🔄");
     });
 });
 
-document.getElementById("reload_form").addEventListener('submit', event => {
+reload_console.element.querySelector("form").addEventListener('submit', event => {
     event.preventDefault();
     let button = event.target.querySelector("#getbutton");
     if(button.textContent == "同期"){
         let promises = [];
-        buttons["get_display"].start();
+        reload_console.display_button.start();
         for(let type of ["post", "delete", "modify"]){
-            if(localStorage["element_"+type]){
-                buttons[type].start();
-                let promise = postEvents(type, JSON.parse(localStorage["element_"+type]), {"get_required": false});
-                promise.then(()=>buttons[type].stop("📤")).catch(()=>buttons[type].stop("Error"));
+            let stored_data = localStorage["element_"+type];
+            if(stored_data){
+                const button = reload_console.counters[type].button;
+                button.start();
+                let promise = postEvents(type, JSON.parse(stored_data), {"get_required": false});
+                promise.then(()=>button.stop("📤")).catch(()=>button.stop("Error"));
                 promises.push(promise);
             }
         }
@@ -153,7 +145,7 @@ document.getElementById("reload_form").addEventListener('submit', event => {
             reload(event);
         })
         .catch((error) => {
-            buttons["get_display"].stop("Error");
+            reload_console.display_button.stop("Error");
         });
     } else button.textContent = "同期";
 });
@@ -250,13 +242,17 @@ document.getElementById("studysend").addEventListener('click', event => {
             data[0].title = "hhhhh"+(localStorage.getItem("hobbyTimeSeconds")).toString().padStart(5, "0");
             localStorage.setItem("hobbyTimeSeconds", 0);
         }
-        buttons["timersend"].start();
+        timer_console.send_button.start();
+        reload_console.display_button.start();
         postEvents("post", data, {"get_required": false}).then((data) => {
             if(data){
-                buttons["timersend"].stop("📤");
+                timer_console.send_button.stop("📤");
+                reload_console.display_button.stop("🔄");
                 document.getElementById("timer").innerText = "00:00 00";
+            } else {
+                timer_console.send_button.stop("Error");
+                reload_console.display_button.stop("🔄");
             }
-            else buttons["timersend"].stop("Error");
         });
     }
 });
@@ -267,22 +263,10 @@ document.getElementById("clear_timer").addEventListener('click', event => {
     document.getElementById("timer").innerText = "00:00 00";
 });
 
-document.getElementById("register_display_button").addEventListener("click", event =>{
-    button_display(event.target, 'register_console');
-    document.getElementById("postbutton").textContent = "作成";
+reload_console.display_button.element.addEventListener("dblclick", event =>{
+    reload_console.sync_button.element.click();
 })
-document.getElementById("get_display_button").addEventListener("click", event =>{
-    button_display(event.target, 'reload_console');
-})
-document.getElementById("url_display_button").addEventListener("click", event =>{
-    button_display(event.target, 'url_console');
-})
-document.getElementById("timer_display_button").addEventListener("click", event =>{
-    button_display(event.target, 'timer_console');
-})
-document.getElementById("historybutton").addEventListener("click", event =>{
-    button_display(event.target, 'history_console');
-})
-document.getElementById("urlbutton").addEventListener("click", event =>{
-    button_display(event.target, 'apiurl_console');
+
+register_console.display_button.element.addEventListener("click", event =>{
+    register_console.element.querySelectorAll("button")[2].textContent = "作成";
 })

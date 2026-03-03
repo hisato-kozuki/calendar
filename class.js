@@ -1,4 +1,4 @@
-import { createE, date_string, str2date, button_display, postEvents, pushLocalStorage, deleteLocalStorage } from "./function.js";
+import { createE, date_string, str2date, postEvents, reload, pushLocalStorage, deleteLocalStorage } from "./function.js";
 
 const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 const days = ["日", "月", "火", "水", "木", "金", "土"];
@@ -187,7 +187,7 @@ class Event{
 
         for(let cell of [date_cell, event_cell, event_cell2, mark_cell]){
             cell.addEventListener("click", (event) => {
-                button_display(document.getElementById("register_display_button"), 'register_console');
+                register_console.expand();
                 let form = document.getElementById("register_form");
                 form.id.value = event_data.id;
                 form.title.value = event_data.title;
@@ -407,23 +407,51 @@ class ColorCircle{
     }
 }
 
+class Console{
+    constructor(console){
+        this.element = console;
+        this.display_button = new Button(console.querySelector("button"));
+        this.display_button.element.addEventListener("click", event =>{
+            if(console.style.transform == 'scale(1, 1)')this.shrink();
+            else this.expand();
+        })
+        document.getElementsByClassName("button_container")[0].appendChild(console.querySelector("div"));
+    }
+    expand(){
+        let forms = document.getElementsByClassName('console_container')[0].children;
+        for(let i = 0; i < forms.length; i++){
+            forms[i].style.transform = 'scale(0, 0)';
+        }
+        let buttons = document.getElementsByClassName('button_container')[0].querySelectorAll("button");
+        for(let i = 0; i < buttons.length; i++){
+            buttons[i].style.backgroundColor = 'coral';
+        }
+        this.element.style.transform = 'scale(1, 1)';
+        let curtain = document.getElementsByClassName("curtain")[0];
+        curtain.style.opacity = 1;
+        curtain.style.visibility = "visible";
+        this.display_button.element.style.backgroundColor = "#ff4014";
+    }
+    shrink(){
+        this.element.style.transform = 'scale(0, 0)';
+        let curtain = document.getElementsByClassName("curtain")[0];
+        curtain.style.opacity = 0;
+        curtain.style.visibility = "hidden";
+        this.display_button.element.style.backgroundColor = "coral";
+    }
+}
 
 export const calendar = new Calendar();
 
-const counter = [new Counter("post"), new Counter("modify"), new Counter("delete")]
-
-export const counter_elements = {
-    "post": counter[0].counter,
-    "modify": counter[1].counter,
-    "delete": counter[2].counter,
-}
-export const buttons = {
-    "post": counter[0].button,
-    "modify": counter[1].button,
-    "delete": counter[2].button,
-    "sync": new Button(document.getElementById("getbutton")),
-    "get_display": new Button(document.getElementById("get_display_button")),
-    "timersend": new Button(document.getElementById("studysend")),
-}
-
 new ColorCircle(document.getElementById("colorcircle"), document.getElementById("register_form").color)
+
+export const reload_console = new Console(document.getElementById("reload_console"));
+export const register_console = new Console(document.getElementById("register_console"));
+const url_console = new Console(document.getElementById("url_console"));
+export const timer_console = new Console(document.getElementById("timer_console"));
+const history_console = new Console(document.getElementById("history_console"));
+const apiurl_console = new Console(document.getElementById("apiurl_console"));
+
+reload_console.sync_button = new Button(reload_console.element.querySelector("button"));
+reload_console.counters = {post: new Counter("post"), modify: new Counter("modify"), delete: new Counter("delete")};
+timer_console.send_button = new Button(document.getElementById("studysend"));

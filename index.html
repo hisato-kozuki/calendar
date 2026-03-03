@@ -19,52 +19,57 @@
         <div class="curtain"></div>
         <div class="console_container">        
             <!-- 更新ボタンを押すと、フォームが表示されます。 -->
-            <div id="reload_console"><form id="reload_form" style="flex-direction: column;">
-                <div style="display: flex;">
-                    <div style="align-content:center;width:17em;">
-                        <p>開始:<input type="date" name="start" style="width:12em"/></p>
-                        <p>終了:<input type="date" name="end" style="width:12em"/></p>
-                    </div>
-                    <div style="display:flex;align-items:center;justify-items:center;width:7em;">
-                        <div style="position:relative;align-content:center;"><button id="getbutton" type="submit" style="width:5em;height:3em;margin:0px;">同期</button></div>
-                    </div>
-                </div>
-                <div style="display: flex;">
-                    <div id="post_counter" style="justify-items:center;align-items:center;width:7em;">
-                        <div style="display:flex;justify-content:center;margin:0.5em;">
-                            <p style="margin:0px;width:3em;text-align:end;">作成：</p>
-                            <p style="margin:0px;width:1em;">0</p>
+            <div id="reload_console">
+                <div style="position: relative;"><button>🔄</button></div>
+                <form id="reload_form" style="flex-direction: column;">
+                    <div style="display: flex;">
+                        <div style="align-content:center;width:17em;">
+                            <p>開始:<input type="date" name="start" style="width:12em"/></p>
+                            <p>終了:<input type="date" name="end" style="width:12em"/></p>
                         </div>
-                        <div style="position: relative;display: flex;">
-                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">📤</button></div>
-                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
+                        <div style="display:flex;align-items:center;justify-items:center;width:7em;">
+                            <div style="position:relative;align-content:center;"><button id="getbutton" type="submit" style="width:5em;height:3em;margin:0px;">同期</button></div>
                         </div>
                     </div>
-                    <div id="modify_counter" style="justify-items:center;align-items:center;width:7em;">
-                        <div style="display:flex;justify-content:center;margin:0.5em;">
-                            <p style="margin:0px;width:3em;text-align:end;">変更：</p>
-                            <p style="margin:0px;width:1em;">0</p>
+                    <div style="display: flex;">
+                        <div id="post_counter" style="justify-items:center;align-items:center;width:7em;">
+                            <div style="display:flex;justify-content:center;margin:0.5em;">
+                                <p style="margin:0px;width:3em;text-align:end;">作成：</p>
+                                <p style="margin:0px;width:1em;">0</p>
+                            </div>
+                            <div style="position: relative;display: flex;">
+                                <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">📤</button></div>
+                                <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
+                            </div>
                         </div>
-                        <div style="position: relative;display: flex;">
-                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">📤</button></div>
-                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
+                        <div id="modify_counter" style="justify-items:center;align-items:center;width:7em;">
+                            <div style="display:flex;justify-content:center;margin:0.5em;">
+                                <p style="margin:0px;width:3em;text-align:end;">変更：</p>
+                                <p style="margin:0px;width:1em;">0</p>
+                            </div>
+                            <div style="position: relative;display: flex;">
+                                <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">📤</button></div>
+                                <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
+                            </div>
+                        </div>
+                        <div id="delete_counter" style="justify-items:center;align-items:center;width:7em;">
+                            <div style="display:flex;justify-content:center;margin:0.5em;">
+                                <p style="margin:0px;width:3em;text-align:end;">削除：</p>
+                                <p style="margin:0px;width:1em;">0</p>
+                            </div>
+                            <div style="position: relative;display: flex;">
+                                <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em;justify-content:center;">📤</button></div>
+                                <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
+                            </div>
                         </div>
                     </div>
-                    <div id="delete_counter" style="justify-items:center;align-items:center;width:7em;">
-                        <div style="display:flex;justify-content:center;margin:0.5em;">
-                            <p style="margin:0px;width:3em;text-align:end;">削除：</p>
-                            <p style="margin:0px;width:1em;">0</p>
-                        </div>
-                        <div style="position: relative;display: flex;">
-                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em;justify-content:center;">📤</button></div>
-                            <div style="position: relative"><button style="width:2em;height:2em;margin:0.5em">消</button></div>
-                        </div>
-                    </div>
-                </div>
-            </form></div>
+                </form>
+            </div>
     
             <!-- 登録ボタンを押すと、フォームが表示されます。 -->
-            <div id="register_console"><form id="register_form">
+            <div id="register_console">
+                <div style="position: relative;"><button>🖋</button></div>
+                <form id="register_form">
                 <div style="width:24em;">
                     <div style="display:flex">
                         <div style="width:15em;">
@@ -98,15 +103,19 @@
             </form></div>
 
             <!-- URL表示ボタンを押すと、フォームが表示されます。 -->
-            <div id="url_console"><form id="urlform" style="flex-direction: column;align-items: center;">
-                <p id="urls"></p>
-                <input id="nameinput" style="width: 90%;" type="text" name="name" placeholder="名"/>
-                <input id="urlinput" style="width: 90%;" type="url" name="url" placeholder="url"/>
-                <button id="urlformbutton" style="width:4em;height:2em;margin:1em;" type="submit">登録</button>
-            </form></div>
+            <div id="url_console">
+                <div style="position: relative;"><button class="fontlight">URL</button></div>
+                <form id="urlform" style="flex-direction: column;align-items: center;">
+                    <p id="urls"></p>
+                    <input id="nameinput" style="width: 90%;" type="text" name="name" placeholder="名"/>
+                    <input id="urlinput" style="width: 90%;" type="url" name="url" placeholder="url"/>
+                    <button id="urlformbutton" style="width:4em;height:2em;margin:1em;" type="submit">登録</button>
+                </form>
+            </div>
 
             <!-- タイマー -->
-            <div id="timer_console" style="display:flex;flex-direction:column;align-items:center;border:solid black 1px;margin-top:12px;">    
+            <div id="timer_console" style="display:flex;flex-direction:column;align-items:center;border:solid black 1px;margin-top:12px;">
+                <div style="position: relative;"><button>🕒</button></div>   
                 <p id="timer_select" style="width:11em;height:3em;margin:0.5em;border:solid black 1px;text-align: center;align-content: center;">勉強</p>
                 <p id="timer" style="width:11em;height:4em;margin:0.5em;border:solid black 1px;text-align:center;align-content: center;"></p>
                 <div style="display:flex;justify-content:center;">
@@ -118,6 +127,7 @@
 
             <!-- 履歴 -->
             <div id="history_console" style="display:flex;justify-content: center;">
+                <div style="position: relative;"><button>📅</button></div>
                 <div class="grid" style="width:18em;height:12em;align-self:center;justify-self:center;">
                     <div id="studyhistory" style="grid-column: 2; grid-row: 1;">勉強時間</div>
                     <div id="hobbyhistory" style="grid-column: 3; grid-row: 1;">趣味時間</div>
@@ -133,20 +143,14 @@
 
             <!-- API URL更新 -->
             <div id="apiurl_console" style="display: flex;">
+                <div style="position: relative;"><button class="fontlight">API</button></div>
                 <form id="apiurl_form" style="align-items: center;">
                     <input type="password" name="url" placeholder="urlを入力してください。" style="height:3rem;margin:1em;width:15em;"/>
                     <button type="submit" style="width:5em;height:3em;margin:1em;">送信</button>
                 </form>
             </div>
         </div>
-        <div class="button_container">
-            <div style="position: relative;"><button id="get_display_button">🔄</button></div>
-            <button id="register_display_button">🖋</button>
-            <button id="url_display_button" class="fontlight">URL</button>
-            <button id="timer_display_button">🕒</button>
-            <button id="historybutton">📅</button>
-            <button id="urlbutton" class="fontlight">API</button>
-        </div>
+        <div class="button_container"></div>
         <script src="main.js" type="module">
         </script>
     </body>

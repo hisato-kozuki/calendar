@@ -1,4 +1,4 @@
-import { createE, date_string, str2date, postEvents, reload, pushLocalStorage, deleteLocalStorage } from "./function.js";
+import { createE, date_string, str2date, pushLocalStorage, deleteLocalStorage } from "./function.js";
 
 const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
 const days = ["日", "月", "火", "水", "木", "金", "土"];
@@ -270,9 +270,11 @@ class Counter{
             if(localStorage["element_" + type]){
                 this.button.start();
                 console.log(localStorage["element_" + type])
-                postEvents(type, JSON.parse(localStorage["element_" + type]), {"get_required": false})
-                .then(()=>this.button.stop("📤"))
-                .catch(()=>this.button.stop("Error"));
+                reload_console.postEvents(type, JSON.parse(localStorage["element_" + type]), {"get_required": false})
+                .then(()=>{
+                    reload_console.display_button.stop("🔄");
+                    this.button.stop("📤");
+                }).catch(()=>this.button.stop("Error"));
             } else clearTimeout(this.button.timeout);
         })
         clear.addEventListener('click', event => { // 予定作成、変更、削除キューの中身をクリアする
@@ -306,11 +308,12 @@ class Counter{
 class Button{
     constructor(button){
         this.element = button;
-        this.text = "📤";
+        this.text = button.textContent;
         this.timeout = null;
     }
     start(){
         clearTimeout(this.timeout);
+        this.element.textContent = this.text;
         if(this.dots)for(let i = 0; i < 8; i++)this.dots[i].remove();
         let dots = [];
         for(let i = 0; i < 8; i++){
@@ -343,13 +346,15 @@ class Button{
         clearTimeout(this.timeout);
         for(let i = 0; i < 8; i++){
             this.dots[i].style.left = "50%";
-            this.dots[i].style.top = "50%";            
-            setTimeout(() => this.dots[i].remove(), 500);
+            this.dots[i].style.top = "50%";
         }
         if(text){
             this.element.textContent = "完了";
-            this.timeout = setTimeout(() => this.element.textContent = text, 500);
         }
+        this.timeout = setTimeout(() => {
+            this.element.textContent = text;
+            for(let i = 0; i < 8; i++)this.dots[i].remove();
+        }, 500);
     }
 }
 

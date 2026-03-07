@@ -1,5 +1,5 @@
 document.getElementById("p").innerText = "";
-import { date_string, str2date, get_events, postEvents, reload, display, getCalendarEvents, saveCalendarEvents, countUpTimer, searchParent, pushLocalStorage } from "./function.js";
+import { date_string, str2date, display, getCalendarEvents, saveCalendarEvents, countHistory, countUpTimer, searchParent, pushLocalStorage } from "./function.js";
 import { calendar, reload_console, register_console, timer_console } from "./class.js";
 
 if ('serviceWorker' in navigator) {
@@ -21,7 +21,13 @@ let apiUrl;
 let urlLinks = {};//よく使うサイトのリンク
 let studyTimeSeconds=0, hobbyTimeSeconds=0;
 let isStudying=false, isHavingHobby=false;
-
+const http_options = {
+    'method' : 'post',
+    'headers': {
+        'Content-Type': "application/x-www-form-urlencoded",
+    },
+    'body' : '' //送りたいデータをpayloadに配置してJSON形式変換。
+};
 window.onload = function(){
     let text = date_string(todayDate, "-", {"required": ["year", "hour"]});
     document.getElementById("register_form").datetime_start.value = text;
@@ -31,7 +37,7 @@ window.onload = function(){
     // getApiUrlFromDB().then((data)=>{apiUrl = data});
     // getCalendarEventsFromDB();
     getCalendarEvents();
-    reload(); //カレンダーを更新
+    reload_console.reload(); //カレンダーを更新
     if(!localStorage["apiUrl"])localStorage["links"] = JSON.stringify({"Youtube": "https://www.youtube.com/", "番組表": "https://www.tvkingdom.jp/chart/40.action", "やる気スイッチ": "https://hisato-kozuki.github.io/yaruki-switch/index.html", "記憶ゲーム": "https://hisato-kozuki.github.io/reversi-memory-game/index.html"});
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
@@ -62,6 +68,98 @@ document.getElementsByClassName("curtain")[0].addEventListener('click', (event) 
         }
     // }
 })
+
+reload_console.getEvents = (startDate, endDate) => {
+    //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
+    if(startDate == undefined){
+        startDate = new Date(todayDate);
+        endDate =  new Date(todayDate);
+        startDate.setDate(startDate.getDate()-1);
+        endDate.setMonth(endDate.getMonth()+2);
+    }
+    // console.log("get_events", startDate, endDate)
+    const data = {
+        'type': "get",
+        'date_start': startDate,
+        'date_end': endDate
+    };
+    http_options.body=JSON.stringify(data);
+    reload_console.sync_button.start();
+    reload_console.display_button.start();
+    return new Promise((resolve, reject) => {
+        fetch(localStorage["apiUrl"], http_options)
+        .then(response => response.text())
+        .then(data => {
+            let received_data=JSON.parse(data);
+            if(data.error)document.getElementById("p").innerText = data.error;
+            reload_console.sync_button.stop("同期");
+            resolve(received_data);
+        })
+        .catch(error => {
+            console.log("reload not complete");
+            console.error("Error:", error);
+            document.getElementById("p").innerText = error;
+            reload_console.sync_button.stop("Error");
+            reject(error);
+        });
+    });
+}
+
+reload_console.reload = (event, button) => {
+    let promise1;
+    if(event != undefined){ //ボタンを押して更新する場合
+        let date_start = new Date(Date.parse(event.target.start.value));
+        let date_end = new Date(Date.parse(event.target.end.value));
+        promise1 = reload_console.getEvents(date_start, date_end).then((data)=>{
+            display(data, true);//saveCalendarEventsToDB(data);
+            console.log("更新 完了");
+            saveCalendarEvents(data);
+        });
+    } else promise1 = reload_console.getEvents().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
+    const promise2 = new Promise((resolve) =>reload_console.getEvents(todayDate, date, false).then((data)=>resolve(data)));
+    let date_old = new Date(todayDate - 86400000);
+    const promise3 = new Promise((resolve) =>reload_console.getEvents(date_old, todayDate, false).then((data)=>resolve(data)));
+    date_old = new Date(todayDate - 604800000);
+    const promise4 = new Promise((resolve) =>reload_console.getEvents(date_old, todayDate, false).then((data)=>resolve(data)));
+    Promise.all([promise1, promise2, promise3, promise4])
+    .then((results) => {
+        console.log("d")
+        reload_console.display_button.stop("🔄");
+        countHistory(results[1], 2);
+        countHistory(results[2], 3);
+        countHistory(results[3], 4);
+        console.log("ボタン更新2")
+        console.log("予定読み込み，履歴読み込み完了");
+    })
+}
+
+reload_console.postEvents = (type, datas, options) => {
+    console.log(type, datas);
+    let received_data;
+    let post_data = {"type": type, "datas": datas};
+    http_options.body=JSON.stringify(post_data);
+    reload_console.display_button.start();
+    return new Promise((resolve, reject) => {
+        fetch(localStorage["apiUrl"], http_options)
+        .then(response => response.text())
+        .then(data => {
+            console.log(received_data = data);
+            let parsed_data = JSON.parse(data);
+            if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
+            if(type == "post")localStorage.removeItem("element_post");
+            if(type == "modify")localStorage.removeItem("element_modify");
+            if(type == "delete")localStorage.removeItem("element_delete");
+            reload_console.counters[type].counter.textContent = 0;
+            resolve(true);
+            if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            document.getElementById("p").innerText = error + "\n" + received_data;
+            reject(false);
+        });
+    })
+}
 
 register_console.element.querySelectorAll("button")[2].addEventListener('click', (event) => {
     // イベントを停止する
@@ -113,14 +211,11 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     apiUrl=event.target.url.value;
     localStorage["apiUrl"] = apiUrl;
     // saveApiUrlToDB(apiUrl);
-    reload_console.sync_button.start();
-    reload_console.display_button.start();
-    get_events().then((data)=>{
+    reload_console.getEvents().then((data)=>{
         display(data, true); //saveCalendarEventsToDB(data);
+        reload_console.display_button.stop("🔄");
         saveCalendarEvents(data);
         console.log("url更新 完了")
-        reload_console.sync_button.stop("同期");
-        reload_console.display_button.stop("🔄");
     });
 });
 
@@ -135,7 +230,7 @@ reload_console.element.querySelector("form").addEventListener('submit', event =>
             if(stored_data){
                 const button = reload_console.counters[type].button;
                 button.start();
-                let promise = postEvents(type, JSON.parse(stored_data), {"get_required": false});
+                let promise = reload_console.postEvents(type, JSON.parse(stored_data), {"get_required": false});
                 promise.then(()=>button.stop("📤")).catch(()=>button.stop("Error"));
                 promises.push(promise);
             }
@@ -143,10 +238,12 @@ reload_console.element.querySelector("form").addEventListener('submit', event =>
         Promise.all(promises)
         .then((results) => {
             console.log(promises)
-            reload(event);
+            reload_console.display_button.stop("🔄");
+            console.log("0")
+            reload_console.reload(event);
         })
         .catch((error) => {
-            reload_console.display_button.stop("Error");
+            reload_console.display_button.stop("🔄");
         });
     } else button.textContent = "同期";
 });
@@ -244,16 +341,13 @@ document.getElementById("studysend").addEventListener('click', event => {
             localStorage.setItem("hobbyTimeSeconds", 0);
         }
         timer_console.send_button.start();
-        reload_console.display_button.start();
-        postEvents("post", data, {"get_required": false}).then((data) => {
-            if(data){
-                timer_console.send_button.stop("📤");
-                reload_console.display_button.stop("🔄");
-                document.getElementById("timer").innerText = "00:00 00";
-            } else {
-                timer_console.send_button.stop("Error");
-                reload_console.display_button.stop("🔄");
-            }
+        reload_console.postEvents("post", data, {"get_required": false}).then((data) => {
+            timer_console.send_button.stop("📤");
+            reload_console.display_button.stop("🔄");
+            document.getElementById("timer").innerText = "00:00 00";
+        }).catch((data) => {
+            timer_console.send_button.stop("Error");
+            reload_console.display_button.stop("🔄");
         });
     }
 });

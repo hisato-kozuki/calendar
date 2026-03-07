@@ -1,12 +1,5 @@
 import { calendar, reload_console } from "./class.js";
 
-const http_options = {
-    'method' : 'post',
-    'headers': {
-        'Content-Type': "application/x-www-form-urlencoded",
-    },
-    'body' : '' //送りたいデータをpayloadに配置してJSON形式変換。
-};
 const date = new Date();
 const todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -48,80 +41,6 @@ export function str2date(date_string, defaultDate){
     return new Date(buffer.join(" ")); // 日付と時間で分割
 }
 
-export function get_events(startDate, endDate){
-    return new Promise((resolve, reject) => {
-            //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
-        if(startDate == undefined){
-            startDate = new Date(todayDate);
-            endDate =  new Date(todayDate);
-            startDate.setDate(startDate.getDate()-1);
-            endDate.setMonth(endDate.getMonth()+2);
-        }
-        // console.log("get_events", startDate, endDate)
-        const data = {
-            'type': "get",
-            'date_start': startDate,
-            'date_end': endDate
-        };
-        http_options.body=JSON.stringify(data);
-        fetch(localStorage["apiUrl"], http_options)
-        .then(response => response.text())
-        .then(data => {
-            let received_data=JSON.parse(data);
-            // console.log(received_data);
-            // document.getElementById("postbutton").textContent = "送信";
-            if(data.error)document.getElementById("p").innerText = data.error;
-            resolve(received_data);
-        })
-        .catch(error => {
-            console.log("reload not complete")
-            console.error("Error:", error);
-            document.getElementById("p").innerText = error;
-            reject(error);
-        });
-    });
-}
-
-export function postEvents(type, datas, options){
-    return new Promise((resolve, reject) => {
-        console.log(type, datas);
-        let received_data;
-        let post_data = {"type": type, "datas": datas};
-        http_options.body=JSON.stringify(post_data);
-
-        fetch(localStorage["apiUrl"], http_options)
-        .then(response => response.text())
-        .then(data => {
-            console.log(received_data = data);
-            let parsed_data = JSON.parse(data);
-            resolve(true);
-            if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
-            if(type == "post")localStorage.removeItem("element_post");
-            if(type == "modify")localStorage.removeItem("element_modify");
-            if(type == "delete")localStorage.removeItem("element_delete");
-            reload_console.counters[type].counter.textContent = 0;
-            if(options != undefined && options.get_required == true){
-                reload_console.sync_button.start();
-                reload_console.display_button.start();
-                get_events().then((data)=>{
-                    display(data, true);//saveCalendarEventsToDB(data);
-                    reload_console.sync_button.stop("同期");
-                    reload_console.display_button.stop("🔄");
-                    saveCalendarEvents(data);
-                    console.log("post events 完了")
-                }).catch(()=>{reload_console.sync_button.stop("Error");reload_console.display_button.stop("🔄");});
-            }
-            if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            document.getElementById("p").innerText = error + "\n" + received_data;
-            reject(false);
-            if(options != undefined && options.cell != undefined)options.cell.textContent = "Error";
-        });
-    })
-}
-
 export function createE(tag, options, styles){
     let element = document.createElement(tag);
     for(let key in options){
@@ -153,7 +72,7 @@ export function renewTask(event_data, date, color){
     }
 }
 
-function countHistory(events, row){
+export function countHistory(events, row){
     let studytime = 0; let hobbytime = 0;
     for(let i = 0; i < events.length; i++){
         if(events[i].color == 3){
@@ -169,33 +88,6 @@ function countHistory(events, row){
     studyhistory.innerText = Math.floor(studytime/3600)+":"+Math.floor((studytime/60)%60).toString().padStart(2, 0)+","+(studytime%60).toString().padStart(2, 0);
     let hobbyhistory = document.getElementById("history"+row+"3");
     hobbyhistory.innerText = Math.floor(hobbytime/3600)+":"+Math.floor((hobbytime/60)%60).toString().padStart(2, 0)+","+(hobbytime%60).toString().padStart(2, 0);
-}
-export function reload(event, button){
-    if(event != undefined){ //ボタンを押して更新する場合
-        let date_start = new Date(Date.parse(event.target.start.value));
-        let date_end = new Date(Date.parse(event.target.end.value));
-        reload_console.sync_button.start();
-        get_events(date_start, date_end).then((data)=>{
-            display(data, true);//saveCalendarEventsToDB(data);
-            console.log("更新 完了");
-            reload_console.sync_button.stop("同期");
-            reload_console.display_button.stop("🔄");
-            saveCalendarEvents(data);
-        }).catch(()=>reload_console.sync_button.stop("Error"));
-    } else get_events().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
-    const promise2 = new Promise((resolve) =>get_events(todayDate, date, false).then((data)=>resolve(data)));
-    let date_old = new Date(todayDate - 86400000);
-    const promise3 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-    date_old = new Date(todayDate - 604800000);
-    const promise4 = new Promise((resolve) =>get_events(date_old, todayDate, false).then((data)=>resolve(data)));
-    Promise.all([promise2, promise3, promise4])
-    .then((results) => {
-        countHistory(results[0], 2);
-        countHistory(results[1], 3);
-        countHistory(results[2], 4);
-        console.log("ボタン更新2")
-        console.log("予定読み込み，履歴読み込み完了");
-    })
 }
 
 function createEventBackground(options, indexElement){
@@ -258,7 +150,15 @@ export function display(events, task_renew_required){
             skip = 0;
         }else skip++;
     }
-    if(localStorage["element_modify"] != undefined)postEvents("modify", JSON.parse(localStorage["element_modify"]), {"get_required": true});
+    if(localStorage["element_modify"] != undefined)reload_console.postEvents("modify", JSON.parse(localStorage["element_modify"]), {"get_required": true})
+        .then(() => {
+            reload_console.getEvents().then((data)=>{
+                display(data, true);//saveCalendarEventsToDB(data);
+                reload_console.display_button.stop("🔄");
+                saveCalendarEvents(data);
+                console.log("post events 完了")
+            });
+        });
 }
 
 export function getCalendarEvents(){

@@ -150,7 +150,7 @@ export function display(events, task_renew_required){
             skip = 0;
         }else skip++;
     }
-    if(localStorage["element_modify"] != undefined)reload_console.postEvents("modify", JSON.parse(localStorage["element_modify"]), {"get_required": true})
+    if(localStorage["element_modify"] != undefined)Promise.all(reload_console.postEvents([{type: "modify", data: JSON.parse(localStorage["element_modify"])}], {"get_required": true}))
         .then(() => {
             reload_console.getEvents().then((data)=>{
                 display(data, true);//saveCalendarEventsToDB(data);

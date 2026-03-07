@@ -268,13 +268,8 @@ class Counter{
         submit.addEventListener('click', event => {
             event.preventDefault();
             if(localStorage["element_" + type]){
-                this.button.start();
                 console.log(localStorage["element_" + type])
-                reload_console.postEvents(type, JSON.parse(localStorage["element_" + type]), {"get_required": false})
-                .then(()=>{
-                    reload_console.display_button.stop("🔄");
-                    this.button.stop("📤");
-                }).catch(()=>this.button.stop("Error"));
+                Promise.all(reload_console.postEvents([{type: type, data: JSON.parse(localStorage["element_" + type])}], {"get_required": false}))
             } else clearTimeout(this.button.timeout);
         })
         clear.addEventListener('click', event => { // 予定作成、変更、削除キューの中身をクリアする

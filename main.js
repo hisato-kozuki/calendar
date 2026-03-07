@@ -133,32 +133,42 @@ reload_console.reload = (event, button) => {
     })
 }
 
-reload_console.postEvents = (type, datas, options) => {
-    console.log(type, datas);
+reload_console.postEvents = (types_datas, options) => {
+    console.log(types_datas);
     let received_data;
-    let post_data = {"type": type, "datas": datas};
-    http_options.body=JSON.stringify(post_data);
+    let promises = [];
     reload_console.display_button.start();
-    return new Promise((resolve, reject) => {
-        fetch(localStorage["apiUrl"], http_options)
-        .then(response => response.text())
-        .then(data => {
-            console.log(received_data = data);
-            let parsed_data = JSON.parse(data);
-            if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
-            if(type == "post")localStorage.removeItem("element_post");
-            if(type == "modify")localStorage.removeItem("element_modify");
-            if(type == "delete")localStorage.removeItem("element_delete");
-            reload_console.counters[type].counter.textContent = 0;
-            resolve(true);
-            if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            document.getElementById("p").innerText = error + "\n" + received_data;
-            reject(false);
-        });
-    })
+    for(let typedata of types_datas){
+        let type = typedata.type;
+        let post_data = {"type": type, "datas": typedata.data};
+        http_options.body=JSON.stringify(post_data);
+        const button = reload_console.counters[type].button;
+        button.start();
+        promises.push(new Promise((resolve, reject) => {
+            fetch(localStorage["apiUrl"], http_options)
+            .then(response => response.text())
+            .then(data => {
+                console.log(received_data = data);
+                let parsed_data = JSON.parse(data);
+                if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
+                localStorage.removeItem("element_" + type);
+                reload_console.counters[type].counter.textContent = 0;
+                button.stop("📤");
+                resolve(true);
+                if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("p").innerText = error + "\n" + received_data;
+                button.stop("Error");
+                reject(false);
+            });
+        }))
+    }
+    Promise.all(promises).then(() => reload_console.display_button.stop("🔄"))
+    .catch(() => reload_console.display_button.stop("🔄"));
+      
+    return promises;
 }
 
 register_console.element.querySelectorAll("button")[2].addEventListener('click', (event) => {
@@ -224,27 +234,19 @@ reload_console.element.querySelector("form").addEventListener('submit', event =>
     let button = event.target.querySelector("#getbutton");
     if(button.textContent == "同期"){
         let promises = [];
-        reload_console.display_button.start();
+        let types_datas = [];
         for(let type of ["post", "delete", "modify"]){
             let stored_data = localStorage["element_"+type];
             if(stored_data){
-                const button = reload_console.counters[type].button;
-                button.start();
-                let promise = reload_console.postEvents(type, JSON.parse(stored_data), {"get_required": false});
-                promise.then(()=>button.stop("📤")).catch(()=>button.stop("Error"));
-                promises.push(promise);
+                types_datas.push({type: type, data: JSON.parse(stored_data)});
             }
         }
-        Promise.all(promises)
+        let promise = reload_console.postEvents(types_datas, {"get_required": false});
+        Promise.all(promise)
         .then((results) => {
-            console.log(promises)
-            reload_console.display_button.stop("🔄");
-            console.log("0")
+            console.log(promise)
             reload_console.reload(event);
         })
-        .catch((error) => {
-            reload_console.display_button.stop("🔄");
-        });
     } else button.textContent = "同期";
 });
 
@@ -341,13 +343,11 @@ document.getElementById("studysend").addEventListener('click', event => {
             localStorage.setItem("hobbyTimeSeconds", 0);
         }
         timer_console.send_button.start();
-        reload_console.postEvents("post", data, {"get_required": false}).then((data) => {
+        Promise.all(reload_console.postEvents([{type: "post", data: data}], {"get_required": false})).then((data) => {
             timer_console.send_button.stop("📤");
-            reload_console.display_button.stop("🔄");
             document.getElementById("timer").innerText = "00:00 00";
         }).catch((data) => {
             timer_console.send_button.stop("Error");
-            reload_console.display_button.stop("🔄");
         });
     }
 });

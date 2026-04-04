@@ -26,9 +26,10 @@
         flex-direction: column;
         width: 100%;
         height: 100%;
-        align-self: stretch;
+        /* align-self: stretch; */
     }
     .time_index{
+        position: relative;
         width: 200px;
         display: flex;
         flex-direction: column;
@@ -90,6 +91,15 @@
     .delete_cell{
         display: none;
     }
+    
+    #today_container .week_cell{ height: auto; }
+    #today_container .week_cell .div{ width: auto; }
+    #today_container .event_container{ display: flex; }
+    #today_container .date_cell{ display: block; }
+    #today_container .display_none_cell{ display: none; }
+    #today_container .display_land_none_cell{ display: block; }
+    #today_container .line{ display: block; }
+
     p{
         font-size: 14px;
     }

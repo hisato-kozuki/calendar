@@ -47,6 +47,13 @@
         width: 10%;
         margin: 1px;
     }
+
+    #today_container>.week_cell{ display: flex; }
+    #today_container .timeline{ display: grid; }
+    #today_container .day_cell{ display: block; }
+    #today_container .date_index_cell{ display: none; }
+    #today_container .delete_cell{ display: none; }
+
     p{
         font-size: 14px;
     }

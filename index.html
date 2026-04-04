@@ -149,6 +149,16 @@
                     <button type="submit" style="width:5em;height:3em;margin:1em;">送信</button>
                 </form>
             </div>
+
+            <!-- 今日/明日の予定表示コンソール -->
+            <div id="today_console" style="display:flex;flex-direction:column;align-items:center;width:30em;height:25em;overflow: scroll;">
+                <div style="position: relative;"><button>今日</button></div>
+                <!-- <form id="today_form" style="flex-direction: column;align-items: center;"> -->
+                    <div id="today_container_wrapper" style="width:90%;">
+                        <div id="today_container" class="container" style="width:100%;left:0;display:flex;overflow: scroll;"></div>
+                    </div>
+                <!-- </form> -->
+            </div>
         </div>
         <div class="button_container"></div>
         <script src="main.js" type="module">

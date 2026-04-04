@@ -1,4 +1,4 @@
-import { calendar, reload_console } from "./class.js";
+import { calendar, reload_console, mini_calendar } from "./class.js";
 
 const date = new Date();
 const todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -118,7 +118,7 @@ export function display(events, task_renew_required){
     let oldStartHour = Math.min(Math.max(oldStartDate.getHours()-5, 1), 20);
     let date_end_long = new Array(5);
     for(let i = 0; i < events.length; i++){
-        if(events[i].color != 3){
+        if(events[i].color != 3 && events[i].color != 10){
             // console.log(events[i].date_start)
             let eventStartDate = new Date(events[i].date_start);
             let startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
@@ -169,6 +169,53 @@ export function getCalendarEvents(){
 
 export function saveCalendarEvents(received_data){
     localStorage.setItem("stored_events", JSON.stringify(received_data));
+    // 更新があったら今日/明日の小カレンダーも更新
+    try{ displayTodayTomorrow(); }catch(e){console.log(e)}
+}
+
+export function displayTodayTomorrow(){
+    let events = JSON.parse(localStorage.getItem("stored_events")) || [];
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 86400000);
+
+    const filtered = events.filter(e => {
+        const d = new Date(e.date_start);
+        const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        return day.getTime() === today.getTime() || day.getTime() === tomorrow.getTime();
+    });
+
+    // decide range to render
+    let date_start = today;
+    let date_end = tomorrow;
+    if(filtered.length > 0){
+        let min = new Date(filtered[0].date_start);
+        let max = new Date(filtered[0].date_end);
+        for(let ev of filtered){
+            const s = new Date(ev.date_start);
+            const e = new Date(ev.date_end);
+            if(s < min) min = s;
+            if(e > max) max = e;
+        }
+        date_start = new Date(min.getFullYear(), min.getMonth(), min.getDate());
+        date_end = new Date(max.getFullYear(), max.getMonth(), max.getDate());
+    }
+
+    const date_start_sunday = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate() - (date_start.getDay()%7));
+    const date_end_saturday = new Date(date_end.getFullYear(), date_end.getMonth(), date_end.getDate() + ((6 - date_end.getDay())%7));
+
+    // clear any existing mini calendar and render into the today_container element
+    // const parent = document.getElementById("today_container");
+    // if(!parent) return;
+    // // ensure it's empty
+    // while(parent.firstChild) parent.removeChild(parent.firstChild);
+
+    mini_calendar.make(date_start_sunday, date_end_saturday);
+
+    // add the filtered events to the mini calendar
+    for(let i = 0; i < filtered.length; i++){
+        try{ mini_calendar.addEvent(filtered[i], i, 1); }catch(e){console.log(e)}
+    }
 }
 
 export function countUpTimer(flag, no_save){

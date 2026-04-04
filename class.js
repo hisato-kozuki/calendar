@@ -4,12 +4,17 @@ const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511
 const days = ["日", "月", "火", "水", "木", "金", "土"];
 
 class Calendar{
+    constructor(parentElement){
+        this.parentElement = parentElement;
+    }
+    // parentElement: optional DOM element in which to render the calendar (defaults to first .container)
     make(date_start, date_end){
         this.remove();
         let weeks = [];
+        if(this.parentElement == undefined)this.parentElement = document.getElementsByClassName("container")[0];
         for(let date_sunday = new Date(date_start), i = 0; date_sunday <= date_end; date_sunday.setDate(date_sunday.getDate()+7), i++){
             let week = new Week(date_sunday);
-            document.getElementsByClassName("container")[0].appendChild(week.element);
+            this.parentElement.appendChild(week.element);
             weeks[i] = week;
         }
 
@@ -101,6 +106,7 @@ class Day {
             this.containers[startHour] = new Container(Event, this.timeline, i, startHour, endHour, duplicate);
         }
         this.display.style.display = "flex";
+        this.date_index_cell.style.display = "block";
     }
     modifyEvent(event_data){
         for(let container of this.containers){
@@ -441,7 +447,10 @@ class Console{
     }
 }
 
-export const calendar = new Calendar();
+export const calendar = new Calendar(document.getElementsByClassName("container")[0]);
+
+// 小カレンダー用インスタンス（今日／明日表示などに使用）
+export const mini_calendar = new Calendar(document.getElementsByClassName("container")[1]);
 
 new ColorCircle(document.getElementById("colorcircle"), document.getElementById("register_form").color)
 
@@ -451,6 +460,7 @@ const url_console = new Console(document.getElementById("url_console"));
 export const timer_console = new Console(document.getElementById("timer_console"));
 const history_console = new Console(document.getElementById("history_console"));
 const apiurl_console = new Console(document.getElementById("apiurl_console"));
+export const today_console = new Console(document.getElementById("today_console"));
 
 reload_console.sync_button = new Button(reload_console.element.querySelector("button"));
 reload_console.counters = {post: new Counter("post"), modify: new Counter("modify"), delete: new Counter("delete")};

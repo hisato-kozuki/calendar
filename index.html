@@ -151,13 +151,11 @@
             </div>
 
             <!-- 今日/明日の予定表示コンソール -->
-            <div id="today_console" style="display:flex;flex-direction:column;align-items:center;width:30em;height:25em;overflow: scroll;">
-                <div style="position: relative;"><button>今日</button></div>
-                <!-- <form id="today_form" style="flex-direction: column;align-items: center;"> -->
-                    <div id="today_container_wrapper" style="width:90%;">
-                        <div id="today_container" class="container" style="width:100%;left:0;display:flex;overflow: scroll;"></div>
-                    </div>
-                <!-- </form> -->
+            <div id="today_console" style="display:flex;flex-direction:column;align-items:start;width:40em;max-width:90%;height:fit-content;overflow: scroll;">
+                <div style="position: relative;"><button>今週</button></div>
+                <div id="today_container_wrapper">
+                    <div id="today_container" class="container" style="left:0;width:fit-content;display:flex;"></div>
+                </div>
             </div>
         </div>
         <div class="button_container"></div>

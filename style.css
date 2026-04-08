@@ -108,6 +108,19 @@ form{
     border: solid 1px black;
     transition: 0.2s;
 }
+
+#today_container .week_cell{ height: auto;display:flex; }
+#today_container .day_cell{display: block;border: solid 1px gray; }
+#today_container .date_index_cell{ width:auto;height: 1.5em;border-bottom: solid 1px gray; }
+#today_container .timeline{ height:30em;max-height:70vh;display: grid;grid-template-rows: repeat(18, 1fr);border:none; }
+#today_container .event_container{ width: 20em;display:flex;background-color:transparent; }
+#today_container .date_cell{ display: block; }
+#today_container .event_cell{ height: auto;white-space: normal; }
+#today_container .delete_cell{ display: none; }
+#today_container .display_none_cell{ display: none; }
+#today_container .display_land_none_cell{ display: block; }
+#today_container .line{ display: block; }
+
 #url_console{
     height: fit-content;
 }

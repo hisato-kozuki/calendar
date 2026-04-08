@@ -93,7 +93,6 @@
     }
     
     #today_container .week_cell{ height: auto; }
-    #today_container .week_cell .div{ width: auto; }
     #today_container .event_container{ display: flex; }
     #today_container .date_cell{ display: block; }
     #today_container .display_none_cell{ display: none; }

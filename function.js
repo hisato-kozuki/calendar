@@ -177,17 +177,17 @@ export function displayTodayTomorrow(){
     let events = JSON.parse(localStorage.getItem("stored_events")) || [];
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today.getTime() + 86400000);
+    const next = new Date(today.getTime() + 604800000);
 
     const filtered = events.filter(e => {
         const d = new Date(e.date_start);
         const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-        return day.getTime() === today.getTime() || day.getTime() === tomorrow.getTime();
+        return day.getTime() >= today.getTime() && day.getTime() < next.getTime();
     });
 
     // decide range to render
     let date_start = today;
-    let date_end = tomorrow;
+    let date_end = next;
     if(filtered.length > 0){
         let min = new Date(filtered[0].date_start);
         let max = new Date(filtered[0].date_end);

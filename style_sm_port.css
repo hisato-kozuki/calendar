@@ -70,10 +70,6 @@
     form{
         font-size: 14px;
     }
-    .button_container{
-        left: 5%;
-        width: 90%;
-    }
     .button_container button{
         width: 60px;
         height: 100%;

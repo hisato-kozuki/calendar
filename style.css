@@ -119,7 +119,7 @@ form{
 #today_container .delete_cell{ display: none; }
 #today_container .display_none_cell{ display: none; }
 #today_container .display_land_none_cell{ display: block; }
-#today_container .line{ display: block; }
+#today_container .line{ display: block; border-top: dotted #808080 1px; }
 
 #url_console{
     height: fit-content;

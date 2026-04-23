@@ -5,47 +5,63 @@
         font-size: 20px;
     }
     .container{
-        width: 90%;
-        left: 5%;
+        display: flex;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
     }
     .week_cell{
         align-content: center;
-        border: solid 1px gray;
-    }
-    .display_none_cell{
-        display: none;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     .time_index{
         display: none;
     }
     .day_cell{
-        display: flex;
         align-items: center;
         font-size: 12px;
-        border-bottom: solid 1px gray;
-    }
-    .date_index_cell{
-        width: 17%;
+        background: white;
+        border-radius: 1em;
+        padding: 0.5em;
+        background-color: transparent;
+        /* box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2); */
     }
     .timeline{
-        width: 83%;
+        width: fit-content;
         display: flex;
-        flex-direction: column-reverse;
-        border-left: solid 1px gray;
+        /* justify-content: center; */
+        flex-wrap: wrap;
+    }
+    .event_grid{
+        display: flex;
+        border-radius: 1em;
+        background-color: transparent;
+        box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
     }
     .event_container{
+        width:9.5em;
+        height:9.5em;
         background-color: white;
-        display: flex;
+        box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
+        box-sizing: border-box;
+        padding: 0.5em;
+        border-radius: 1em;
+        margin: 0.5em;
+        overflow: scroll;
+    }
+    .display_none_cell{
+        display: none;
     }
     .date_cell{
-        width: 25%;
+        width: 7.5em;
     }
-    .event_cell{
-        width: 65%;
+    .mark_cell{
+        display: none;
     }
     .delete_cell{
-        width: 10%;
-        margin: 1px;
+        width: 1em;
+        /* margin: 1px; */
     }
 
     /* #today_container>.week_cell{ display: flex; }

@@ -13,7 +13,7 @@ class Calendar{
         let weeks = [];
         if(this.parentElement == undefined)this.parentElement = document.getElementsByClassName("container")[0];
         for(let date_sunday = new Date(date_start), i = 0; date_sunday <= date_end; date_sunday.setDate(date_sunday.getDate()+7), i++){
-            let week = new Week(date_sunday);
+            let week = new Week(date_sunday, this.parentElement);
             this.parentElement.appendChild(week.element);
             weeks[i] = week;
         }
@@ -30,7 +30,11 @@ class Calendar{
         let endHour= Math.min(Math.max(date_end.getHours()-5, startHour+1), 20);
         let element_event = new Event(date_start, date_end, event, delete_id);
         let week = this.weeks[Math.floor(num_day/7)];
-        if(week != undefined)week.days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate);
+        if(week != undefined){
+            week.days[num_day%7].element.classList.remove("display_none_cell")
+            week.days[num_day%7].element.classList.remove("display_land_none_cell")
+            week.days[num_day%7].addEvent(element_event, i, startHour, endHour, duplicate);
+        }
     }
     modifyEvent(event_data){
         for(let week of this.weeks){
@@ -43,19 +47,25 @@ class Calendar{
             let num_day = Math.floor((date_start - this.weeks[0].date_sunday)/86400000);
             let week = this.weeks[Math.floor(num_day/7)];
             if(week != undefined)week.days[num_day%7].remove(event);
-        } else if(this.weeks)for(let week of this.weeks){
-            week.remove();
-            week.element.remove();
+        } else {
+            for(let element of this.parentElement.querySelectorAll(".event_container")){
+                console.log(element)
+                element.remove();
+            }
+            if(this.weeks)for(let week of this.weeks){
+                week.remove();
+                week.element.remove();
+            }
         }
     }
 }
 
 class Week{
-    constructor(date_sunday){
+    constructor(date_sunday, parentElement){
         let days = [];
         let week_cell = createE("div", {"className": "week_cell"});
         for(let i = 0; i < 7; i++){
-            let day = new Day(date_sunday, i);
+            let day = new Day(date_sunday, i, parentElement);
             days[i] = day;
             week_cell.appendChild(day.element);
             for(let k= 0; k<5; k++){
@@ -74,14 +84,14 @@ class Week{
 }
 
 class Day {
-    constructor(date_sunday, i) {
+    constructor(date_sunday, i, parentElement) {
         let date = new Date(date_sunday);
         date.setDate(date.getDate() + i);
         let date_index_cell = createE("div", {"className": "date_index_cell", "innerText": date.getMonth()+1+"/"+date.getDate()+"("+days[i]+")"});
         let timeline = createE("div", {"className": "timeline"});
         let day_cell = createE("div", {"className": "day_cell"});
         let display_none_cell = createE("div", {"className": "display_none_cell"});
-        let div = createE("div", {"className": "div"});
+        let div = createE("div", {"className": "div display_none_cell display_land_none_cell"});
         if (date.getDay() == 0)date_index_cell.style.color = "orangered";
         else if (date.getDay() == 6)date_index_cell.style.color = "darkturquoise";
 
@@ -90,6 +100,7 @@ class Day {
         this.display = display_none_cell;
         this.element = div;
         this.containers = [];
+        this.parentElement = parentElement;
 
         day_cell.appendChild(date_index_cell);
         day_cell.appendChild(timeline);
@@ -103,7 +114,7 @@ class Day {
             this.containers[startHour].addEvent(Event, endHour, duplicate);
         } else {
             // 初めての時間帯のイベントの場合
-            this.containers[startHour] = new Container(Event, this.timeline, i, startHour, endHour, duplicate);
+            this.containers[startHour] = new Container(Event, this.timeline, i, startHour, endHour, duplicate, this.parentElement);
         }
         this.display.style.display = "flex";
         this.date_index_cell.style.display = "block";
@@ -122,13 +133,17 @@ class Day {
 }
 
 class Container {
-    constructor(Event, timeline, i, startHour, endHour, duplicate) {
-        let event_container_container = createE("div", {"className": "event_grid"}, {"backgroundColor": "hsla("+i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+i*159+", 100%, 0%, 0.2)", "gridRow": startHour+"/"+endHour});
+    constructor(Event, timeline, i, startHour, endHour, duplicate, parentElement) {
+        let event_container_container = createE("div", {"className": "event_grid display_none_cell"}, {"backgroundColor": "hsla("+i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+i*159+", 100%, 0%, 0.2)", "gridRow": startHour+"/"+endHour});
         Event.container1.style.gridColumn = duplicate+"/6";
-        event_container_container.appendChild(Event.container1);
+        Event.container1.style.gridRow = startHour+"/"+endHour;
+        timeline.appendChild(Event.container1);
         event_container_container.appendChild(Event.container2);
+        console.log(Event.container1)
+        console.log(Event.container2)
         timeline.insertBefore(event_container_container, timeline.firstChild);
         this.element = event_container_container;
+        this.timeline = timeline;
         this.events = [Event];
     }
     addEvent(Event, endHour, duplicate){
@@ -137,16 +152,19 @@ class Container {
             let event_container_details = createE("details", {"className": "event_grid display_none_cell"});
             event_container_details.appendChild(createE("summary", {"innerText": ""}));
             this.events[0].container2.querySelector(".event_cell").style.backgroundColor = "white";
-            event_container_details.appendChild(this.events[0].container2);
-            this.element.appendChild(event_container_details);
+            // event_container_details.appendChild(this.events[0].container2);
+            // this.element.appendChild(event_container_details);
             this.details = event_container_details;
         }
         if(this.element.style.gridRowEnd < endHour)this.element.style.gridRowEnd = endHour;
         Event.container1.style.gridColumn = duplicate+"/6";
         Event.container2.querySelector(".event_cell").style.backgroundColor = "white";
         this.details.querySelector("summary").innerText = this.events.length+1;
-        this.element.appendChild(Event.container1);
-        this.details.appendChild(Event.container2);
+        // this.element.appendChild(Event.container1);
+        this.timeline.appendChild(Event.container1);
+        // this.details.appendChild(Event.container2);
+        this.element.appendChild(Event.container2);
+        console.log(Event.container2)
         this.events.push(Event);
     }
     remove(event_data){
@@ -159,16 +177,21 @@ class Event{
     constructor(eventStartDate, date_end, event_data, delete_id){
         let date_cell = createE("div", {"className": "date_cell"});
         let event_cell = createE("div", {"className": "event_cell display_land_none_cell"});
-        let event_cell2 = createE("div", {"className": "event_cell display_none_cell"});
+        let event_cell2 = createE("div", {"className": "event_cell"});
         let mark_cell = createE("div", {"className": "mark_cell display_land_none_cell"});
-        let event_container = createE("div", {"className": "event_container"});
-        let event_container2 = createE("div", {"className": "event_container"});
+        let delete_cell = createE("button", {"className": "delete_cell", "innerText": "×"});
+        let div = createE("div", {}, {"display": "flex"});
+        let event_container = createE("div", {"className": "event_container display_land_none_cell"});
+        let event_container2 = createE("div", {"className": "event_container display_none_cell"});
         
-        event_container.appendChild(date_cell);
-        event_container.appendChild(mark_cell);
+        div.appendChild(date_cell);
+        div.appendChild(delete_cell);
+        event_container.appendChild(div);
+        // event_container.appendChild(mark_cell);
         event_container.appendChild(event_cell);
 
         this.set(event_container, event_data);
+        console.log(event_data.title)
 
         let color = colorCodes[event_data.color];
         if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9)event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_data.title;
@@ -181,7 +204,6 @@ class Event{
             event_container.style.backgroundColor = "#A0FFA0";
         }
 
-        let delete_cell = createE("button", {"className": "delete_cell", "innerText": "削除"});
         delete_cell.addEventListener('click', () => {
             // var result = confirm("本当に\""+event_data.title+"\"を削除しますか？");
             // if(result){
@@ -212,16 +234,18 @@ class Event{
         this.container2 = event_container2;        
         this.initial_data = event_data;
 
-        event_container.appendChild(delete_cell);
+        // event_container.appendChild(delete_cell);
         event_container2.appendChild(event_cell2);
     }
     set(event_container, event_data){
         let date_cell = event_container.querySelector(".date_cell");
         let event_cell = event_container.querySelector(".event_cell");
-        let mark_cell = event_container.querySelector(".mark_cell");
+        // let mark_cell = event_container.querySelector(".mark_cell");
         let date_start = new Date(event_data.date_start);
         let date_end = new Date(event_data.date_end);
-        date_cell.innerText = date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
+        date_cell.innerText = date_start.getMonth()+1+"/"+date_start.getDate()+"("+days[date_start.getDay()]+")" + " " + date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
+        if (date_start.getDay() == 0)date_cell.style.color = "orangered";
+        else if (date_start.getDay() == 6)date_cell.style.color = "darkturquoise";
         event_cell.innerText = event_data.title;
         if(date_start.getFullYear() != date_end.getFullYear()){
             date_cell.innerHTML += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
@@ -234,11 +258,12 @@ class Event{
         let color = colorCodes[event_data.color];
         if(color == undefined)color = "#039BE5";
         if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
-            event_cell.style.width = "61%";
-            mark_cell.innerText = "◆";
-            mark_cell.style.visibility = "visible";
-            mark_cell.style.width = "4%";
-            mark_cell.style.color = color;
+            // event_cell.style.width = "61%";
+            // mark_cell.innerText = "◆";
+            // mark_cell.style.visibility = "visible";
+            // mark_cell.style.width = "4%";
+            // mark_cell.style.color = color;
+            event_container.style.border = "dotted 2px " + color;
         }
         else {event_cell.style.color = color;}
     }

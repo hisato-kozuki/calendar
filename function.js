@@ -214,7 +214,9 @@ export function displayTodayTomorrow(){
 
     // add the filtered events to the mini calendar
     for(let i = 0; i < filtered.length; i++){
-        try{ mini_calendar.addEvent(filtered[i], i, 1); }catch(e){console.log(e)}
+        if(filtered[i].color != 1 && filtered[i].color != 9){
+            try{ mini_calendar.addEvent(filtered[i], i, 1); }catch(e){console.log(e)}
+        }
     }
 }
 

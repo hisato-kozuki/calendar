@@ -34,13 +34,7 @@ window.onload = function(){
     document.getElementById("register_form").datetime_end.value = text;
     document.getElementById("reload_form").start.value = date_string(new Date(todayDate-86400000), "-", {"required": ["year"]});
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
-    // getApiUrlFromDB().then((data)=>{apiUrl = data});
-    // getCalendarEventsFromDB();
-    getCalendarEvents();
-    // 今日/明日の小カレンダー表示
-    try{ displayTodayTomorrow(); }catch(e){console.log(e)}
-    reload_console.reload(); //カレンダーを更新
-    if(!localStorage["apiUrl"])localStorage["links"] = JSON.stringify({"Youtube": "https://www.youtube.com/", "番組表": "https://www.tvkingdom.jp/chart/40.action", "やる気スイッチ": "https://hisato-kozuki.github.io/yaruki-switch/index.html", "記憶ゲーム": "https://hisato-kozuki.github.io/reversi-memory-game/index.html"});
+    if(!localStorage["links"])localStorage["links"] = JSON.stringify({"Youtube": "https://www.youtube.com/", "番組表": "https://www.tvkingdom.jp/chart/40.action", "やる気スイッチ": "https://hisato-kozuki.github.io/yaruki-switch/index.html", "記憶ゲーム": "https://hisato-kozuki.github.io/reversi-memory-game/index.html"});
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);
@@ -50,6 +44,12 @@ window.onload = function(){
     }
     localStorage.removeItem("element_modify");
     localStorage.removeItem("element_post");
+    // getApiUrlFromDB().then((data)=>{apiUrl = data});
+    // getCalendarEventsFromDB();
+    getCalendarEvents();
+    // 今日/明日の小カレンダー表示
+    try{ displayTodayTomorrow(); }catch(e){console.log(e)}
+    reload_console.reload(); //カレンダーを更新
     countUpTimer(true, true);countUpTimer(false, true);
 }
 

@@ -171,7 +171,7 @@ class Event{
         this.set(event_container, event_data);
 
         let color = colorCodes[event_data.color];
-        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9)event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_data.title;
+        if(event_data.title.slice(0, 4) === "task")event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_data.title.slice(4);
         else {event_cell2.innerHTML = event_data.title;event_cell2.style.color = color;}
 
         if(delete_id != undefined){
@@ -222,7 +222,22 @@ class Event{
         let date_start = new Date(event_data.date_start);
         let date_end = new Date(event_data.date_end);
         date_cell.innerText = date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
-        event_cell.innerText = event_data.title;
+
+        let color = colorCodes[event_data.color];
+        if(color == undefined)color = "#039BE5";
+        if(event_data.title.slice(0, 4) === "task"){
+            event_cell.style.width = "61%";
+            mark_cell.innerText = "◆";
+            mark_cell.style.visibility = "visible";
+            mark_cell.style.width = "4%";
+            mark_cell.style.color = color;
+            event_cell.innerText = event_data.title.slice(4);
+        }
+        else {
+            event_cell.style.color = color;
+            event_cell.innerText = event_data.title;
+        }
+
         if(date_start.getFullYear() != date_end.getFullYear()){
             date_cell.innerHTML += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
         }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
@@ -230,17 +245,6 @@ class Event{
         }else if(date_start.getHours() != date_end.getHours()){
             date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":" + date_end.getMinutes().toString().padStart(2, "0");
         }
-
-        let color = colorCodes[event_data.color];
-        if(color == undefined)color = "#039BE5";
-        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
-            event_cell.style.width = "61%";
-            mark_cell.innerText = "◆";
-            mark_cell.style.visibility = "visible";
-            mark_cell.style.width = "4%";
-            mark_cell.style.color = color;
-        }
-        else {event_cell.style.color = color;}
     }
     modifyEvent(event_data){
         if(event_data.candel != true){

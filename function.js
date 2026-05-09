@@ -55,18 +55,27 @@ export function createE(tag, options, styles){
 export function renewTask(event_data, date, color){
     console.log("detected");
     let new_date = new Date(date);
+    let date_end = new Date(event_data.date_end);
     console.log("old_date", new_date);
+    if(color == 11)new_date.setDate(todayDate.getDate());
     if(color == 4)new_date.setDate(todayDate.getDate()+1);
     if(color == 1)new_date.setDate(date.getDate()+7);
     if(color == 9)new_date.setMonth(date.getMonth()+1);
     console.log("new_date", new_date);
+    console.log(date_end < new_date)
+    if(date_end < new_date){
+        color = 11;
+        date_end.setDate(todayDate.getDate());
+        new_date.setDate(todayDate.getDate());
+    }
     let datas = {
         'id': event_data.id,
         'title': event_data.title,
         'date_start': new_date,
-        'date_end': new_date,
+        'date_end': date_end,
         'color': color,
     };
+    console.log(datas)
     if(datas.title != ""){
         pushLocalStorage("modify", datas);
     }
@@ -138,10 +147,12 @@ export function display(events, task_renew_required){
             calendar.addEvent(events[i], i, duplicate);
 
             if(task_renew_required){
-                if((events[i].color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
+                if(events[i].title.slice(0, 4) === "task"
+                && ((events[i].color == 11 && eventStartDate < todayDate) // 現在日程より前の時刻の場合に
+                || (events[i].color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
                 || (events[i].color == 1 && eventStartDate - todayDate < 172800000) // 現在日程の2日後より前の時刻の場合に
                 || (events[i].color == 9 && eventStartDate - todayDate < 604800000) // 現在日程の１週間後より前の時刻の場合に
-                ){renewTask(events[i], eventStartDate, events[i].color);}
+                )){renewTask(events[i], eventStartDate, events[i].color);}
             }
 
             oldStartDate = eventStartDate;

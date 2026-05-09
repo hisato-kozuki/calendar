@@ -4,20 +4,21 @@ const date = new Date();
 const todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 export function date_string(date, separator, options){
+    let date_buffer = new Date(date);
     let date_string = "";
-    if(options.month_offset != undefined)date.setMonth(date.getMonth() + options.month_offset);
-    if(options.required.includes("year"))date_string += date.getFullYear().toString();
-    date_string += separator + (date.getMonth() + 1).toString().padStart(2, "0")
-    date_string += separator + date.getDate().toString().padStart(2, "0")
-    if(options.required.includes("hour") && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");;
-    if(options.required.includes("hour") && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
+    if(options.month_offset != undefined)date_buffer.setMonth(date.getMonth() + options.month_offset);
+    if(options.required.includes("year"))date_string += date_buffer.getFullYear().toString();
+    date_string += separator + (date_buffer.getMonth() + 1).toString().padStart(2, "0")
+    date_string += separator + date_buffer.getDate().toString().padStart(2, "0")
+    if(options.required.includes("hour") && separator == "-")date_string += "T" + date_buffer.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");;
+    if(options.required.includes("hour") && separator == "/")date_string += " " + date_buffer.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
     return date_string;
 }
 
 export function str2date(date_string, defaultDate){
     let buffer = date_string.split(/[ T\.日]/);
     console.log("first", buffer)
-    if(!buffer[0].match(/[/年月]/))buffer = ["", buffer[0]];
+    if(!buffer[0].match(/[-/年月]/))buffer = ["", buffer[0]];
     else if(!buffer[1])buffer = [buffer[0], ""];
 
     buffer[0] = buffer[0].split(/[/年月]/).map((p) => p = p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換

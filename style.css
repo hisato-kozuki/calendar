@@ -167,3 +167,13 @@ form{
 #register_form p{
     width:16em
 }
+.star{
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    font-size: 200px;
+    color: red;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: 3s;
+}

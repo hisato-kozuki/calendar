@@ -52,12 +52,18 @@ window.onload = function(){
     reload_console.reload(); //カレンダーを更新
     countUpTimer(true, true);countUpTimer(false, true);
     if(!(date <= new Date(localStorage["last_opened_date"]))){
-        console.log("aaaaaaaa", date, new Date(localStorage["last_opened_date"]))
-        console.log(date > new Date(localStorage["last_opened_date"]))
         localStorage["last_opened_date"] = date;
-        if(date.getHours() < 6)reload_console.postEvents([{"type": "post", "data": [{"title": "★★★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
-        else if(date.getHours() < 7)reload_console.postEvents([{type: "post", data: [{"title": "★★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
-        else if(date.getHours() < 8)reload_console.postEvents([{type: "post", data: [{"title": "★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
+        if(date.getHours() >= 5){
+            let star = document.createElement("div");
+            star.innerText = "★"
+            star.className = "star";
+            document.body.appendChild(star);
+            setTimeout(()=>{star.style.opacity = 0.5; star.style.transform = "scale(200%) translate(-25%, -25%)"}, 0)
+            setTimeout(()=>{star.style.opacity = 0; star.style.transform = "scale(100%) translate(-50%, -50%)"}, 4000);
+            if(date.getHours() < 6)reload_console.postEvents([{"type": "post", "data": [{"title": "★★★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
+            else if(date.getHours() < 7)reload_console.postEvents([{type: "post", data: [{"title": "★★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
+            else if(date.getHours() < 8)reload_console.postEvents([{type: "post", data: [{"title": "★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
+        }
     }
 }
 

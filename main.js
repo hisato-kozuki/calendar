@@ -53,7 +53,7 @@ window.onload = function(){
     countUpTimer(true, true);countUpTimer(false, true);
     if(!(date <= new Date(localStorage["last_opened_date"]))){
         localStorage["last_opened_date"] = date;
-        if(date.getHours() >= 5){
+        if(date.getHours() >= 5 && date.getHours() < 8){
             let star = document.createElement("div");
             star.innerText = "★"
             star.className = "star";

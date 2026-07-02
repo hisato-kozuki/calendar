@@ -418,14 +418,17 @@ class ColorCircle{
 }
 
 class Console{
-    constructor(console){
-        this.element = console;
-        this.display_button = new Button(console.querySelector("button"));
+    constructor(console_element){
+        this.element = console_element;
+        this.display_button = new Button(console_element.querySelector("button"));
         this.display_button.element.addEventListener("click", event =>{
-            if(console.style.transform == 'scale(1, 1)')this.shrink();
+            if(console_element.style.transform == 'scale(1, 1)')this.shrink();
             else this.expand();
         })
-        document.getElementsByClassName("button_container")[0].appendChild(console.querySelector("div"));
+        document.getElementsByClassName("button_container")[0].appendChild(console_element.querySelector("div"));
+        // 子inputの情報に外部からアクセスできるようにする
+        let inputs = console_element.querySelectorAll("input");
+        for(let input of inputs)this[input.name] = input;
     }
     expand(){
         let forms = document.getElementsByClassName('console_container')[0].children;

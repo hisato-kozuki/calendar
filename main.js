@@ -88,10 +88,8 @@ document.getElementsByClassName("curtain")[0].addEventListener('click', (event) 
 reload_console.getEvents = (startDate, endDate) => {
     //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
     if(startDate == undefined){
-        startDate = new Date(todayDate);
-        endDate =  new Date(todayDate);
-        startDate.setDate(startDate.getDate()-1);
-        endDate.setMonth(endDate.getMonth()+2);
+        startDate = new Date(Date.parse(reload_console.start.value));
+        endDate = new Date(Date.parse(reload_console.end.value));
     }
     // console.log("get_events", startDate, endDate)
     const data = {
@@ -106,10 +104,15 @@ reload_console.getEvents = (startDate, endDate) => {
         fetch(localStorage["apiUrl"], http_options)
         .then(response => response.text())
         .then(data => {
-            let received_data=JSON.parse(data);
-            if(data.error)document.getElementById("p").innerText = data.error;
-            reload_console.sync_button.stop("同期");
-            resolve(received_data);
+            if(data.error){
+                document.getElementById("p").innerText = data.error;
+                reload_console.sync_button.stop("Error");
+                reject(data.error);
+            } else {
+                let received_data=JSON.parse(data);
+                reload_console.sync_button.stop("同期");
+                resolve(received_data);
+            }
         })
         .catch(error => {
             console.log("reload not complete");
@@ -151,7 +154,6 @@ reload_console.reload = (event, button) => {
 
 reload_console.postEvents = (types_datas, options) => {
     console.log(types_datas);
-    let received_data;
     let promises = [];
     reload_console.display_button.start();
     for(let typedata of types_datas){
@@ -164,18 +166,23 @@ reload_console.postEvents = (types_datas, options) => {
             fetch(localStorage["apiUrl"], http_options)
             .then(response => response.text())
             .then(data => {
-                console.log(received_data = data);
-                let parsed_data = JSON.parse(data);
-                if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
-                localStorage.removeItem("element_" + type);
-                reload_console.counters[type].counter.textContent = 0;
-                button.stop("📤");
-                resolve(true);
-                if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
+                if(data.slice(0,9) == "Exception"){
+                    document.getElementById("p").innerText = data;
+                    button.stop("Error");
+                    reject(false);
+                } else {
+                    let parsed_data = JSON.parse(data);
+                    if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
+                    localStorage.removeItem("element_" + type);
+                    reload_console.counters[type].counter.textContent = 0;
+                    button.stop("📤");
+                    resolve(true);
+                    if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
+                }
             })
             .catch(error => {
                 console.error("Error:", error);
-                document.getElementById("p").innerText = error + "\n" + received_data;
+                document.getElementById("p").innerText = error;
                 button.stop("Error");
                 reject(false);
             });

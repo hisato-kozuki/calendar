@@ -58,14 +58,17 @@ export function renewTask(event_data, date, color){
     let new_date = new Date(date);
     let date_end = new Date(event_data.date_end);
     console.log("old_date", new_date);
+    new_date.setFullYear(todayDate.getFullYear());new_date.setMonth(todayDate.getMonth());
     if(color == 11)new_date.setDate(todayDate.getDate());
-    if(color == 4)new_date.setDate(todayDate.getDate()+1);
-    if(color == 1)new_date.setDate(date.getDate()+7);
-    if(color == 9)new_date.setMonth(date.getMonth()+1);
+    else if(color == 4)new_date.setDate(todayDate.getDate()+1);
+    else if(color == 1)new_date.setDate(date.getDate()+7);
+    else if(color == 9)new_date.setMonth(date.getMonth()+1);
     console.log("new_date", new_date);
     console.log(date_end < new_date)
     if(date_end < new_date){
         color = 11;
+        date_end.setFullYear(todayDate.getFullYear());
+        date_end.setMonth(todayDate.getMonth());
         date_end.setDate(todayDate.getDate());
         new_date.setDate(todayDate.getDate());
     }

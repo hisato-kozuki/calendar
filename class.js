@@ -194,7 +194,7 @@ class Event{
         console.log(event_data.title)
 
         let color = colorCodes[event_data.color];
-        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9)event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_data.title;
+        if(event_data.title.slice(0, 4) === "task")event_cell2.innerHTML = "<span style='color:"+color+"'>◆ </span>"+event_data.title.slice(4);
         else {event_cell2.innerHTML = event_data.title;event_cell2.style.color = color;}
 
         if(delete_id != undefined){
@@ -243,10 +243,23 @@ class Event{
         // let mark_cell = event_container.querySelector(".mark_cell");
         let date_start = new Date(event_data.date_start);
         let date_end = new Date(event_data.date_end);
-        date_cell.innerText = date_start.getMonth()+1+"/"+date_start.getDate()+"("+days[date_start.getDay()]+")" + " " + date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
-        if (date_start.getDay() == 0)date_cell.style.color = "orangered";
-        else if (date_start.getDay() == 6)date_cell.style.color = "darkturquoise";
-        event_cell.innerText = event_data.title;
+        date_cell.innerText = date_start.getHours().toString() + ":" + date_start.getMinutes().toString().padStart(2, "0");
+
+        let color = colorCodes[event_data.color];
+        if(color == undefined)color = "#039BE5";
+        if(event_data.title.slice(0, 4) === "task"){
+            event_cell.style.width = "61%";
+            mark_cell.innerText = "◆";
+            mark_cell.style.visibility = "visible";
+            mark_cell.style.width = "4%";
+            mark_cell.style.color = color;
+            event_cell.innerText = event_data.title.slice(4);
+        }
+        else {
+            event_cell.style.color = color;
+            event_cell.innerText = event_data.title;
+        }
+
         if(date_start.getFullYear() != date_end.getFullYear()){
             date_cell.innerHTML += "\n～" + date_string(date_end, "/", {"required": ["year", "hour"]});
         }else if(date_start.getMonth() != date_end.getMonth() || date_start.getDate() != date_end.getDate()){
@@ -254,18 +267,6 @@ class Event{
         }else if(date_start.getHours() != date_end.getHours()){
             date_cell.innerText += "～" + date_end.getHours().toString().padStart(2, "0") + ":" + date_end.getMinutes().toString().padStart(2, "0");
         }
-
-        let color = colorCodes[event_data.color];
-        if(color == undefined)color = "#039BE5";
-        if(event_data.color == 4 || event_data.color == 1 || event_data.color == 9){
-            // event_cell.style.width = "61%";
-            // mark_cell.innerText = "◆";
-            // mark_cell.style.visibility = "visible";
-            // mark_cell.style.width = "4%";
-            // mark_cell.style.color = color;
-            event_container.style.border = "dotted 2px " + color;
-        }
-        else {event_cell.style.color = color;}
     }
     modifyEvent(event_data){
         if(event_data.candel != true){
@@ -439,14 +440,17 @@ class ColorCircle{
 }
 
 class Console{
-    constructor(console){
-        this.element = console;
-        this.display_button = new Button(console.querySelector("button"));
+    constructor(console_element){
+        this.element = console_element;
+        this.display_button = new Button(console_element.querySelector("button"));
         this.display_button.element.addEventListener("click", event =>{
-            if(console.style.transform == 'scale(1, 1)')this.shrink();
+            if(console_element.style.transform == 'scale(1, 1)')this.shrink();
             else this.expand();
         })
-        document.getElementsByClassName("button_container")[0].appendChild(console.querySelector("div"));
+        document.getElementsByClassName("button_container")[0].appendChild(console_element.querySelector("div"));
+        // 子inputの情報に外部からアクセスできるようにする
+        let inputs = console_element.querySelectorAll("input");
+        for(let input of inputs)this[input.name] = input;
     }
     expand(){
         let forms = document.getElementsByClassName('console_container')[0].children;

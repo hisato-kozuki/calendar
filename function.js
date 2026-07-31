@@ -4,20 +4,21 @@ const date = new Date();
 const todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 export function date_string(date, separator, options){
+    let date_buffer = new Date(date);
     let date_string = "";
-    if(options.month_offset != undefined)date.setMonth(date.getMonth() + options.month_offset);
-    if(options.required.includes("year"))date_string += date.getFullYear().toString();
-    date_string += separator + (date.getMonth() + 1).toString().padStart(2, "0")
-    date_string += separator + date.getDate().toString().padStart(2, "0")
-    if(options.required.includes("hour") && separator == "-")date_string += "T" + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");;
-    if(options.required.includes("hour") && separator == "/")date_string += " " + date.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
+    if(options.month_offset != undefined)date_buffer.setMonth(date.getMonth() + options.month_offset);
+    if(options.required.includes("year"))date_string += date_buffer.getFullYear().toString();
+    date_string += separator + (date_buffer.getMonth() + 1).toString().padStart(2, "0")
+    date_string += separator + date_buffer.getDate().toString().padStart(2, "0")
+    if(options.required.includes("hour") && separator == "-")date_string += "T" + date_buffer.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");;
+    if(options.required.includes("hour") && separator == "/")date_string += " " + date_buffer.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
     return date_string;
 }
 
 export function str2date(date_string, defaultDate){
     let buffer = date_string.split(/[ T\.日]/);
     console.log("first", buffer)
-    if(!buffer[0].match(/[/年月]/))buffer = ["", buffer[0]];
+    if(!buffer[0].match(/[-/年月]/))buffer = ["", buffer[0]];
     else if(!buffer[1])buffer = [buffer[0], ""];
 
     buffer[0] = buffer[0].split(/[/年月]/).map((p) => p = p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
@@ -55,18 +56,30 @@ export function createE(tag, options, styles){
 export function renewTask(event_data, date, color){
     console.log("detected");
     let new_date = new Date(date);
+    let date_end = new Date(event_data.date_end);
     console.log("old_date", new_date);
-    if(color == 4)new_date.setDate(todayDate.getDate()+1);
-    if(color == 1)new_date.setDate(date.getDate()+7);
-    if(color == 9)new_date.setMonth(date.getMonth()+1);
+    new_date.setFullYear(todayDate.getFullYear());new_date.setMonth(todayDate.getMonth());
+    if(color == 11)new_date.setDate(todayDate.getDate());
+    else if(color == 4)new_date.setDate(todayDate.getDate()+1);
+    else if(color == 1)new_date.setDate(date.getDate()+7);
+    else if(color == 9)new_date.setMonth(date.getMonth()+1);
     console.log("new_date", new_date);
+    console.log(date_end < new_date)
+    if(date_end < new_date){
+        color = 11;
+        date_end.setFullYear(todayDate.getFullYear());
+        date_end.setMonth(todayDate.getMonth());
+        date_end.setDate(todayDate.getDate());
+        new_date.setDate(todayDate.getDate());
+    }
     let datas = {
         'id': event_data.id,
         'title': event_data.title,
         'date_start': new_date,
-        'date_end': new_date,
+        'date_end': date_end,
         'color': color,
     };
+    console.log(datas)
     if(datas.title != ""){
         pushLocalStorage("modify", datas);
     }
@@ -138,10 +151,12 @@ export function display(events, task_renew_required){
             calendar.addEvent(events[i], i, duplicate);
 
             if(task_renew_required){
-                if((events[i].color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
+                if(events[i].title.slice(0, 4) === "task"
+                && ((events[i].color == 11 && eventStartDate < todayDate) // 現在日程より前の時刻の場合に
+                || (events[i].color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
                 || (events[i].color == 1 && eventStartDate - todayDate < 172800000) // 現在日程の2日後より前の時刻の場合に
                 || (events[i].color == 9 && eventStartDate - todayDate < 604800000) // 現在日程の１週間後より前の時刻の場合に
-                ){renewTask(events[i], eventStartDate, events[i].color);}
+                )){renewTask(events[i], eventStartDate, events[i].color);}
             }
 
             oldStartDate = eventStartDate;

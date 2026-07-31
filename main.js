@@ -34,13 +34,7 @@ window.onload = function(){
     document.getElementById("register_form").datetime_end.value = text;
     document.getElementById("reload_form").start.value = date_string(new Date(todayDate-86400000), "-", {"required": ["year"]});
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
-    // getApiUrlFromDB().then((data)=>{apiUrl = data});
-    // getCalendarEventsFromDB();
-    getCalendarEvents();
-    // 今日/明日の小カレンダー表示
-    try{ displayTodayTomorrow(); }catch(e){console.log(e)}
-    reload_console.reload(); //カレンダーを更新
-    if(!localStorage["apiUrl"])localStorage["links"] = JSON.stringify({"Youtube": "https://www.youtube.com/", "番組表": "https://www.tvkingdom.jp/chart/40.action", "やる気スイッチ": "https://hisato-kozuki.github.io/yaruki-switch/index.html", "記憶ゲーム": "https://hisato-kozuki.github.io/reversi-memory-game/index.html"});
+    if(!localStorage["links"])localStorage["links"] = JSON.stringify({"Youtube": "https://www.youtube.com/", "番組表": "https://www.tvkingdom.jp/chart/40.action", "やる気スイッチ": "https://hisato-kozuki.github.io/yaruki-switch/index.html", "記憶ゲーム": "https://hisato-kozuki.github.io/reversi-memory-game/index.html"});
     if(localStorage.getItem("links")){
         urlLinks = JSON.parse(localStorage.getItem("links"));
         let key = Object.keys(urlLinks);
@@ -50,7 +44,27 @@ window.onload = function(){
     }
     localStorage.removeItem("element_modify");
     localStorage.removeItem("element_post");
+    // getApiUrlFromDB().then((data)=>{apiUrl = data});
+    // getCalendarEventsFromDB();
+    getCalendarEvents();
+    // 今日/明日の小カレンダー表示
+    try{ displayTodayTomorrow(); }catch(e){console.log(e)}
+    reload_console.reload(); //カレンダーを更新
     countUpTimer(true, true);countUpTimer(false, true);
+    if(!(date <= new Date(localStorage["last_opened_date"]))){
+        localStorage["last_opened_date"] = date;
+        if(date.getHours() >= 5 && date.getHours() < 8){
+            let star = document.createElement("div");
+            star.innerText = "★"
+            star.className = "star";
+            document.body.appendChild(star);
+            setTimeout(()=>{star.style.opacity = 0.5; star.style.transform = "scale(200%) translate(-25%, -25%)"}, 0)
+            setTimeout(()=>{star.style.opacity = 0; star.style.transform = "scale(100%) translate(-50%, -50%)"}, 4000);
+            if(date.getHours() < 6)reload_console.postEvents([{"type": "post", "data": [{"title": "★★★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
+            else if(date.getHours() < 7)reload_console.postEvents([{type: "post", data: [{"title": "★★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
+            else if(date.getHours() < 8)reload_console.postEvents([{type: "post", data: [{"title": "★", date_start: date_string(date, "-", {required:["year","hour"]}), date_end: date_string(date, "-", {"required":["year","hour"]}), color: "11"}]}], {"get_required": false});
+        }
+    }
 }
 
 document.getElementsByClassName("curtain")[0].addEventListener('click', (event) => {
@@ -74,10 +88,8 @@ document.getElementsByClassName("curtain")[0].addEventListener('click', (event) 
 reload_console.getEvents = (startDate, endDate) => {
     //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
     if(startDate == undefined){
-        startDate = new Date(todayDate);
-        endDate =  new Date(todayDate);
-        startDate.setDate(startDate.getDate()-1);
-        endDate.setMonth(endDate.getMonth()+2);
+        startDate = new Date(Date.parse(reload_console.start.value));
+        endDate = new Date(Date.parse(reload_console.end.value));
     }
     // console.log("get_events", startDate, endDate)
     const data = {
@@ -92,10 +104,15 @@ reload_console.getEvents = (startDate, endDate) => {
         fetch(localStorage["apiUrl"], http_options)
         .then(response => response.text())
         .then(data => {
-            let received_data=JSON.parse(data);
-            if(data.error)document.getElementById("p").innerText = data.error;
-            reload_console.sync_button.stop("同期");
-            resolve(received_data);
+            if(data.error){
+                document.getElementById("p").innerText = data.error;
+                reload_console.sync_button.stop("Error");
+                reject(data.error);
+            } else {
+                let received_data=JSON.parse(data);
+                reload_console.sync_button.stop("同期");
+                resolve(received_data);
+            }
         })
         .catch(error => {
             console.log("reload not complete");
@@ -137,7 +154,6 @@ reload_console.reload = (event, button) => {
 
 reload_console.postEvents = (types_datas, options) => {
     console.log(types_datas);
-    let received_data;
     let promises = [];
     reload_console.display_button.start();
     for(let typedata of types_datas){
@@ -150,18 +166,23 @@ reload_console.postEvents = (types_datas, options) => {
             fetch(localStorage["apiUrl"], http_options)
             .then(response => response.text())
             .then(data => {
-                console.log(received_data = data);
-                let parsed_data = JSON.parse(data);
-                if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
-                localStorage.removeItem("element_" + type);
-                reload_console.counters[type].counter.textContent = 0;
-                button.stop("📤");
-                resolve(true);
-                if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
+                if(data.slice(0,9) == "Exception"){
+                    document.getElementById("p").innerText = data;
+                    button.stop("Error");
+                    reject(false);
+                } else {
+                    let parsed_data = JSON.parse(data);
+                    if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
+                    localStorage.removeItem("element_" + type);
+                    reload_console.counters[type].counter.textContent = 0;
+                    button.stop("📤");
+                    resolve(true);
+                    if(parsed_data.error)document.getElementById("p").innerText = parsed_data.error;
+                }
             })
             .catch(error => {
                 console.error("Error:", error);
-                document.getElementById("p").innerText = error + "\n" + received_data;
+                document.getElementById("p").innerText = error;
                 button.stop("Error");
                 reject(false);
             });

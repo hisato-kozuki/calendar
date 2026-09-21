@@ -10,8 +10,8 @@ export function date_string(date, separator, options){
     if(options.required.includes("year"))date_string += date_buffer.getFullYear().toString();
     date_string += separator + (date_buffer.getMonth() + 1).toString().padStart(2, "0")
     date_string += separator + date_buffer.getDate().toString().padStart(2, "0")
-    if(options.required.includes("hour") && separator == "-")date_string += "T" + date_buffer.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");;
-    if(options.required.includes("hour") && separator == "/")date_string += " " + date_buffer.getHours().toString() + ":" + date.getMinutes().toString().padStart(2, "0");
+    if(options.required.includes("hour") && separator == "-")date_string += "T" + date_buffer.getHours().toString().padStart(2, "0") + ":" + date_buffer.getMinutes().toString().padStart(2, "0");;
+    if(options.required.includes("hour") && separator == "/")date_string += " " + date_buffer.getHours().toString() + ":" + date_buffer.getMinutes().toString().padStart(2, "0");
     return date_string;
 }
 
@@ -85,10 +85,20 @@ export function renewTask(event_data, date, color){
     }
 }
 
-export function countHistory(events, row){
+export function countHistory(events, row, period){
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const weekStart = new Date(today); weekStart.setDate(today.getDate() - 6);
     let studytime = 0; let hobbytime = 0;
     for(let i = 0; i < events.length; i++){
-        if(events[i].color == 3){
+        const eventDate = new Date(events[i].date_start);
+        const inRange = period === "today"
+            ? eventDate >= today && eventDate < new Date(today.getTime() + 86400000)
+            : period === "yesterday"
+                ? eventDate >= yesterday && eventDate < today
+                : eventDate >= weekStart && eventDate <= today;
+        if(inRange && events[i].color == 3){
             if(events[i].title.slice(0, 5) === "sssss"){
                 studytime += Number(events[i].title.slice(5, 10));
             }
@@ -104,7 +114,7 @@ export function countHistory(events, row){
 }
 
 function createEventBackground(options, indexElement){
-    let event_back = createE("div", {"className": "display_none_cell"}, {
+    let event_back = createE("div", {"className": "landscape_only"}, {
         "backgroundColor": "hsla("+options.i*159+", 100%, 50%, 0.05)", "border": "solid 0.1px hsla("+options.i*159+", 100%, 0%, 0.2)", 
         "gridRow": options.startHour+"/"+options.endHour, "gridColumn": options.start_column+"/"+options.start_column + 1,
         "position": "relative", "top": (3*(options.start_column-1))+"px"
@@ -118,6 +128,10 @@ function createEventBackground(options, indexElement){
 }
 
 export function display(events, task_renew_required){
+    if(!events || events.length === 0){
+        calendar.remove();
+        return;
+    }
     let date_start = new Date(events[0].date_start);
     let date_end = new Date(events[events.length - 1].date_end);
     let date_start_sunday = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate()-date_start.getDay()%7);
@@ -131,7 +145,7 @@ export function display(events, task_renew_required){
     let oldStartHour = Math.min(Math.max(oldStartDate.getHours()-5, 1), 20);
     let date_end_long = new Array(5);
     for(let i = 0; i < events.length; i++){
-        if(events[i].color != 3 && events[i].color != 10){
+        if(events[i].title.slice(0, 5) !== "hhhhh" && events[i].title.slice(0, 5) !== "sssss"){
             // console.log(events[i].date_start)
             let eventStartDate = new Date(events[i].date_start);
             let startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);

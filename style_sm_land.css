@@ -85,9 +85,9 @@
     }
     .event_container{
         position: relative;
-        height: fit-content;
+        /* height: fit-content; */
         visibility: visible;
-        border-radius: 1em;
+        /* border-radius: 1em; */
         background-color: white;
         box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
     }
@@ -150,7 +150,7 @@
     .grid div{
         padding: 3px;
     }
-    .display_land_none_cell{
+    .portrait_only{
         display: none;
     }
 }

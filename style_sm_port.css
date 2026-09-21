@@ -10,28 +10,44 @@
         flex-wrap: wrap;
     }
     .week_cell{
+        width: 100%;
         align-content: center;
         display: flex;
+        flex-direction: column;
         flex-wrap: wrap;
         justify-content: center;
+    }
+    .week_cell>div{
+        width: 100%;
     }
     .time_index{
         display: none;
     }
     .day_cell{
+        display: flex;
+        width: 100%;
+        box-sizing: border-box;
         align-items: center;
         font-size: 12px;
-        background: white;
         border-radius: 1em;
         padding: 0.5em;
-        background-color: transparent;
-        /* box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2); */
+        margin: 0.5em;
+        background-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
+    }
+    /* 予定が登録されていない日は非表示にする */
+    .day_cell:not(.has_event){
+        display: none;
+    }
+    .date_index_cell{
+        padding: 0 0.5em;
+        align-self: flex-start;
     }
     .timeline{
-        width: fit-content;
+        width: 100%;
         display: flex;
-        /* justify-content: center; */
-        flex-wrap: wrap;
+        flex-direction: column;
+        justify-content: center;
     }
     .event_grid{
         display: flex;
@@ -40,21 +56,42 @@
         box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
     }
     .event_container{
-        width:9.5em;
-        height:9.5em;
+        width: 100%;
         background-color: white;
         box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
         box-sizing: border-box;
-        padding: 0.5em;
-        border-radius: 1em;
-        margin: 0.5em;
-        overflow: scroll;
+        border: solid 1px;
+        border-radius: 0.3em;
+        margin: 0.1em;
+        /* overflow: scroll; */
     }
-    .display_none_cell{
+    .task_list{
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.35rem;
+        width: 100%;
+    }
+    .task_list .event_container{
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+    .schedule_toggle{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    body.schedule-hidden .task_list{
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    body.schedule-hidden .schedule{
+        display: none;
+    }
+    body.schedule-hidden .landscape_only{
         display: none;
     }
     .date_cell{
-        width: 7.5em;
+        /* width: 8em; */
     }
     .mark_cell{
         display: none;

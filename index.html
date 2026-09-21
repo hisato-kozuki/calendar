@@ -10,13 +10,17 @@
         <link href="style_sm_land.css" rel="stylesheet" type="text/css" media="all">
     </head>
     <body>
-        <div class="title"><h1>カレンダー</h1></div>
-        <div class="container">
+        <header class="header">
+            <h1>📅 カレンダー</h1>
+            <button id="schedule_toggle" class="schedule_toggle" type="button">予定を表示</button>
+        </header>
+        <!-- <div class="title"><h1>カレンダー</h1></div> -->
+        <div id="main_calendar" class="container">
             <!--div class="date_container"></div>
             <div class="event_container"></div-->
         </div>
         <p id="p" style="height: 200px;">メイン関数に進む前</p>
-        <div class="curtain"></div>
+        <!-- <div class="curtain"></div> -->
         <div class="console_container">        
             <!-- 更新ボタンを押すと、フォームが表示されます。 -->
             <div id="reload_console">
@@ -67,14 +71,14 @@
             </div>
     
             <!-- 登録ボタンを押すと、フォームが表示されます。 -->
-            <div id="register_console">
+            <div id="register_console" draggable="true">
                 <div style="position: relative;"><button>🖋</button></div>
                 <form id="register_form">
                 <div style="width:24em;">
                     <div style="display:flex">
                         <div style="width:15em;">
                             <input style="display:none" type="text" name="id"/>
-                            <p><input style="width:13em" type="text" name="title" placeholder="タイトル"/>
+                            <p><textarea style="width:13em;min-height:3.2em;resize:vertical;" name="title" placeholder="タイトル&#10;詳細"></textarea>
                                 <select name="color" style="width:4.8em;display:none;" value="8">
                                     <option style="background-color:#616161" value="8">灰</option>
                                     <option style="background-color:#039BE5" value="7">シアン</option>
@@ -148,14 +152,6 @@
                     <input type="password" name="url" placeholder="urlを入力してください。" style="height:3rem;margin:1em;width:15em;"/>
                     <button type="submit" style="width:5em;height:3em;margin:1em;">送信</button>
                 </form>
-            </div>
-
-            <!-- 今日/明日の予定表示コンソール -->
-            <div id="today_console" style="display:flex;flex-direction:column;align-items:start;width:40em;max-width:90%;height:fit-content;overflow: scroll;">
-                <div style="position: relative;"><button>今週</button></div>
-                <div id="today_container_wrapper">
-                    <div id="today_container" class="container" style="left:0;width:fit-content;display:flex;"></div>
-                </div>
             </div>
         </div>
         <div class="button_container"></div>

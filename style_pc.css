@@ -10,46 +10,83 @@
     .container{
         width: 60%;
         left: 20%;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
     }
     .week_cell{
         align-content: center;
-        border-bottom: solid 1px gray;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: center;
     }
-    .display_none_cell{
-        display: none;
+    .week_cell>div{
+        width: 100%;
     }
     .time_index{
         display: none;
     }
     .day_cell{
         display: flex;
+        width: 100%;
+        box-sizing: border-box;
         align-items: center;
         font-size:20px;
-        border-bottom: solid 1px gray;
+        border-radius: 0.5em;
+        padding: 0.5em;
+        margin: 0.5em;
+        background-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
+    }
+    /* 予定が登録されていない日は非表示にする */
+    .day_cell:not(.has_event){
+        display: none;
     }
     .date_index_cell{
-        width: 15%;
+        /* width: 15%;*/
+        padding: 0 0.5em;
+        align-self: flex-start;
     }
     .timeline{
-        width: 85%;
+        width: 100%;
         display: flex;
-        flex-direction: column-reverse;
-        border-left: solid 1px gray;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .event_grid{
+        display: flex;
+        border-radius: 1em;
+        background-color: transparent;
+        box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
     }
     .event_container{
-        background-color: white;
         display: flex;
+        width: 100%;
+        background-color: white;
+        box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
+        box-sizing: border-box;
+        border: solid 2px;
+        border-radius: 0.3em;
+        margin: 0.1em 0;
+        /* overflow: scroll; */
+    }
+    .event_container::-webkit-scrollbar {
+        display: none;
+    }
+    body.schedule-hidden .landscape_only{
+        display: none;
     }
     .date_cell{
-        width: 25%;
+        width: 8em;
+        padding: 0 0.1em;
     }
-    .event_cell{
-        width: 65%;
+    .mark_cell{
+        display: none;
     }
     .delete_cell{
-        width: 10%;
-        height: 32px;
-        margin: 2px;
+        width: 1em;
+        /* margin: 1px; */
     }
 
     /* #today_container>.week_cell{ display: flex; }
@@ -86,5 +123,10 @@
     }
     .grid div{
         padding: 5px;
+    }
+    .schedule_toggle{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 }

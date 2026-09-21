@@ -1,6 +1,6 @@
 document.getElementById("p").innerText = "";
 import { date_string, str2date, display, getCalendarEvents, saveCalendarEvents, countHistory, countUpTimer, searchParent, pushLocalStorage, displayTodayTomorrow } from "./function.js";
-import { calendar, reload_console, register_console, timer_console } from "./class.js";
+import { calendar, consoles, reload_console, register_console, timer_console } from "./class.js";
 
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
@@ -21,6 +21,21 @@ let apiUrl;
 let urlLinks = {};//よく使うサイトのリンク
 let studyTimeSeconds=0, hobbyTimeSeconds=0;
 let isStudying=false, isHavingHobby=false;
+window.applyEventUpdate = (eventData) => {
+    const storedEvents = JSON.parse(localStorage.getItem("stored_events") || "[]");
+    const normalizedData = {
+        ...eventData,
+        date_start: new Date(eventData.date_start),
+        date_end: new Date(eventData.date_end),
+    };
+    const index = storedEvents.findIndex((item) => String(item.id) === String(normalizedData.id));
+    if(index >= 0) storedEvents[index] = normalizedData;
+    else storedEvents.push(normalizedData);
+    localStorage.setItem("stored_events", JSON.stringify(storedEvents));
+    saveCalendarEvents(storedEvents);
+    // display(storedEvents, false);
+    pushLocalStorage("modify", normalizedData);
+};
 const http_options = {
     'method' : 'post',
     'headers': {
@@ -49,6 +64,13 @@ window.onload = function(){
     getCalendarEvents();
     // 今日/明日の小カレンダー表示
     try{ displayTodayTomorrow(); }catch(e){console.log(e)}
+    const scheduleToggle = document.getElementById("schedule_toggle");
+    if(scheduleToggle){
+        scheduleToggle.addEventListener("click", () => {
+            document.body.classList.toggle("schedule-hidden");
+            scheduleToggle.textContent = document.body.classList.contains("schedule-hidden") ? "予定を隠す" : "予定を表示";
+        });
+    }
     reload_console.reload(); //カレンダーを更新
     countUpTimer(true, true);countUpTimer(false, true);
     if(!(date <= new Date(localStorage["last_opened_date"]))){
@@ -67,23 +89,35 @@ window.onload = function(){
     }
 }
 
-document.getElementsByClassName("curtain")[0].addEventListener('click', (event) => {
-    let elements = searchParent(event.target);
-    let console_container = document.getElementsByClassName("console_container")[0];
-    let button_container = document.getElementsByClassName("button_container")[0];
-    // if(!elements.includes(button_container) && !elements.includes(console_container)){
-        let forms = document.getElementsByClassName('console_container')[0].children;
-        for(let i = 0; i < forms.length; i++){
-            forms[i].style.transform = 'scale(0, 0)';
+document.getElementsByClassName("container")[0].addEventListener('click', (event) => {
+    console.log("click", event.target.className)
+    if(!event.target.className.includes("event_cell")){
+        for(let console of consoles){
+            console.shrink();
         }
-        document.getElementsByClassName("curtain")[0].style.opacity = 0;
-        document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
-        let buttons = document.getElementsByClassName('button_container')[0].querySelectorAll("button");
-        for(let i = 0; i < buttons.length; i++){
-            buttons[i].style.backgroundColor = 'coral';
-        }
-    // }
+    }
 })
+// document.getElementsByClassName("curtain")[0].addEventListener('click', (event) => {
+//     for(let console of consoles){
+//         console.shrink();
+//         console.mode = "out";
+//     }
+//     // let elements = searchParent(event.target);
+//     // let console_container = document.getElementsByClassName("console_container")[0];
+//     // let button_container = document.getElementsByClassName("button_container")[0];
+//     // // if(!elements.includes(button_container) && !elements.includes(console_container)){
+//     //     let forms = document.getElementsByClassName('console_container')[0].children;
+//     //     for(let i = 0; i < forms.length; i++){
+//     //         forms[i].style.transform = 'scale(0, 0)';
+//     //     }
+//     //     document.getElementsByClassName("curtain")[0].style.opacity = 0;
+//     //     document.getElementsByClassName("curtain")[0].style.visibility = "hidden";
+//     //     let buttons = document.getElementsByClassName('button_container')[0].querySelectorAll("button");
+//     //     for(let i = 0; i < buttons.length; i++){
+//     //         buttons[i].style.backgroundColor = 'coral';
+//     //     }
+//     // // }
+// })
 
 reload_console.getEvents = (startDate, endDate) => {
     //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
@@ -97,11 +131,19 @@ reload_console.getEvents = (startDate, endDate) => {
         'date_start': startDate,
         'date_end': endDate
     };
+    const apiUrl = localStorage["apiUrl"];
+    if(!apiUrl){
+        const message = "API URLが未設定です";
+        document.getElementById("p").innerText = message;
+        reload_console.sync_button.stop("Error");
+        reload_console.display_button.stop("🔄");
+        return Promise.reject(message);
+    }
     http_options.body=JSON.stringify(data);
     reload_console.sync_button.start();
     reload_console.display_button.start();
     return new Promise((resolve, reject) => {
-        fetch(localStorage["apiUrl"], http_options)
+        fetch(apiUrl, http_options)
         .then(response => response.text())
         .then(data => {
             if(data.error){
@@ -126,28 +168,25 @@ reload_console.getEvents = (startDate, endDate) => {
 
 reload_console.reload = (event, button) => {
     let promise1;
-    if(event != undefined){ //ボタンを押して更新する場合
+    let rangeStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() - 6);
+    let rangeEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    if(event != undefined){
         let date_start = new Date(Date.parse(event.target.start.value));
         let date_end = new Date(Date.parse(event.target.end.value));
+        date_start = rangeStart > date_start ? date_start : rangeStart;
+        date_end = rangeEnd < date_end ? date_end : rangeEnd;
         promise1 = reload_console.getEvents(date_start, date_end).then((data)=>{
-            display(data, true);//saveCalendarEventsToDB(data);
+            display(data, true);
             console.log("更新 完了");
             saveCalendarEvents(data);
+            return data;
         });
-    } else promise1 = reload_console.getEvents().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data);}); //最初に更新する場合
-    const promise2 = new Promise((resolve) =>reload_console.getEvents(todayDate, date, false).then((data)=>resolve(data)));
-    let date_old = new Date(todayDate - 86400000);
-    const promise3 = new Promise((resolve) =>reload_console.getEvents(date_old, todayDate, false).then((data)=>resolve(data)));
-    date_old = new Date(todayDate - 604800000);
-    const promise4 = new Promise((resolve) =>reload_console.getEvents(date_old, todayDate, false).then((data)=>resolve(data)));
-    Promise.all([promise1, promise2, promise3, promise4])
-    .then((results) => {
-        console.log("d")
+    } else promise1 = reload_console.getEvents().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data); return data;});
+    promise1.then((data) => {
         reload_console.display_button.stop("🔄");
-        countHistory(results[1], 2);
-        countHistory(results[2], 3);
-        countHistory(results[3], 4);
-        console.log("ボタン更新2")
+        countHistory(data, 2, "today");
+        countHistory(data, 3, "yesterday");
+        countHistory(data, 4, "week");
         console.log("予定読み込み，履歴読み込み完了");
     })
 }
@@ -159,11 +198,18 @@ reload_console.postEvents = (types_datas, options) => {
     for(let typedata of types_datas){
         let type = typedata.type;
         let post_data = {"type": type, "datas": typedata.data};
+        const apiUrl = localStorage["apiUrl"];
+        if(!apiUrl){
+            const message = "API URLが未設定です";
+            document.getElementById("p").innerText = message;
+            reload_console.display_button.stop("🔄");
+            return;
+        }
         http_options.body=JSON.stringify(post_data);
         const button = reload_console.counters[type].button;
         button.start();
         promises.push(new Promise((resolve, reject) => {
-            fetch(localStorage["apiUrl"], http_options)
+            fetch(apiUrl, http_options)
             .then(response => response.text())
             .then(data => {
                 if(data.slice(0,9) == "Exception"){
@@ -195,19 +241,22 @@ reload_console.postEvents = (types_datas, options) => {
 }
 
 register_console.element.querySelectorAll("button")[2].addEventListener('click', (event) => {
-    // イベントを停止する
     let form = event.target.parentElement;
     let button = event.target;
     event.preventDefault();
     let date_start = str2date(form.start.value, todayDate);
     let date_end = str2date(form.end.value, todayDate);
+    let titleLines = (form.title.value || "").split(/\r?\n/);
+    let title = titleLines[0].trim();
+    let description = titleLines.slice(1).join("\n").trim();
     console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
     let id = 0;
     if(button.textContent == "作成" && localStorage["element_post"])id = localStorage["element_post"].length;
     else if(button.textContent == "変更")id = form.id.value;
     const element_data = {
         'id': id,
-        'title': form.title.value,
+        'title': title,
+        'description': description,
         'date_start': date_start,
         'date_end': date_end,
         'color': form.color.value,
@@ -237,6 +286,114 @@ document.getElementById("register_form").end.addEventListener('change', (event) 
 document.getElementById("register_form").start.addEventListener('click', (event) => {
     event.preventDefault();
 })
+
+register_console.element.addEventListener('dragstart', event => {
+    // event.preventDefault();
+    console.log("dragstart1", event.target);
+    let form = event.target.querySelector("form");
+    let titleLines = (form.title.value || "").split(/\r?\n/);
+    let title = titleLines[0].trim();
+    let description = titleLines.slice(1).join("\n").trim();
+    event.dataTransfer.setData('text/plain', JSON.stringify({"title": title, "description": description, "start": form.start.value, "end": form.end.value, "color": form.color.value}));
+    event.dataTransfer.effectAllowed = 'copy';
+});
+
+const calendarArea = document.getElementsByClassName('container')[0];
+calendarArea.addEventListener('dragover', event => {
+    if(event.dataTransfer.types.includes('text/plain'))event.preventDefault();
+});
+
+// ドロップ先の日付・時刻を、座標(clientX, clientY)から解決する
+// （ネイティブdropイベント／タッチによるドラッグの両方から共通で使う）
+function resolveDropPoint(clientX, clientY){
+    const elementAtPoint = document.elementFromPoint(clientX, clientY);
+    const dropTarget = elementAtPoint && elementAtPoint.closest('.day_cell');
+    if(!dropTarget) return null;
+    const dateValue = dropTarget.dataset.date;
+    if(!dateValue) return null;
+    const timeline = dropTarget.querySelector('.timeline');
+    let hour = 6;
+    if(timeline){
+        const rect = timeline.getBoundingClientRect();
+        const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+        hour = Math.max(6, Math.min(23, 6 + Math.round((y / Math.max(rect.height, 1)) * 18)));
+    }
+    return { dateValue, hour };
+}
+
+// draggedData（タイトル・説明・色）を、解決済みの日付・時刻に配置する
+function placeDraggedEvent(draggedData, dateValue, hour){
+    const form = document.getElementById('register_form');
+    if(draggedData.title != undefined || draggedData.description != undefined){
+        form.title.value = `${draggedData.title || ''}${draggedData.description ? '\n' + draggedData.description : ''}`;
+    }
+    if(draggedData.color != undefined)form.color.value = draggedData.color;
+    form.id.value = '';
+
+    const startHour = String(hour).padStart(2, '0');
+    const endHour = String(Math.min(23, hour + 1)).padStart(2, '0');
+    const startDate = str2date(`${dateValue.replace(/-/g, '/')} ${startHour}:00`, todayDate);
+    const endDate = str2date(`${dateValue.replace(/-/g, '/')} ${endHour}:00`, todayDate);
+    if(!calendar.canPlaceEvent(dateValue, startDate, endDate)){
+        document.getElementById("p").innerText = "その時間には既に予定があります";
+        return;
+    }
+    draggedData.date_start = startDate;
+    draggedData.date_end = endDate;
+    calendar.addEvent(draggedData, 0, 0);
+    pushLocalStorage("post", draggedData);
+}
+
+calendarArea.addEventListener('drop', event => {
+    event.preventDefault();
+    let draggedData = {};
+    try{ draggedData = JSON.parse(event.dataTransfer.getData('text/plain') || '{}'); }catch(e){}
+    const point = resolveDropPoint(event.clientX, event.clientY);
+    if(!point) return;
+    placeDraggedEvent(draggedData, point.dateValue, point.hour);
+});
+
+// スマホ横向きでのタッチドラッグ対応
+// HTML5のネイティブDrag and Drop API（dragstart/dragover/drop）はタッチ操作では発火しないため、
+// Pointer Eventsでドラッグ操作を代替実装する（マウス操作はネイティブDnDのまま変更しない）。
+let touchDrag = null;
+register_console.element.addEventListener('pointerdown', event => {
+    if(event.pointerType !== 'touch') return;
+    if(!window.matchMedia('(max-width:1024px) and (orientation: landscape)').matches) return;
+    if(event.target.closest('input, textarea, select, button, option')) return; // フォーム操作は妨げない
+    const form = document.getElementById('register_form');
+    const titleLines = (form.title.value || "").split(/\r?\n/);
+    const title = titleLines[0].trim();
+    if(!title) return; // タイトル未入力ならドラッグ配置しない
+    const description = titleLines.slice(1).join("\n").trim();
+
+    event.preventDefault();
+    const ghost = document.createElement('div');
+    ghost.textContent = title;
+    ghost.style.cssText = 'position:fixed;z-index:999;pointer-events:none;left:0;top:0;padding:0.4em 0.8em;border-radius:0.5em;background:var(--main,#4A90E2);color:white;font-size:0.9em;box-shadow:0 4px 10px rgba(0,0,0,0.3);transform:translate(-50%,-50%);white-space:nowrap;';
+    ghost.style.left = event.clientX + 'px';
+    ghost.style.top = event.clientY + 'px';
+    document.body.appendChild(ghost);
+    touchDrag = { pointerId: event.pointerId, ghost, data: { title, description, color: form.color.value } };
+});
+document.addEventListener('pointermove', event => {
+    if(!touchDrag || event.pointerId !== touchDrag.pointerId) return;
+    touchDrag.ghost.style.left = event.clientX + 'px';
+    touchDrag.ghost.style.top = event.clientY + 'px';
+});
+document.addEventListener('pointerup', event => {
+    if(!touchDrag || event.pointerId !== touchDrag.pointerId) return;
+    const { data, ghost } = touchDrag;
+    touchDrag = null;
+    ghost.remove();
+    const point = resolveDropPoint(event.clientX, event.clientY);
+    if(point) placeDraggedEvent(data, point.dateValue, point.hour);
+});
+document.addEventListener('pointercancel', event => {
+    if(!touchDrag || event.pointerId !== touchDrag.pointerId) return;
+    touchDrag.ghost.remove();
+    touchDrag = null;
+});
 
 document.getElementById("apiurl_form").addEventListener('submit', event => {
     // イベントを停止する
@@ -382,6 +539,7 @@ document.getElementById("clear_timer").addEventListener('click', event => {
 });
 
 reload_console.display_button.element.addEventListener("dblclick", event =>{
+    event.preventDefault();
     reload_console.sync_button.element.click();
 })
 

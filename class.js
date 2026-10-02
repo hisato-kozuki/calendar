@@ -315,7 +315,7 @@ class Event{
         // }
         // if(event_container2)this.set(event_container2, event_data);
         // console.log(event_data.title)
-
+        
         if(delete_id != undefined){
             date_cell.style.backgroundColor = "transparent";
             event_cell.style.backgroundColor = "transparent";
@@ -342,6 +342,7 @@ class Event{
             // イベントの開始時間・終了時間を変更するためのハンドルをバインド
             container.addEventListener("pointerdown", (pointerEvent) => {
                 console.log("resize")
+                if(!window.matchMedia('(max-width:1024px) and (orientation: landscape)').matches) return;
                 const rect = container.getBoundingClientRect();
                 console.log(pointerEvent.clientY - rect.top,rect.bottom - pointerEvent.clientY)
                 const isTop = pointerEvent.clientY - rect.top < 8;
@@ -377,7 +378,7 @@ class Event{
                         if(nextEnd <= nextStart) nextEnd = new Date(nextStart.getTime() + 3600000);
                     }
                     console.log(mode, hour, nextStart, nextEnd)
-                    previewData = { ...event_data, date_start: nextStart, date_end: nextEnd };
+                    previewData = { ...event_data, date_start: nextStart, date_end: nextEnd, id: delete_id };
                     this.event_data = previewData;
                     this.modifyEvent(previewData)
                     // if(this.container1) this.set(this.container1, previewData);
@@ -403,28 +404,25 @@ class Event{
             bindResizeHandle(event_container, "end");
         }
 
-        for(let cell of [date_cell, event_cell, mark_cell]){
-            cell.addEventListener("click", (event) => {
-                if(suppressClick){
-                    suppressClick = false;
-                    return;
-                }
-                console.log("open register console")
-                register_console.expand();
-                let form = document.getElementById("register_form");
-                let date_start = this.event_data.date_start;
-                let date_end = this.event_data.date_end;
-                form.id.value = this.event_data.id;
-                form.title.value = `${this.event_data.title}${this.event_data.description ? "\n" + this.event_data.description : ""}`;
-                form.start.value = date_string(date_start, "/", {"required":["year","hour"]});
-                form.end.value = date_string(date_end, "/", {"required":["year","hour"]});
-                form.datetime_start.value = date_string(date_start, "-", {"required":["year","hour"]});
-                form.datetime_end.value = date_string(date_end, "-", {"required":["year","hour"]});
-                form.color.value = this.event_data.color;
-                document.getElementById("colorcircle").style.backgroundColor = color;
-                document.getElementById("postbutton").textContent = "変更";
-            })
-        }
+        event_container.addEventListener("click", (event) => {
+            console.log(event)
+            if(suppressClick){
+                suppressClick = false;
+                return;
+            }
+            console.log("open register console")
+            register_console.expand();
+            let form = document.getElementById("register_form");
+            let date_start = this.event_data.date_start;
+            let date_end = this.event_data.date_end;
+            form.id.value = this.event_data.id;
+            form.title.value = `${this.event_data.title}${this.event_data.description ? "\n" + this.event_data.description : ""}`;
+            register_console.datetime_inputs.set_start_datetime(date_string(date_start, "-", {"required":["year","hour"]}));
+            register_console.datetime_inputs.set_end_datetime(date_string(date_end, "-", {"required":["year","hour"]}));
+            form.color.value = this.event_data.color;
+            document.getElementById("colorcircle").style.backgroundColor = color;
+            document.getElementById("postbutton").textContent = "変更";
+        })
 
         this.event_data = event_data;
         this.id = event_data.id;
@@ -481,8 +479,14 @@ class Event{
         if(event_data.candel != true){
             this.container1.style.backgroundColor = "#fff0f0";
             if(this.container2)this.container2.style.backgroundColor = "#fff0f0";
+            if(Number.isInteger(Number(event_data.id))){
+                deleteLocalStorage("post", event_data);
+                pushLocalStorage("post", event_data);
+            } else pushLocalStorage("modify", event_data);
         } else {
             event_data = this.initial_data;
+            event_data.date_start = new Date(event_data.date_start);
+            event_data.date_end = new Date(event_data.date_end);
             this.container1.style.backgroundColor = "white";
             if(this.container2)this.container2.style.backgroundColor = "white";
         }
@@ -691,7 +695,7 @@ class Console{
             console.shrink();
         }
 
-        this.element.style.transform = 'translateX(-50%) translateY(0%) scale(1)';
+        this.element.style.transform = 'translateX(-50%) translateY(-15%) scale(1)';
         this.display_button.element.style.backgroundColor = "#ff4014";
         this.mode = "in";
     }

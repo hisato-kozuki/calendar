@@ -16,12 +16,19 @@ export function date_string(date, separator, options){
 }
 
 export function str2date(date_string, defaultDate){
-    let buffer = date_string.split(/[ T\.日]/);
+    {/*
+        Date()で日付と認識されるパターンは以下の三つ．
+        スペースとスラッシュはいくら重ねてもいい．ハイフンとTは単体で使う．
+        yyyy[[ /]+-]mm[[ /]+-]+dd[ /]+hh:mm　dateの区切りは( ,/,-)，日と時の区切りは( ,/)，timeの区切りは:のみ
+        yyyy[[ /]+]mm[[ /]+]+dd-hh:mm　dateの区切りは( ,/)，日と時の区切りは(-)，timeの区切りは:のみ
+        yyyy-mm-ddThh:mm　date，日と時，timeの区切りは-，T，:
+    */}
+    let buffer = date_string.split(/[T]/);
     console.log("first", buffer)
-    if(!buffer[0].match(/[-/年月]/))buffer = ["", buffer[0]];
-    else if(!buffer[1])buffer = [buffer[0], ""];
+    // if(!buffer[0].match(/[-/年月]/))buffer = ["", buffer[0]];
+    // else if(!buffer[1])buffer = [buffer[0], ""];
 
-    buffer[0] = buffer[0].split(/[/年月]/).map((p) => p = p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
+    buffer[0] = buffer[0].split(/[ /年月]/).map((p) => p = p.padStart(2, '0')).join("-"); // 日付部分をYYYY-MM-DD形式に変換
     console.log("buffer", buffer)
     if(!buffer[0].match(/^\d{4}/)){ // 年が無い場合は今年とみなす
         console.log(buffer[0], buffer[0].match(/^\d{2}\-\d{2}/))
@@ -32,11 +39,12 @@ export function str2date(date_string, defaultDate){
         }
         buffer[0] = defaultDate.getFullYear()+ "-" + buffer[0];
     }
-    buffer[1] = buffer[1].split(/[:時分]/).map((p) => p = p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
+    buffer[1] = buffer[1].split(/[ :時分]/).map((p) => p = p.padStart(2, '0')).join(":"); // 時間部分をhh:mm形式に変換
+    console.log(buffer[1])
     if(!buffer[1].match(/^\d{2}:\d{2}/)){ // 時、分が無い場合
         if(buffer[1].match(/^\d{2}/)){ // 分が有る場合は:00を付け足す
             buffer[1] += ":00";
-        } else buffer[1] += "00:00";
+        } else buffer[1] = "00:00";
     }
     
     return new Date(buffer.join(" ")); // 日付と時間で分割
@@ -57,20 +65,16 @@ export function renewTask(event_data, date, color){
     console.log("detected");
     let new_date = new Date(date);
     let date_end = new Date(event_data.date_end);
-    console.log("old_date", new_date);
     new_date.setFullYear(todayDate.getFullYear());new_date.setMonth(todayDate.getMonth());
     if(color == 11)new_date.setDate(todayDate.getDate());
     else if(color == 4)new_date.setDate(todayDate.getDate()+1);
     else if(color == 1)new_date.setDate(date.getDate()+7);
     else if(color == 9)new_date.setMonth(date.getMonth()+1);
-    console.log("new_date", new_date);
-    console.log(date_end < new_date)
     if(date_end < new_date){
         color = 11;
-        date_end.setFullYear(todayDate.getFullYear());
-        date_end.setMonth(todayDate.getMonth());
-        date_end.setDate(todayDate.getDate());
-        new_date.setDate(todayDate.getDate());
+        date_end.setFullYear(new_date.getFullYear());
+        date_end.setMonth(new_date.getMonth());
+        date_end.setDate(new_date.getDate());
     }
     let datas = {
         'id': event_data.id,

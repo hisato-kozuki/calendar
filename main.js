@@ -45,8 +45,8 @@ const http_options = {
 };
 window.onload = function(){
     let text = date_string(todayDate, "-", {"required": ["year", "hour"]});
-    document.getElementById("register_form").datetime_start.value = text;
-    document.getElementById("register_form").datetime_end.value = text;
+    register_console.datetime_inputs.set_start_datetime(text);
+    register_console.datetime_inputs.set_end_datetime(text);
     document.getElementById("reload_form").start.value = date_string(new Date(todayDate-86400000), "-", {"required": ["year"]});
     document.getElementById("reload_form").end.value = date_string(date, "-", {"month_offset": 2, "required": ["year"]});
     if(!localStorage["links"])localStorage["links"] = JSON.stringify({"Youtube": "https://www.youtube.com/", "番組表": "https://www.tvkingdom.jp/chart/40.action", "やる気スイッチ": "https://hisato-kozuki.github.io/yaruki-switch/index.html", "記憶ゲーム": "https://hisato-kozuki.github.io/reversi-memory-game/index.html"});
@@ -89,9 +89,9 @@ window.onload = function(){
     }
 }
 
-document.getElementsByClassName("container")[0].addEventListener('click', (event) => {
+document.body.addEventListener('click', (event) => {
     console.log("click", event.target.className)
-    if(!event.target.className.includes("event_cell")){
+    if(!event.target.closest(".event_container") && !event.target.closest(".console_container") && !event.target.closest(".button_container")){
         for(let console of consoles){
             console.shrink();
         }
@@ -244,8 +244,8 @@ register_console.element.querySelectorAll("button")[2].addEventListener('click',
     let form = event.target.parentElement;
     let button = event.target;
     event.preventDefault();
-    let date_start = str2date(form.start.value, todayDate);
-    let date_end = str2date(form.end.value, todayDate);
+    let date_start = str2date(form.datetime_start.value, todayDate);
+    let date_end = str2date(form.datetime_end.value, todayDate);
     let titleLines = (form.title.value || "").split(/\r?\n/);
     let title = titleLines[0].trim();
     let description = titleLines.slice(1).join("\n").trim();
@@ -266,41 +266,82 @@ register_console.element.querySelectorAll("button")[2].addEventListener('click',
         pushLocalStorage("post", element_data);
     } else if (button.textContent == "変更"){
         calendar.modifyEvent(element_data);
-        pushLocalStorage("modify", element_data);
         register_console.shrink();
     }
 });
 
-document.getElementById("register_form").datetime_start.addEventListener('change', (event) => {
-    document.getElementById("register_form").start.value = event.target.value.replace(/-/g, "/").replace(/T/g, " ")
-})
-document.getElementById("register_form").datetime_end.addEventListener('change', (event) => {
-    document.getElementById("register_form").end.value = event.target.value.replace(/-/g, "/").replace(/T/g, " ")
-})
-document.getElementById("register_form").start.addEventListener('change', (event) => {
-    document.getElementById("register_form").datetime_start.value = date_string(str2date(event.target.value, todayDate), "-", {"required": ["year", "hour"]})
-})
-document.getElementById("register_form").end.addEventListener('change', (event) => {
-    document.getElementById("register_form").datetime_end.value = date_string(str2date(event.target.value, todayDate), "-", {"required": ["year", "hour"]})
-})
-document.getElementById("register_form").start.addEventListener('click', (event) => {
+register_console.datetime_inputs = {
+    start: {date_text: document.getElementById("register_form").date_text_start, time_text: document.getElementById("register_form").time_text_start, datetime: document.getElementById("register_form").datetime_start}, 
+    end: {date_text: document.getElementById("register_form").date_text_end, time_text: document.getElementById("register_form").time_text_end, datetime: document.getElementById("register_form").datetime_end}    
+}
+register_console.time_length = 0;
+for(let key of ["start", "end"]){
+    let inputs = register_console.datetime_inputs[key]
+    register_console.datetime_inputs["set_" + key + "_datetime"] = (string) => {
+        let date_time = string.replace(/-/g, "/").split(/T/g)
+        inputs.date_text.value = date_time[0];
+        inputs.time_text.value = date_time[1].replace(":00", "");
+        inputs.datetime.value =  string
+        if(key == "start"){
+            register_console.datetime_inputs.set_end_datetime(date_string(new Date(Date.parse(register_console.datetime_inputs.start.datetime.value) + register_console.time_length), "-", {"required": ["year", "hour"]}));
+        }
+        if(key == "end"){
+            register_console.time_length = Date.parse(register_console.datetime_inputs.end.datetime.value) - Date.parse(register_console.datetime_inputs.start.datetime.value);
+        }
+        console.log("time_length", register_console.time_length)
+    }
+    
+    const set_datetime = register_console.datetime_inputs["set_" + key + "_datetime"];
+    
+    inputs.datetime.addEventListener('change', (event) => {
+        console.log(event.target.value)
+        set_datetime(event.target.value)
+        console.log("time_length", register_console.time_length)
+    })
+    inputs.date_text.addEventListener('change', (event) => {
+        console.log(inputs.date_text.value + "T" + inputs.time_text.value)
+        set_datetime(date_string(str2date(inputs.date_text.value + "T" + inputs.time_text.value, todayDate), "-", {"required": ["year", "hour"]})) 
+    })
+    inputs.time_text.addEventListener('change', (event) => {
+        console.log(inputs.date_text.value + "T" + inputs.time_text.value)
+        set_datetime(date_string(str2date(inputs.date_text.value + "T" + inputs.time_text.value, todayDate), "-", {"required": ["year", "hour"]})) 
+    })
+
+    inputs.date_text.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Enterによるフォーム送信を防止
+            inputs.time_text.focus(); // 次のinputにフォーカス
+        }
+    });
+
+    register_console.datetime_inputs[key].time_text.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Enterによるフォーム送信を防止
+            register_console.datetime_inputs[key == "end" ? "start" : "end"].date_text.focus(); // 次のinputにフォーカス
+        }
+    });
+}
+
+document.getElementById("register_form").date_text_start.addEventListener('click', (event) => {
     event.preventDefault();
 })
 
-register_console.element.addEventListener('dragstart', event => {
-    // event.preventDefault();
+
+document.getElementById("title_input").addEventListener('dragstart', event => {
     console.log("dragstart1", event.target);
-    let form = event.target.querySelector("form");
+    if(!window.matchMedia('(max-width:1024px) and (orientation: landscape)').matches) return;
+    let form = event.target.closest("form");
     let titleLines = (form.title.value || "").split(/\r?\n/);
     let title = titleLines[0].trim();
     let description = titleLines.slice(1).join("\n").trim();
-    event.dataTransfer.setData('text/plain', JSON.stringify({"title": title, "description": description, "start": form.start.value, "end": form.end.value, "color": form.color.value}));
+    event.dataTransfer.setData('text/plain', JSON.stringify({"title": title, "description": description, "start": form.datetime_start.value, "end": form.datetime_end.value, "color": form.color.value}));
     event.dataTransfer.effectAllowed = 'copy';
 });
 
 const calendarArea = document.getElementsByClassName('container')[0];
 calendarArea.addEventListener('dragover', event => {
     if(event.dataTransfer.types.includes('text/plain'))event.preventDefault();
+    console.log("dragover", event.dataTransfer);
 });
 
 // ドロップ先の日付・時刻を、座標(clientX, clientY)から解決する
@@ -332,15 +373,16 @@ function placeDraggedEvent(draggedData, dateValue, hour){
 
     const startHour = String(hour).padStart(2, '0');
     const endHour = String(Math.min(23, hour + 1)).padStart(2, '0');
-    const startDate = str2date(`${dateValue.replace(/-/g, '/')} ${startHour}:00`, todayDate);
-    const endDate = str2date(`${dateValue.replace(/-/g, '/')} ${endHour}:00`, todayDate);
+    const startDate = str2date(`${dateValue.replace(/-/g, '/')}T${startHour}:00`, todayDate);
+    const endDate = str2date(`${dateValue.replace(/-/g, '/')}T${endHour}:00`, todayDate);
     if(!calendar.canPlaceEvent(dateValue, startDate, endDate)){
         document.getElementById("p").innerText = "その時間には既に予定があります";
         return;
     }
     draggedData.date_start = startDate;
     draggedData.date_end = endDate;
-    calendar.addEvent(draggedData, 0, 0);
+    draggedData.id = localStorage["element_post"] != undefined ? localStorage["element_post"].length : 0;
+    calendar.addEvent(draggedData, 0, 0, localStorage["element_post"] != undefined ? localStorage["element_post"].length : 0);
     pushLocalStorage("post", draggedData);
 }
 
@@ -348,6 +390,7 @@ calendarArea.addEventListener('drop', event => {
     event.preventDefault();
     let draggedData = {};
     try{ draggedData = JSON.parse(event.dataTransfer.getData('text/plain') || '{}'); }catch(e){}
+    console.log(draggedData)
     const point = resolveDropPoint(event.clientX, event.clientY);
     if(!point) return;
     placeDraggedEvent(draggedData, point.dateValue, point.hour);
@@ -357,7 +400,7 @@ calendarArea.addEventListener('drop', event => {
 // HTML5のネイティブDrag and Drop API（dragstart/dragover/drop）はタッチ操作では発火しないため、
 // Pointer Eventsでドラッグ操作を代替実装する（マウス操作はネイティブDnDのまま変更しない）。
 let touchDrag = null;
-register_console.element.addEventListener('pointerdown', event => {
+register_console.element.addEventListener('touchstart', event => {
     if(event.pointerType !== 'touch') return;
     if(!window.matchMedia('(max-width:1024px) and (orientation: landscape)').matches) return;
     if(event.target.closest('input, textarea, select, button, option')) return; // フォーム操作は妨げない
@@ -371,22 +414,24 @@ register_console.element.addEventListener('pointerdown', event => {
     const ghost = document.createElement('div');
     ghost.textContent = title;
     ghost.style.cssText = 'position:fixed;z-index:999;pointer-events:none;left:0;top:0;padding:0.4em 0.8em;border-radius:0.5em;background:var(--main,#4A90E2);color:white;font-size:0.9em;box-shadow:0 4px 10px rgba(0,0,0,0.3);transform:translate(-50%,-50%);white-space:nowrap;';
-    ghost.style.left = event.clientX + 'px';
-    ghost.style.top = event.clientY + 'px';
+    ghost.style.left = event.touches[0].clientX + 'px';
+    ghost.style.top = event.touches[0].clientY + 'px';
     document.body.appendChild(ghost);
     touchDrag = { pointerId: event.pointerId, ghost, data: { title, description, color: form.color.value } };
 });
-document.addEventListener('pointermove', event => {
+document.addEventListener('touchmove', event => {
+    console.log("pointermove")
     if(!touchDrag || event.pointerId !== touchDrag.pointerId) return;
-    touchDrag.ghost.style.left = event.clientX + 'px';
-    touchDrag.ghost.style.top = event.clientY + 'px';
+    touchDrag.ghost.style.left = event.changedTouches[0].clientX + 'px';
+    touchDrag.ghost.style.top = event.changedTouches[0].clientY + 'px';
 });
-document.addEventListener('pointerup', event => {
+document.addEventListener('touchend', event => {
+    console.log("pointerup")
     if(!touchDrag || event.pointerId !== touchDrag.pointerId) return;
     const { data, ghost } = touchDrag;
     touchDrag = null;
     ghost.remove();
-    const point = resolveDropPoint(event.clientX, event.clientY);
+    const point = resolveDropPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
     if(point) placeDraggedEvent(data, point.dateValue, point.hour);
 });
 document.addEventListener('pointercancel', event => {
@@ -436,21 +481,22 @@ document.getElementById("clear").addEventListener('click', event => {
     
     let form = document.getElementById("register_form");
     form.title.value = "";
-    form.start.value = "";
-    form.end.value = "";
+    form.date_text_start.placeholder = form.date_text_start.value || form.date_text_start.placeholder;
+    form.time_text_start.placeholder = form.time_text_start.value || form.time_text_start.placeholder;
+    form.date_text_end.placeholder = form.date_text_end.value || form.date_text_end.placeholder;
+    form.time_text_end.placeholder = form.time_text_end.value || form.time_text_end.placeholder;
+    form.date_text_start.value = "";
+    form.time_text_start.value = "";
+    form.date_text_end.value = "";
+    form.time_text_end.value = "";
     form.color.value = 8;
     document.getElementById("colorcircle").style.backgroundColor = "#616161";
 });
 
-document.getElementById("date_default").addEventListener('click', event => {
+document.getElementById("copy_date").addEventListener('click', event => {
     // イベントを停止する
     event.preventDefault();
-    
-    let text_date = document.getElementById("register_form").datetime_start.value;
-    document.getElementById("register_form").datetime_end.value = text_date;
-    text_date = text_date.replace(/-/g, "/").replace(/T/, " ");
-    document.getElementById("register_form").start.value = text_date;
-    document.getElementById("register_form").end.value = text_date;
+    register_console.datetime_inputs.set_end_datetime(register_console.datetime_inputs.start.datetime.value);
 });
 
 document.getElementById("urlform").addEventListener('submit', event => {

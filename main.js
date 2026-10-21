@@ -1,6 +1,8 @@
 document.getElementById("p").innerText = "";
 import { date_string, str2date, display, getCalendarEvents, saveCalendarEvents, countHistory, countUpTimer, searchParent, pushLocalStorage, displayTodayTomorrow } from "./function.js";
-import { calendar, consoles, reload_console, register_console, timer_console } from "./class.js";
+import { consoles, reload_console, register_console, timer_console } from "./class.js";
+import { getStorage, getEventStorage, clearEventStorage, getGasEventList, resetEditedEvent, getEventList } from "./storage.js";
+const calendar = getStorage().calendar;
 
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
@@ -91,7 +93,7 @@ window.onload = function(){
 
 document.body.addEventListener('click', (event) => {
     console.log("click", event.target.className)
-    if(!event.target.closest(".event_container") && !event.target.closest(".console_container") && !event.target.closest(".button_container")){
+    if(!event.target.closest(".event_cell") && !event.target.closest(".console_container") && !event.target.closest(".button_container")){
         for(let console of consoles){
             console.shrink();
         }
@@ -177,11 +179,18 @@ reload_console.reload = (event, button) => {
         date_end = rangeEnd < date_end ? date_end : rangeEnd;
         promise1 = reload_console.getEvents(date_start, date_end).then((data)=>{
             display(data, true);
+            calendar.view();
             console.log("更新 完了");
             saveCalendarEvents(data);
             return data;
         });
-    } else promise1 = reload_console.getEvents().then((data)=>{display(data, true); console.log("更新 完了"); saveCalendarEvents(data); return data;});
+    } else promise1 = reload_console.getEvents().then((data)=>{
+        display(data, true);
+        calendar.view();
+        console.log("更新 完了");
+        saveCalendarEvents(data);
+        return data;
+    });
     promise1.then((data) => {
         reload_console.display_button.stop("🔄");
         countHistory(data, 2, "today");
@@ -219,6 +228,7 @@ reload_console.postEvents = (types_datas, options) => {
                 } else {
                     let parsed_data = JSON.parse(data);
                     if(options != undefined && options.cell != undefined)options.cell.textContent = "完了";
+                    clearEventStorage(type)
                     localStorage.removeItem("element_" + type);
                     reload_console.counters[type].counter.textContent = 0;
                     button.stop("📤");
@@ -251,23 +261,27 @@ register_console.element.querySelectorAll("button")[2].addEventListener('click',
     let description = titleLines.slice(1).join("\n").trim();
     console.log(date_start, date_start.toLocaleString(), date_start.toDateString())
     let id = 0;
-    if(button.textContent == "作成" && localStorage["element_post"])id = localStorage["element_post"].length;
+    // if(button.textContent == "作成" && localStorage["element_post"])id = localStorage["element_post"].length;
+    if(button.textContent == "作成" && getEventList("post").length > 0)id = getEventList("post").length;
     else if(button.textContent == "変更")id = form.id.value;
     const element_data = {
-        'id': id,
-        'title': title,
-        'description': description,
-        'date_start': date_start,
-        'date_end': date_end,
-        'color': form.color.value,
+        category: "plan",
+        event_data_gas: {
+            'id': id,
+            'title': title,
+            'description': description,
+            'date_start': date_start,
+            'date_end': date_end,
+            'color': form.color.value,
+        }
     };
     if(button.textContent == "作成"){
         calendar.addEvent(element_data, 0, 0, id);
-        pushLocalStorage("post", element_data);
     } else if (button.textContent == "変更"){
         calendar.modifyEvent(element_data);
         register_console.shrink();
     }
+    calendar.view();
 });
 
 register_console.datetime_inputs = {
@@ -383,7 +397,6 @@ function placeDraggedEvent(draggedData, dateValue, hour){
     draggedData.date_end = endDate;
     draggedData.id = localStorage["element_post"] != undefined ? localStorage["element_post"].length : 0;
     calendar.addEvent(draggedData, 0, 0, localStorage["element_post"] != undefined ? localStorage["element_post"].length : 0);
-    pushLocalStorage("post", draggedData);
 }
 
 calendarArea.addEventListener('drop', event => {
@@ -461,9 +474,13 @@ reload_console.element.querySelector("form").addEventListener('submit', event =>
         let promises = [];
         let types_datas = [];
         for(let type of ["post", "delete", "modify"]){
-            let stored_data = localStorage["element_"+type];
-            if(stored_data){
-                types_datas.push({type: type, data: JSON.parse(stored_data)});
+            const event_list = getGasEventList(type);
+            console.log("reload_console.element.querySelector", event_list)
+            // let stored_data = localStorage["element_"+type];
+            // if(stored_data){
+            //     types_datas.push({type: type, data: JSON.parse(stored_data)});
+            if(event_list.length > 0){
+                types_datas.push({type: type, data: event_list});
             }
         }
         let promise = reload_console.postEvents(types_datas, {"get_required": false});

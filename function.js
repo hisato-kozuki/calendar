@@ -1,7 +1,9 @@
-import { calendar, reload_console, mini_calendar } from "./class.js";
+import { reload_console } from "./class.js";
+import { getStorage, getGasEventList } from "./storage.js";
 
 const date = new Date();
 const todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const hobbies = ["activity-game", "activity-tv", "activity-video", "activity-sns", "activity-book", "activity-other"];
 
 export function date_string(date, separator, options){
     let date_buffer = new Date(date);
@@ -16,13 +18,13 @@ export function date_string(date, separator, options){
 }
 
 export function str2date(date_string, defaultDate){
-    {/*
+    /*
         Date()で日付と認識されるパターンは以下の三つ．
         スペースとスラッシュはいくら重ねてもいい．ハイフンとTは単体で使う．
         yyyy[[ /]+-]mm[[ /]+-]+dd[ /]+hh:mm　dateの区切りは( ,/,-)，日と時の区切りは( ,/)，timeの区切りは:のみ
         yyyy[[ /]+]mm[[ /]+]+dd-hh:mm　dateの区切りは( ,/)，日と時の区切りは(-)，timeの区切りは:のみ
         yyyy-mm-ddThh:mm　date，日と時，timeの区切りは-，T，:
-    */}
+    */
     let buffer = date_string.split(/[T]/);
     console.log("first", buffer)
     // if(!buffer[0].match(/[-/年月]/))buffer = ["", buffer[0]];
@@ -94,20 +96,26 @@ export function countHistory(events, row, period){
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
     const weekStart = new Date(today); weekStart.setDate(today.getDate() - 6);
+    console.log(today, yesterday, weekStart)
     let studytime = 0; let hobbytime = 0;
     for(let i = 0; i < events.length; i++){
+        // console.log(events[i].title)
         const eventDate = new Date(events[i].date_start);
         const inRange = period === "today"
             ? eventDate >= today && eventDate < new Date(today.getTime() + 86400000)
             : period === "yesterday"
                 ? eventDate >= yesterday && eventDate < today
                 : eventDate >= weekStart && eventDate <= today;
-        if(inRange && events[i].color == 3){
+        if(inRange){
+            // console.log(events[i].title)
             if(events[i].title.slice(0, 5) === "sssss"){
                 studytime += Number(events[i].title.slice(5, 10));
-            }
-            if(events[i].title.slice(0, 5) === "hhhhh"){
+            }else if(events[i].title.slice(0, 5) === "hhhhh"){
                 hobbytime += Number(events[i].title.slice(5, 10));
+                // console.log(period, "hobbytime hhhhh", (events[i].title.slice(5, 10)));
+            }else if(hobbies.includes(events[i].title.split(":")[0])){
+                hobbytime += Number(events[i].title.split(":")[1]);
+                // console.log(period, "hobbytime", (events[i].title.split(":")[1]));
             }
         }
     }
@@ -132,6 +140,7 @@ function createEventBackground(options, indexElement){
 }
 
 export function display(events, task_renew_required){
+    const calendar = getStorage().calendar;
     if(!events || events.length === 0){
         calendar.remove();
         return;
@@ -140,50 +149,73 @@ export function display(events, task_renew_required){
     let date_end = new Date(events[events.length - 1].date_end);
     let date_start_sunday = new Date(date_start.getFullYear(), date_start.getMonth(), date_start.getDate()-date_start.getDay()%7);
     let date_end_saturday = new Date(date_end.getFullYear(), date_end.getMonth(), date_end.getDate()+(6-date_end.getDay())%7);
-    console.log("calendar make", calendar.make(date_start_sunday, date_end_saturday));
-    console.log("display start");
-    let skip = 0;
-    let duplicate_same_hour = 0;
-    let duplicate_over_day = 0;
-    let oldStartDate = new Date(date_start);
-    let oldStartHour = Math.min(Math.max(oldStartDate.getHours()-5, 1), 20);
-    let date_end_long = new Array(5);
-    for(let i = 0; i < events.length; i++){
-        if(events[i].title.slice(0, 5) !== "hhhhh" && events[i].title.slice(0, 5) !== "sssss"){
-            // console.log(events[i].date_start)
-            let eventStartDate = new Date(events[i].date_start);
-            let startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
-
-            // イベントの時刻の重複回数を調べる処理
-            if(i){
-                // console.log(eventStartDate.getDate() , oldStartDate.getDate(), startHour , oldStartHour)
-                if(eventStartDate.getDate() == oldStartDate.getDate() && startHour == oldStartHour)duplicate_same_hour += 1;
-                else duplicate_same_hour = 0;
-                if(duplicate_over_day && date_end_long[duplicate_over_day-1] < eventStartDate){
-                    // console.log(date_end_long[duplicate_over_day-1])
-                    duplicate_over_day -= 1;
-                }
-                // console.log(duplicate_same_hour,duplicate_over_day)
-            }
-            let duplicate = duplicate_same_hour + duplicate_over_day + 1;
-            calendar.addEvent(events[i], i, duplicate);
-
-            if(task_renew_required){
-                if(events[i].title.slice(0, 4) === "task"
-                && ((events[i].color == 11 && eventStartDate < todayDate) // 現在日程より前の時刻の場合に
-                || (events[i].color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
-                || (events[i].color == 1 && eventStartDate - todayDate < 172800000) // 現在日程の2日後より前の時刻の場合に
-                || (events[i].color == 9 && eventStartDate - todayDate < 604800000) // 現在日程の１週間後より前の時刻の場合に
-                )){renewTask(events[i], eventStartDate, events[i].color);}
-            }
-
-            oldStartDate = eventStartDate;
-            oldStartHour = startHour;
-
-            skip = 0;
-        }else skip++;
+    
+    let calendar_data = {
+        events: [], // イベントの配列
     }
-    if(localStorage["element_modify"] != undefined)Promise.all(reload_console.postEvents([{type: "modify", data: JSON.parse(localStorage["element_modify"])}], {"get_required": true}))
+    for(let event of events){
+        let category = "plan";
+        if(event.title.slice(0, 4) === "task")category = "task";
+        else if(event.title.slice(0, 5) === "sssss")category = "study";
+        else if(event.title.slice(0, 5) === "hhhhh")category = "hobby";
+        else if(hobbies.includes(event.title.split(":")[0]))category = "hobby";
+        calendar_data.events.push({
+            category: category,
+            event_data_gas: event
+        });
+    }
+    calendar.update(calendar_data);
+    calendar.view_date_start = new Date(date_start_sunday);
+    calendar.view_date_end = new Date(date_end_saturday);
+    calendar.view();
+    console.log("display start");
+    // let skip = 0;
+    // let duplicate_same_hour = 0;
+    // let duplicate_over_day = 0;
+    // let oldStartDate = new Date(date_start);
+    // let oldStartHour = Math.min(Math.max(oldStartDate.getHours()-5, 1), 20);
+    // let date_end_long = new Array(5);
+    // for(let i = 0; i < events.length; i++){
+    //     const is_bobby_time = hobbies.includes(events[i].title.split(":")[0]);
+    //     if(events[i].title.slice(0, 5) !== "hhhhh" && events[i].title.slice(0, 5) !== "sssss" && !is_bobby_time){
+    //         // console.log(events[i].date_start)
+    //         let eventStartDate = new Date(events[i].date_start);
+    //         let startHour = Math.min(Math.max(eventStartDate.getHours()-5, 1), 20);
+
+    //         // イベントの時刻の重複回数を調べる処理
+    //         if(i){
+    //             // console.log(eventStartDate.getDate() , oldStartDate.getDate(), startHour , oldStartHour)
+    //             if(eventStartDate.getDate() == oldStartDate.getDate() && startHour == oldStartHour)duplicate_same_hour += 1;
+    //             else duplicate_same_hour = 0;
+    //             if(duplicate_over_day && date_end_long[duplicate_over_day-1] < eventStartDate){
+    //                 // console.log(date_end_long[duplicate_over_day-1])
+    //                 duplicate_over_day -= 1;
+    //             }
+    //             // console.log(duplicate_same_hour,duplicate_over_day)
+    //         }
+    //         let duplicate = duplicate_same_hour + duplicate_over_day + 1;
+    //         calendar.addEvent(events[i], i, duplicate);
+
+    //         if(task_renew_required){
+    //             if(events[i].title.slice(0, 4) === "task"
+    //             && ((events[i].color == 11 && eventStartDate < todayDate) // 現在日程より前の時刻の場合に
+    //             || (events[i].color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
+    //             || (events[i].color == 1 && eventStartDate - todayDate < 172800000) // 現在日程の2日後より前の時刻の場合に
+    //             || (events[i].color == 9 && eventStartDate - todayDate < 604800000) // 現在日程の１週間後より前の時刻の場合に
+    //             )){renewTask(events[i], eventStartDate, events[i].color);}
+    //         }
+
+    //         oldStartDate = eventStartDate;
+    //         oldStartHour = startHour;
+
+    //         skip = 0;
+    //     }else skip++;
+    // }
+    const event_list = getGasEventList("modify");
+    // if(localStorage["element_modify"] != undefined)Promise.all(reload_console.postEvents([{type: "modify", data: JSON.parse(localStorage["element_modify"])}], {"get_required": true}))
+    console.log("event_list", event_list)
+    console.log("event_list.length", event_list.length)
+    if(event_list.length > 0)Promise.all(reload_console.postEvents([{type: "modify", data: event_list}], {"get_required": true}))
         .then(() => {
             reload_console.getEvents().then((data)=>{
                 display(data, true);//saveCalendarEventsToDB(data);
@@ -320,3 +352,312 @@ export function deleteLocalStorage(key, data){ // ローカルストレージの
         reload_console.counters[key].counter.textContent = datas.length;
     }
 }
+
+
+const usageData = [
+    {
+    date: "2026-10-08T09:00:00",
+    duration: "100s",
+    category: "game"
+    },
+    {
+    date: "2026-10-08T10:00:00",
+    duration: "150s",
+    category: "tv"
+    },
+    {
+    date: "2026-10-08T11:00:00",
+    duration: "200s",
+    category: "game"
+    },
+    {
+    date: "2026-10-08T13:00:00",
+    duration: "300s",
+    category: "study"
+    },
+    {
+    date: "2026-10-09T09:00:00",
+    duration: "500s",
+    category: "game"
+    }
+];
+
+
+// ============================================
+// durationを秒に変換
+// ============================================
+
+function durationToSeconds(duration) {
+    const match = String(duration).match(
+    /^(\d+(?:\.\d+)?)\s*(s|m|h)$/
+    );
+
+    if (!match) {
+    return 0;
+    }
+
+    const value = Number(match[1]);
+    const unit = match[2];
+
+    switch (unit) {
+    case "s":
+        return value;
+
+    case "m":
+        return value * 60;
+
+    case "h":
+        return value * 60 * 60;
+
+    default:
+        return 0;
+    }
+}
+
+
+// ============================================
+// 秒を見やすい形式に変換
+// ============================================
+
+function formatDuration(seconds) {
+    seconds = Math.round(seconds);
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    const result = [];
+
+    if (hours > 0) {
+    result.push(`${hours}時間`);
+    }
+
+    if (minutes > 0) {
+    result.push(`${minutes}分`);
+    }
+
+    if (secs > 0 || result.length === 0) {
+    result.push(`${secs}秒`);
+    }
+
+    return result.join(" ");
+}
+
+
+// ============================================
+// カテゴリー一覧を生成
+// ============================================
+
+const categorySelect = document.getElementById("category");
+
+const categories = [
+    ...new Set(usageData.map(item => item.category))
+];
+
+categories.forEach(category => {
+    const option = document.createElement("option");
+
+    option.value = category;
+    option.textContent = category;
+
+    categorySelect.appendChild(option);
+});
+
+
+// ============================================
+// Chart.js
+// ============================================
+
+const ctx = document
+    .getElementById("usageChart")
+    .getContext("2d");
+
+let usageChart = null;
+
+
+// ============================================
+// データをフィルタリング
+// ============================================
+
+function getFilteredData() {
+
+    const selectedCategory =
+    document.getElementById("category").value;
+
+    const startDate =
+    document.getElementById("startDate").value;
+
+    const endDate =
+    document.getElementById("endDate").value;
+
+    return usageData.filter(item => {
+
+    // カテゴリー
+    if (
+        selectedCategory !== "all" &&
+        item.category !== selectedCategory
+    ) {
+        return false;
+    }
+
+    const date = new Date(item.date);
+
+    // 開始日
+    if (startDate) {
+        const start = new Date(`${startDate}T00:00:00`);
+
+        if (date < start) {
+        return false;
+        }
+    }
+
+    // 終了日
+    if (endDate) {
+        const end = new Date(`${endDate}T23:59:59`);
+
+        if (date > end) {
+        return false;
+        }
+    }
+
+    return true;
+    });
+}
+
+
+// ============================================
+// グラフ更新
+// ============================================
+
+function updateChart() {
+    // 関数の説明
+    
+
+    const filteredData = getFilteredData();
+
+    // -----------------------------
+    // 合計時間
+    // -----------------------------
+
+    const totalSeconds = filteredData.reduce(
+    (total, item) =>
+        total + durationToSeconds(item.duration),
+    0
+    );
+
+    document.getElementById("totalTime").textContent =
+    formatDuration(totalSeconds);
+
+
+    // -----------------------------
+    // 日付ごとに集計
+    // -----------------------------
+
+    const dailyUsage = {};
+
+    filteredData.forEach(item => {
+
+    const date = item.date.substring(0, 10);
+
+    if (!dailyUsage[date]) {
+        dailyUsage[date] = 0;
+    }
+
+    dailyUsage[date] +=
+        durationToSeconds(item.duration);
+    });
+
+
+    const labels = Object.keys(dailyUsage).sort();
+
+    const values = labels.map(
+    date => dailyUsage[date]
+    );
+
+
+    // -----------------------------
+    // 既存グラフを削除
+    // -----------------------------
+
+    if (usageChart) {
+    usageChart.destroy();
+    }
+
+
+    // -----------------------------
+    // グラフ作成
+    // -----------------------------
+
+    usageChart = new Chart(ctx, {
+
+    type: "bar",
+
+    data: {
+        labels: labels,
+
+        datasets: [
+        {
+            label: "使用時間",
+
+            data: values,
+
+            borderWidth: 1
+        }
+        ]
+    },
+
+    options: {
+
+        responsive: true,
+
+        scales: {
+        y: {
+            beginAtZero: true,
+
+            title: {
+            display: true,
+            text: "使用時間（秒）"
+            }
+        },
+
+        x: {
+            title: {
+            display: true,
+            text: "日付"
+            }
+        }
+        },
+
+        plugins: {
+        tooltip: {
+            callbacks: {
+            label: function(context) {
+                return formatDuration(context.raw);
+            }
+            }
+        }
+        }
+    }
+    });
+}
+
+
+// ============================================
+// フィルター変更時
+// ============================================
+
+document
+    .getElementById("category")
+    .addEventListener("change", updateChart);
+
+document
+    .getElementById("startDate")
+    .addEventListener("change", updateChart);
+
+document
+    .getElementById("endDate")
+    .addEventListener("change", updateChart);
+
+
+// 初期表示
+updateChart();

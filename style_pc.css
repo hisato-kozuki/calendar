@@ -60,7 +60,7 @@
         background-color: transparent;
         box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
     }
-    .event_container{
+    .event_cell{
         display: flex;
         width: 100%;
         background-color: white;
@@ -71,7 +71,7 @@
         margin: 0.1em 0;
         /* overflow: scroll; */
     }
-    .event_container::-webkit-scrollbar {
+    .event_cell::-webkit-scrollbar {
         display: none;
     }
     body.schedule-hidden .landscape_only{

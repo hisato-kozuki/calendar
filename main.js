@@ -1,9 +1,10 @@
 document.getElementById("p").innerText = "";
-import { date_string, str2date, display, getCalendarEvents, saveCalendarEvents, countHistory, countUpTimer, searchParent, pushLocalStorage, displayTodayTomorrow } from "./function.js";
+import { date_string, str2date, searchParent, pushLocalStorage } from "./function_basic.js";
+import { display, getCalendarEvents, saveCalendarEvents, countHistory, countUpTimer, displayTodayTomorrow } from "./function.js";
 import { consoles, reload_console, register_console, timer_console } from "./class.js";
-import { getStorage, getEventStorage, clearEventStorage, getGasEventList, resetEditedEvent, getEventList } from "./storage.js";
+import { getStorage, saveStorage, viewCalendar, clearEventStorage, getGasEventList, getEventList, setMethod } from "./storage.js";
 const calendar = getStorage().calendar;
-
+console.log("main js")
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -15,7 +16,7 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
-
+console.log(reload_console)
 const date = new Date();
 let todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 let eventList;
@@ -23,6 +24,18 @@ let apiUrl;
 let urlLinks = {};//よく使うサイトのリンク
 let studyTimeSeconds=0, hobbyTimeSeconds=0;
 let isStudying=false, isHavingHobby=false;
+
+setMethod("setCounter", (type) => {
+    reload_console.counters[type].set(getEventList(type).length);
+})
+setMethod("setConsoleDatetime", (start_or_end, date_string) => {
+    if(start_or_end === "start")register_console.datetime_inputs.set_start_datetime(date_string);
+    else if(start_or_end === "end")register_console.datetime_inputs.set_end_datetime(date_string);
+})
+setMethod("consoleExpand", () => {
+    register_console.expand();
+})
+ 
 window.applyEventUpdate = (eventData) => {
     const storedEvents = JSON.parse(localStorage.getItem("stored_events") || "[]");
     const normalizedData = {
@@ -63,7 +76,7 @@ window.onload = function(){
     localStorage.removeItem("element_post");
     // getApiUrlFromDB().then((data)=>{apiUrl = data});
     // getCalendarEventsFromDB();
-    getCalendarEvents();
+    // getCalendarEvents();
     // 今日/明日の小カレンダー表示
     try{ displayTodayTomorrow(); }catch(e){console.log(e)}
     const scheduleToggle = document.getElementById("schedule_toggle");
@@ -73,6 +86,9 @@ window.onload = function(){
             scheduleToggle.textContent = document.body.classList.contains("schedule-hidden") ? "予定を隠す" : "予定を表示";
         });
     }
+    calendar.view_date_start = calendar.date_start_sunday;
+    calendar.view_date_end = calendar.date_end_sunday;
+    viewCalendar();
     reload_console.reload(); //カレンダーを更新
     countUpTimer(true, true);countUpTimer(false, true);
     if(!(date <= new Date(localStorage["last_opened_date"]))){
@@ -124,10 +140,10 @@ document.body.addEventListener('click', (event) => {
 reload_console.getEvents = (startDate, endDate) => {
     //res = UrlFetchApp.fetch(apiUrl,http_options); // <- Post リクエスト
     if(startDate == undefined){
-        startDate = new Date(Date.parse(reload_console.start.value));
-        endDate = new Date(Date.parse(reload_console.end.value));
+        startDate = new Date(Date.parse(reload_console.start.value + "T00:00:00"));
+        endDate = new Date(Date.parse(reload_console.end.value + "T00:00:00"));
     }
-    // console.log("get_events", startDate, endDate)
+    console.log("get_events", startDate, endDate)
     const data = {
         'type': "get",
         'date_start': startDate,
@@ -179,16 +195,16 @@ reload_console.reload = (event, button) => {
         date_end = rangeEnd < date_end ? date_end : rangeEnd;
         promise1 = reload_console.getEvents(date_start, date_end).then((data)=>{
             display(data, true);
-            calendar.view();
             console.log("更新 完了");
-            saveCalendarEvents(data);
+            // saveCalendarEvents(data);
+            saveStorage()
             return data;
         });
     } else promise1 = reload_console.getEvents().then((data)=>{
         display(data, true);
-        calendar.view();
         console.log("更新 完了");
-        saveCalendarEvents(data);
+        // saveCalendarEvents(data);
+        saveStorage()
         return data;
     });
     promise1.then((data) => {
@@ -281,7 +297,7 @@ register_console.element.querySelectorAll("button")[2].addEventListener('click',
         calendar.modifyEvent(element_data);
         register_console.shrink();
     }
-    calendar.view();
+    viewCalendar();
 });
 
 register_console.datetime_inputs = {
@@ -462,7 +478,9 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     reload_console.getEvents().then((data)=>{
         display(data, true); //saveCalendarEventsToDB(data);
         reload_console.display_button.stop("🔄");
-        saveCalendarEvents(data);
+        // saveCalendarEvents(data);
+        saveStorage()
+
         console.log("url更新 完了")
     });
 });

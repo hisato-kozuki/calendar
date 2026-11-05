@@ -3,8 +3,10 @@ var CACHE_NAME = 'pwa-mycalendar-caches-25-11-26';
 var urlsToCache = [
     '/calendar/index.html',
     '/calendar/main.js',
+    '/calendar/function_basic.js',
     '/calendar/function.js',
     '/calendar/class.js',
+    '/calendar/storage.js',
     '/calendar/style.css',
     '/calendar/style_pc.css',
     '/calendar/style_sm_land.css',

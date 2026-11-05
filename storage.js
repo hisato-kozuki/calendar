@@ -318,7 +318,6 @@ class Day {
         display_none_cell.appendChild(day_cell);
         div.appendChild(display_none_cell);
         
-        let event_title = []
         if(this.events)for(let event of Object.values(this.events)){
             event.view();
             if(!event.element || event.state == "deleted")continue;
@@ -326,9 +325,7 @@ class Day {
             this.display.style.display = "flex";
             this.date_index_cell.style.display = "block";
             this.day_cell.classList.add("has_event");
-            event_title.push(event.event_data.title)
         }
-        console.log(event_title)
     }
     // イベントの追加
     addEvent(Event, i, startHour, endHour, duplicate){
@@ -706,11 +703,6 @@ class appStorage{
         console.log("constructor appStorage")
         this.storage = localStorage;
         let saved_data = JSON.parse(this.storage["calendar-app"] || "{}");
-        let event_title = []
-        for(let event of Object.values(saved_data.calendar.events)){
-            event_title.push(event.event_data_gas.title)
-        }
-        console.log("saved_data", event_title)
         migrate(saved_data)
         this.calendar = new Calendar(document.getElementsByClassName("container")[0]);
         if(saved_data){

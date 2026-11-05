@@ -4,7 +4,7 @@ import { display, getCalendarEvents, saveCalendarEvents, countHistory, countUpTi
 import { consoles, reload_console, register_console, timer_console } from "./class.js";
 import { getStorage, saveStorage, viewCalendar, clearEventStorage, getGasEventList, getEventList, setMethod } from "./storage.js";
 const calendar = getStorage().calendar;
-console.log("main js")
+
 if ('serviceWorker' in navigator) {
     // Wait for the 'load' event to not block other work
     window.addEventListener('load', async () => {
@@ -16,7 +16,7 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
-console.log(reload_console)
+
 const date = new Date();
 let todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 let eventList;
@@ -143,7 +143,7 @@ reload_console.getEvents = (startDate, endDate) => {
         startDate = new Date(Date.parse(reload_console.start.value + "T00:00:00"));
         endDate = new Date(Date.parse(reload_console.end.value + "T00:00:00"));
     }
-    console.log("get_events", startDate, endDate)
+    // console.log("get_events", startDate, endDate)
     const data = {
         'type': "get",
         'date_start': startDate,

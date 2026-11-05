@@ -1,30 +1,39 @@
 import { createE, date_string } from "./function_basic.js";
 
 const colorCodes = [0, "#7986CB","#33B679","#8E24AA","#E67C73","#F6BF26","#F4511E","#039BE5","#616161","#3F51B5","#0B8043","#D50000"];
+const studies = ["activity-study"];
+const hobbies = ["activity-game", "activity-tv", "activity-video", "activity-sns", "activity-book", "activity-other"];
 
 class Event{
     // 予定/タスクの内容を表示する要素
     constructor(event_data){
         {/*
         event_data: {
-            category: "plan" | "task" | "study" | "hobby",
-            event_data_gas: {
-                id: "event_id",
-                title: "event_title",
-                date_start: yyyy-MM-ddTHH:mm,
-                date_end: yyyy-MM-ddTHH:mm,
-                color: int,
-                description: "event_description",
-            }
+            (category: "plan" | "task" | "study" | "hobby",)
+            id: "event_id",
+            title: "event_title",
+            date_start: yyyy-MM-ddTHH:mm,
+            date_end: yyyy-MM-ddTHH:mm,
+            color: int,
+            description: "event_description",
         }
         */}
-        this.category = event_data.category;
+        if(event_data.category)this.category = event_data.category;
+        else {
+            let category = "plan";
+            if(event_data.title.slice(0, 4) === "task")category = "task";
+            else if(event_data.title.slice(0, 5) === "sssss")category = "study";
+            else if(event_data.title.slice(0, 5) === "hhhhh")category = "hobby";
+            else if(hobbies.includes(event_data.title.split(":")[0]))category = "hobby";
+            else if(studies.includes(event_data.title.split(":")[0]))category = "study";
+            this.category = category;
+        }
         this.state = "initialized"; // initialized, created, modified, deleted
-        this.initial_data = event_data.event_data_gas;
-        this.event_data = event_data.event_data_gas;
-        this.id = event_data.event_data_gas.id;
-        this.date_start = new Date(event_data.event_data_gas.date_start);
-        this.date_end = new Date(event_data.event_data_gas.date_end);
+        this.initial_data = event_data;
+        this.event_data = event_data;
+        this.id = event_data.id;
+        this.date_start = new Date(event_data.date_start);
+        this.date_end = new Date(event_data.date_end);
         this.is_viewed = false;
         this.method = {};
     }
@@ -97,7 +106,8 @@ class Event{
         }
 
         this.element.addEventListener("click", (event) => {
-            if(event.target.classList.contains("delete_cell"))return;
+            console.log(event.target.classList)
+            if(event.target.classList.contains("delete_cell") || event.target.nodeName === "SUMMARY")return;
             console.log(event)
             if(suppressClick){
                 suppressClick = false;
@@ -155,7 +165,13 @@ class Event{
         div1.appendChild(description_cell.cloneNode(true));
         event_cell.appendChild(date_cell);
         event_cell.appendChild(div1);
-        event_cell.classList.add("landscape_only")
+
+        //
+        let startHour = Math.min(Math.max(this.date_start.getHours()-5, 1), 20);
+        let endHour= Math.min(Math.max(this.date_end.getHours()-5, startHour+1), 20);
+        // event_cell.style.gridColumn = duplicate+"/6";
+        event_cell.style.gridRow = startHour+"/"+endHour;
+        this.grid_row = {start: startHour, end: endHour}; // 重なり判定(assignLanes)用
 
         // イベントの内容を表示する要素にイベントデータを設定
         // タスクの場合は枠線の色を設定し，タイトルの先頭4文字を削除する．
@@ -165,11 +181,14 @@ class Event{
             event_cell.style.borderColor = color;
             event_cell.style.padding = 0;
             title_cell.innerText = this.event_data.title.slice(4);
+            event_cell.classList.add("portrait_only")
+            event_cell.classList.add("task")
         } else {
             event_cell.style.border = "none";
             date_cell.innerText = this.date_start.getHours().toString() + ":" + this.date_start.getMinutes().toString().padStart(2, "0");
             title_cell.style.color = color;
             title_cell.innerText = this.event_data.title;
+            event_cell.classList.add("plan")
         }
 
         // 日付の表示形式を設定
@@ -202,11 +221,11 @@ class Event{
         delete_cell.addEventListener('click', () => {
             if(this.state === "created"){
                 // deleteLocalStorage("post", {'id': this.id});
-                deleteEventStorage("post", this);
+                deleteEventStorage("post", this.event_data);
                 // reload_console.counters["post"].set(getEventList("post").length);
                 this.method.setCounter("post");
             } else {
-                pushEventStorage("delete", this);
+                pushEventStorage("delete", this.event_data);
                 // reload_console.counters["delete"].set(getEventList("delete").length);
                 this.method.setCounter("delete");
             }
@@ -220,23 +239,29 @@ class Event{
         this.is_viewed = true;
     }
     modify(event_data){
-        this.category = event_data.category;
+        let category = "plan";
+        if(event_data.title.slice(0, 4) === "task")category = "task";
+        else if(event_data.title.slice(0, 5) === "sssss")category = "study";
+        else if(event_data.title.slice(0, 5) === "hhhhh")category = "hobby";
+        else if(hobbies.includes(event_data.title.split(":")[0]))category = "hobby";
+        else if(studies.includes(event_data.title.split(":")[0]))category = "study";
+        this.category = category;
 
         if(this.state === "created"){
-            deleteEventStorage("post", this);
-            pushEventStorage("post", this);
+            deleteEventStorage("post", event_data);
+            pushEventStorage("post", event_data);
             // deleteLocalStorage("post", event_data.event_data_gas);
             // pushLocalStorage("post", event_data.event_data_gas);
         } else {
-            pushEventStorage("modify", this);
+            pushEventStorage("modify", event_data);
             // reload_console.counters["modify"].set(getEventList("modify").length);
             this.method.setCounter("modify");
             // pushLocalStorage("modify", event_data.event_data_gas);
         }
         if(this.state === "initialized")this.state = "modified";
-        this.event_data = event_data.event_data_gas;
-        this.date_start = new Date(event_data.event_data_gas.date_start);
-        this.date_end = new Date(event_data.event_data_gas.date_end)
+        this.event_data = event_data;
+        this.date_start = new Date(event_data.date_start);
+        this.date_end = new Date(event_data.date_end)
         this.is_viewed = false;
     }
     remove(){
@@ -252,6 +277,28 @@ class Event{
 }
 
 const days = ["日", "月", "火", "水", "木", "金", "土"];
+
+// 時間が重なる予定だけを横に並べるため、各予定に列番号(--lane)と、
+// 重なっているグループ内の列数(--lanes)をCSS変数として設定する
+function assignLanes(events){
+    events.sort((a, b) => a.grid_row.start - b.grid_row.start || a.grid_row.end - b.grid_row.end);
+    let group = [], laneEnds = [], groupEnd = 0;
+    const flush = () => {
+        for(const e of group)e.element.style.setProperty("--lanes", laneEnds.length);
+        group = []; laneEnds = [];
+    };
+    for(const e of events){
+        const {start, end} = e.grid_row;
+        if(start >= groupEnd)flush(); // それまでの予定と重ならない → 新しいグループ
+        let lane = laneEnds.findIndex(laneEnd => laneEnd <= start); // 空いている列を探す
+        if(lane < 0)lane = laneEnds.push(0) - 1;
+        laneEnds[lane] = end;
+        e.element.style.setProperty("--lane", lane);
+        group.push(e);
+        groupEnd = Math.max(groupEnd, end);
+    }
+    flush();
+}
 
 class Day {
     // 1日分のカレンダー作成
@@ -291,6 +338,7 @@ class Day {
         */}
         this.date_value = new Date(day_data.date);
         this.events = {};
+        this.method = {};
     }
     view(){
         // すでに表示されている場合は削除してから再表示する
@@ -326,6 +374,17 @@ class Day {
             this.date_index_cell.style.display = "block";
             this.day_cell.classList.add("has_event");
         }
+        // 横向き表示ではタスクは非表示なので、予定だけで重なりを判定する
+        if(this.events)assignLanes(Object.values(this.events).filter(e => e.element && e.state !== "deleted" && e.category !== "task"));
+
+        this.date_index_cell.addEventListener("click", () => {
+            console.log("open register console")
+            this.method.consoleExpand();
+            this.method.setConsoleDatetime("start", date_string(date, "-", {"required":["year","hour"]}));
+            this.method.setConsoleDatetime("end", date_string(date, "-", {"required":["year","hour"]}));
+            document.getElementById("postbutton").textContent = "作成";
+        })
+
     }
     // イベントの追加
     addEvent(Event, i, startHour, endHour, duplicate){
@@ -385,6 +444,9 @@ class Day {
     // }
     remove(){
         for(let event of this.events)event.remove();
+    }
+    setMethod(name, fn){
+        this.method[name] = fn;
     }
 }
 
@@ -494,15 +556,13 @@ export class Calendar{
             date_end: yyyy-MM-dd, // カレンダーの終了週の日曜日
             events: [
                 {
-                    category: "plan" | "task" | "study" | "hobby", // イベントの種類
-                    event_data_gas: {
-                        id: "event_id",
-                        title: "event_title",
-                        date_start: yyyy-MM-ddTHH:mm,
-                        date_end: yyyy-MM-ddTHH:mm,
-                        color: int,
-                        description: "event_description",
-                    }
+                    (category: "plan" | "task" | "study" | "hobby",) // イベントの種類
+                    id: "event_id",
+                    title: "event_title",
+                    date_start: yyyy-MM-ddTHH:mm,
+                    date_end: yyyy-MM-ddTHH:mm,
+                    color: int,
+                    description: "event_description",
                 }
             ] // イベントの配列
         }
@@ -510,8 +570,8 @@ export class Calendar{
         let date_start = this.date_start_sunday;
         let date_end = this.date_end_sunday;
         for(let event_data of calendar_data.events){
-            date_start = Math.min(date_start, new Date(event_data.event_data_gas.date_start));
-            date_end = Math.max(date_end, new Date(event_data.event_data_gas.date_end));
+            date_start = Math.min(date_start, new Date(event_data.date_start));
+            date_end = Math.max(date_end, new Date(event_data.date_end));
         }
         date_start = new Date(date_start);
         date_end = new Date(date_end);
@@ -554,7 +614,7 @@ export class Calendar{
         for(let event_data of calendar_data.events){
             // 更新するイベントのデータをまず日ごとに分ける
             // こうすることである日の既に登録されているイベントデータを削除しやすい
-            const event_date = new Date(event_data.event_data_gas.date_start);
+            const event_date = new Date(event_data.date_start);
             const event_date_0 = new Date(event_date.getFullYear(), event_date.getMonth(), event_date.getDate());
             const one_day_events = daily_event_data[event_date_0.toLocaleDateString("ja-JP")];
             if(one_day_events)one_day_events.push(event_data);
@@ -564,10 +624,11 @@ export class Calendar{
             const one_day_events = daily_event_data[date];
             const day = this.detectDay(new Date(date));
             day.events = {}; //既に登録されているイベントデータを削除
+            if(this.method)day.method = this.method;
             for(let event_data of one_day_events){
                 const event = new Event(event_data);
                 if(this.method)event.method = this.method;
-                day.events[event_data.event_data_gas.id] = event;
+                day.events[event_data.id] = event;
             }
         }
     }
@@ -601,7 +662,7 @@ export class Calendar{
     // イベントの追加
     addEvent(event_data, i, duplicate, delete_id){
         console.log("addEvent", event_data)
-        let date_start = new Date(event_data.event_data_gas.date_start);
+        let date_start = new Date(event_data.date_start);
         // let date_end = new Date(event_data.event_data_gas.date_end);
         // let element_event = new Event(date_start, date_end, event_data, delete_id);
         // element_event.calendar = this;
@@ -611,8 +672,8 @@ export class Calendar{
         let event = new Event(event_data);
         event.state = "created";
         if(this.method)event.method = this.method;
-        this.detectDay(date_start).events[event_data.event_data_gas.id] = event;
-        pushEventStorage("post", event);
+        this.detectDay(date_start).events[event_data.id] = event;
+        pushEventStorage("post", event.event_data);
         // reload_console.counters["post"].set(getEventList("post").length);
         this.method.setCounter("post");
         // let week = this.weeks[Math.floor(num_day/7)];
@@ -625,7 +686,24 @@ export class Calendar{
     // イベントの変更
     modifyEvent(event_data){
         console.log("modifyEvent")
-        this.detectDay(new Date(event_data.event_data_gas.date_start)).events[event_data.event_data_gas.id].modify(event_data);
+        if(this.detectDay(new Date(event_data.date_start)).events[event_data.id])this.detectDay(new Date(event_data.date_start)).events[event_data.id].modify(event_data);
+        else {
+            let is_found = false;
+            let event;
+            for(let week of Object.values(this.weeks)){
+                for(let day of Object.values(week.days)){
+                    if(day.events[event_data.id]){
+                        event = day.events[event_data.id];
+                        event.modify(event_data);
+                        delete day.events[event_data.id];
+                        is_found = true;
+                        break;
+                    }
+                }
+                if(is_found == true)break;
+            }
+            if(event)this.detectDay(new Date(event_data.date_start)).events[event_data.id] = event;
+        }
         // for(let week of this.weeks){
         //     for(let day of week.days)day.modifyEvent(event_data);
         // }
@@ -634,7 +712,7 @@ export class Calendar{
     remove(event_data){
         if(event_data){
             if(this.weeks){
-                this.detectDay(new Date(event_data.event_data_gas.date_start)).events[event_data.event_data_gas.id].remove();
+                this.detectDay(new Date(event_data.date_start)).events[event_data.id].remove();
                 // let date_start = new Date(event.date_start);
                 // let num_day = Math.floor((date_start - this.weeks[0].date_sunday)/86400000);
                 // let week = this.weeks[Math.floor(num_day/7)];
@@ -661,8 +739,8 @@ export class Calendar{
                 for(let event of Object.values(day.events)){
                     // 各イベントのデータをJSON形式で取得
                     events.push({
+                        ...event.event_data,
                         category: event.category,
-                        event_data_gas: event.event_data
                     });
                 }
             }
@@ -677,6 +755,7 @@ export class Calendar{
         this.method[name] = fn;
         for(let week of Object.values(this.weeks)){
             for(let day of Object.values(week.days)){
+                day.setMethod(name, fn);
                 if(day.events)for(let event of Object.values(day.events)){
                     event.setMethod(name, fn);
                 }
@@ -692,6 +771,16 @@ function migrate(saved_data){
             date_end: new Date(), // 
             events: [] // イベントの配列
         }
+    }
+    else if(saved_data.calendar.events[0].event_data_gas){
+        const event_datas = []
+        for(let event_data of saved_data.calendar.events){
+            event_datas.push({
+                category: event_data.category,
+                ...event_data.event_data_gas
+            })
+        }
+        saved_data.calendar.events = event_datas;
     }
     if(saved_data.post === undefined)saved_data.post = {};
     if(saved_data.modify === undefined)saved_data.modify = {};
@@ -719,7 +808,7 @@ class appStorage{
         let i = 0;
         for(let event_storage of [this.post, this.modify, this.delete]){
             event_datas[i] = []
-            for(let event of Object.values(event_storage))event_datas[i].push(event.event_data);
+            for(let event_data of Object.values(event_storage))event_datas[i].push(event_data);
             i++;
         }
         let storage_data = {
@@ -739,6 +828,8 @@ class appStorage{
 
 let storage = new appStorage();
 
+console.log("appStorage", storage);
+
 export function getStorage(){
     return storage;
 }
@@ -749,6 +840,13 @@ export function saveStorage(){
 
 export function viewCalendar(){
     storage.calendar.view();
+}
+
+export function getStoredEvents(){ // ローカルストレージからイベントを取得する関数
+    let stored_events = storage.calendar.toJSON();
+    if(stored_events){
+        return stored_events.events;
+    }
 }
 
 export function getEventStorage(key){ // ローカルストレージからイベントを取得する関数
@@ -790,22 +888,32 @@ export function getGasEventList(key){
     return event_list;
 }
 
-export function pushEventStorage(key, event){ // 追加・変更・削除したイベントをappStorageに追加・更新する関数
+export function pushEventStorage(key, event_data){ // 追加・変更・削除したイベントをappStorageに追加・更新する関数
     /*
-    event: Eventクラスのインスタンス
+    event_data: {
+        (category: "plan" | "task" | "study" | "hobby",) // イベントの種類
+        id: "event_id",
+        title: "event_title",
+        date_start: yyyy-MM-ddTHH:mm,
+        date_end: yyyy-MM-ddTHH:mm,
+        color: int,
+        description: "event_description",
+    }
     */
     let stored_datas = storage[key];
     if(stored_datas){
-        stored_datas[event.id] = event;
+        stored_datas[event_data.id] = event_data;
     }
-    else storage[key] = {[event.id]: event};
+    else storage[key] = {[event_data.id]: event_data};
+    // storage.saveStorage();要修正
 }
 
-export function deleteEventStorage(key, event){ // ローカルストレージのデータを削除する関数
+export function deleteEventStorage(key, event_data){ // ローカルストレージのデータを削除する関数
     let stored_datas = storage[key];
     if(stored_datas){
-        delete stored_datas[event.id]; // オブジェクトから削除
+        delete stored_datas[event_data.id]; // オブジェクトから削除
     }
+    // storage.saveStorage();要修正
 }
 
 export function setMethod(name, fn){

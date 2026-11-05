@@ -74,7 +74,10 @@
     .event_cell::-webkit-scrollbar {
         display: none;
     }
-    body.schedule-hidden .landscape_only{
+    body.schedule-hidden .plan{
+        display: none;
+    }
+    body.task-hidden .task{
         display: none;
     }
     .date_cell{

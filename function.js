@@ -1,9 +1,10 @@
 import { reload_console } from "./class.js";
 import { createE } from "./function_basic.js"
-import { getStorage, viewCalendar, getGasEventList } from "./storage.js";
+import { getStorage, saveStorage, getStoredEvents, viewCalendar, pushEventStorage, getEventList } from "./storage.js";
 
 const date = new Date();
 const todayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const studies = ["activity-study"];
 const hobbies = ["activity-game", "activity-tv", "activity-video", "activity-sns", "activity-book", "activity-other"];
 
 export function renewTask(event_data, date, color){
@@ -30,7 +31,8 @@ export function renewTask(event_data, date, color){
     };
     console.log(datas)
     if(datas.title != ""){
-        pushLocalStorage("modify", datas);
+        // pushLocalStorage("modify", datas);
+        pushEventStorage("modify", datas);
     }
 }
 
@@ -86,6 +88,7 @@ export function display(events, task_renew_required){
     const calendar = getStorage().calendar;
     if(!events || events.length === 0){
         calendar.remove();
+        updateChart();
         return;
     }
     let date_start = new Date(events[0].date_start);
@@ -94,18 +97,18 @@ export function display(events, task_renew_required){
     let date_end_saturday = new Date(date_end.getFullYear(), date_end.getMonth(), date_end.getDate()+(6-date_end.getDay())%7);
     
     let calendar_data = {
-        events: [], // イベントの配列
+        events // イベントの配列
     }
     for(let event of events){
-        let category = "plan";
-        if(event.title.slice(0, 4) === "task")category = "task";
-        else if(event.title.slice(0, 5) === "sssss")category = "study";
-        else if(event.title.slice(0, 5) === "hhhhh")category = "hobby";
-        else if(hobbies.includes(event.title.split(":")[0]))category = "hobby";
-        calendar_data.events.push({
-            category: category,
-            event_data_gas: event
-        });
+        if(task_renew_required){
+            const eventStartDate = new Date(event.date_start);
+            if(event.title.slice(0, 4) === "task"
+            && ((event.color == 11 && eventStartDate < todayDate) // 現在日程より前の時刻の場合に
+            || (event.color == 4 && eventStartDate - todayDate < 86400000) // 現在日程の一日後より前の時刻の場合に
+            || (event.color == 1 && eventStartDate - todayDate < 172800000) // 現在日程の2日後より前の時刻の場合に
+            || (event.color == 9 && eventStartDate - todayDate < 604800000) // 現在日程の１週間後より前の時刻の場合に
+            )){renewTask(event, eventStartDate, event.color);}
+        }
     }
     calendar.update(calendar_data);
     calendar.view_date_start = new Date(date_start_sunday);
@@ -154,7 +157,7 @@ export function display(events, task_renew_required){
     //         skip = 0;
     //     }else skip++;
     // }
-    const event_list = getGasEventList("modify");
+    const event_list = getEventList("modify");
     // if(localStorage["element_modify"] != undefined)Promise.all(reload_console.postEvents([{type: "modify", data: JSON.parse(localStorage["element_modify"])}], {"get_required": true}))
     console.log("event_list", event_list)
     console.log("event_list.length", event_list.length)
@@ -163,11 +166,11 @@ export function display(events, task_renew_required){
             reload_console.getEvents().then((data)=>{
                 display(data, true);//saveCalendarEventsToDB(data);
                 reload_console.display_button.stop("🔄");
-                // saveCalendarEvents(data);
-                saveStorage()
                 console.log("post events 完了")
             });
         });
+    saveStorage()
+    updateChart();
 }
 
 export function getCalendarEvents(){
@@ -250,3 +253,91 @@ export function countUpTimer(flag, no_save){
     }
     document.getElementById(id).innerText=Math.floor(count/3600).toString().padStart(2, "0")+":"+Math.floor((count/60)%60).toString().padStart(2, "0")+" "+(count%60).toString().padStart(2, "0");
 }
+
+// ============================================
+// 使用時間グラフ
+// ============================================
+
+const activityCategories = [...studies, ...hobbies];
+const categorySelect = document.getElementById("category");
+const startInput = document.getElementById("startDate");
+const endInput = document.getElementById("endDate");
+let usageChart = null;
+
+// カテゴリー選択肢を追加（「すべて」はHTML側に定義済み）
+categorySelect.append(...activityCategories.map(c => new Option(c, c)));
+
+// Date → "mm/dd"
+const toMMDD = d => `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
+
+// 日付を0時0分に揃える
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+// 秒 → "x時間 y分 z秒"
+function formatDuration(seconds) {
+    seconds = Math.round(seconds);
+    const parts = [
+        [Math.floor(seconds / 3600), "時間"],
+        [Math.floor(seconds % 3600 / 60), "分"],
+        [seconds % 60, "秒"],
+    ].filter(([v]) => v > 0).map(([v, unit]) => v + unit);
+    return parts.length ? parts.join(" ") : "0秒";
+}
+
+// 集計範囲（未指定なら今日を含む直近7日間）
+function getRange() {
+    const today = startOfDay(new Date());
+    const start = startInput.value ? new Date(`${startInput.value}T00:00:00`)
+        : new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+    const end = endInput.value ? new Date(`${endInput.value}T00:00:00`) : today;
+    return [start, end];
+}
+
+export function updateChart() {
+    const [start, end] = getRange();
+    const targets = categorySelect.value === "all" ? activityCategories : [categorySelect.value];
+
+    // 範囲内の全日付を0秒で初期化（記録のない日も表示する）
+    const daily = new Map();
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) daily.set(toMMDD(d), 0);
+
+    // タイトル "activity-xxx:秒数" を日付ごとに集計
+    for (const ev of getStoredEvents() ?? []) {
+        const [category, seconds] = ev.title.split(":");
+        const day = startOfDay(new Date(ev.date_start));
+        if (!targets.includes(category) || day < start || day > end) continue;
+        const key = toMMDD(day);
+        daily.set(key, daily.get(key) + (Number(seconds) || 0));
+    }
+
+    const totalSeconds = [...daily.values()].reduce((sum, s) => sum + s, 0);
+    document.getElementById("totalTime").textContent = formatDuration(totalSeconds);
+
+    usageChart?.destroy();
+    usageChart = new Chart(document.getElementById("usageChart"), {
+        type: "bar",
+        data: {
+            labels: [...daily.keys()],
+            datasets: [{
+                label: "使用時間",
+                data: [...daily.values()].map(s => Math.round(s / 36) / 100), // 秒 → 時間（小数2桁）
+                borderWidth: 1,
+            }],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: "使用時間（時間）" } },
+                x: { title: { display: true, text: "日付" } },
+            },
+            plugins: {
+                tooltip: { callbacks: { label: ctx => formatDuration(ctx.raw * 3600) } },
+            },
+        },
+    });
+}
+
+[categorySelect, startInput, endInput].forEach(el => el.addEventListener("change", updateChart));
+
+// 初期表示
+updateChart();

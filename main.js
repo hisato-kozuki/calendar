@@ -79,13 +79,23 @@ window.onload = function(){
     // getCalendarEvents();
     // 今日/明日の小カレンダー表示
     try{ displayTodayTomorrow(); }catch(e){console.log(e)}
-    const scheduleToggle = document.getElementById("schedule_toggle");
+    // const scheduleToggle = document.getElementById("schedule_toggle");
+    // if(scheduleToggle){
+    //     scheduleToggle.addEventListener("click", () => {
+    //         document.body.classList.toggle("schedule-hidden");
+    //         scheduleToggle.textContent = document.body.classList.contains("schedule-hidden") ? "予定を隠す" : "予定を表示";
+    //     });
+    // }
+    const scheduleToggle = document.getElementsByClassName("display-select");
     if(scheduleToggle){
-        scheduleToggle.addEventListener("click", () => {
-            document.body.classList.toggle("schedule-hidden");
-            scheduleToggle.textContent = document.body.classList.contains("schedule-hidden") ? "予定を隠す" : "予定を表示";
+        scheduleToggle[0].addEventListener("click", () => {
+            document.body.classList.toggle("schedule-hidden", !scheduleToggle[0].checked);
+        });
+        scheduleToggle[1].addEventListener("click", () => {
+            document.body.classList.toggle("task-hidden", !scheduleToggle[1].checked);
         });
     }
+
     calendar.view_date_start = calendar.date_start_sunday;
     calendar.view_date_end = calendar.date_end_sunday;
     viewCalendar();
@@ -109,7 +119,7 @@ window.onload = function(){
 
 document.body.addEventListener('click', (event) => {
     console.log("click", event.target.className)
-    if(!event.target.closest(".event_cell") && !event.target.closest(".console_container") && !event.target.closest(".button_container")){
+    if(!event.target.closest(".event_cell") && !event.target.closest(".console_container") && !event.target.closest(".button_container") && !event.target.closest(".date_index_cell")){
         for(let console of consoles){
             console.shrink();
         }
@@ -196,22 +206,18 @@ reload_console.reload = (event, button) => {
         promise1 = reload_console.getEvents(date_start, date_end).then((data)=>{
             display(data, true);
             console.log("更新 完了");
-            // saveCalendarEvents(data);
-            saveStorage()
             return data;
         });
     } else promise1 = reload_console.getEvents().then((data)=>{
         display(data, true);
         console.log("更新 完了");
-        // saveCalendarEvents(data);
-        saveStorage()
         return data;
     });
     promise1.then((data) => {
         reload_console.display_button.stop("🔄");
-        countHistory(data, 2, "today");
-        countHistory(data, 3, "yesterday");
-        countHistory(data, 4, "week");
+        // countHistory(data, 2, "today");
+        // countHistory(data, 3, "yesterday");
+        // countHistory(data, 4, "week");
         console.log("予定読み込み，履歴読み込み完了");
     })
 }
@@ -281,15 +287,13 @@ register_console.element.querySelectorAll("button")[2].addEventListener('click',
     if(button.textContent == "作成" && getEventList("post").length > 0)id = getEventList("post").length;
     else if(button.textContent == "変更")id = form.id.value;
     const element_data = {
+        id,
+        title,
+        description,
+        date_start,
+        date_end,
+        color: form.color.value,
         category: "plan",
-        event_data_gas: {
-            'id': id,
-            'title': title,
-            'description': description,
-            'date_start': date_start,
-            'date_end': date_end,
-            'color': form.color.value,
-        }
     };
     if(button.textContent == "作成"){
         calendar.addEvent(element_data, 0, 0, id);
@@ -297,6 +301,8 @@ register_console.element.querySelectorAll("button")[2].addEventListener('click',
         calendar.modifyEvent(element_data);
         register_console.shrink();
     }
+    console.log(getStorage().post)
+    console.log(getStorage().modify)
     viewCalendar();
 });
 
@@ -478,9 +484,6 @@ document.getElementById("apiurl_form").addEventListener('submit', event => {
     reload_console.getEvents().then((data)=>{
         display(data, true); //saveCalendarEventsToDB(data);
         reload_console.display_button.stop("🔄");
-        // saveCalendarEvents(data);
-        saveStorage()
-
         console.log("url更新 完了")
     });
 });
@@ -492,7 +495,7 @@ reload_console.element.querySelector("form").addEventListener('submit', event =>
         let promises = [];
         let types_datas = [];
         for(let type of ["post", "delete", "modify"]){
-            const event_list = getGasEventList(type);
+            const event_list = getEventList(type);
             console.log("reload_console.element.querySelector", event_list)
             // let stored_data = localStorage["element_"+type];
             // if(stored_data){

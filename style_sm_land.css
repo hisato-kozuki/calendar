@@ -60,7 +60,15 @@
         display: grid;
         flex-direction: column;
         /* justify-content: end; */
-        grid-template-rows: repeat(18, 1fr);
+        grid-template-rows: repeat(18, calc(380px/18));
+        grid-template-columns: minmax(0, 1fr);
+    }
+    /* 全予定を1列目に置き、重なっている予定同士だけで幅を分け合う（--lane, --lanes は storage.js の assignLanes で設定） */
+    .timeline > .event_cell{
+        grid-column: 1;
+        box-sizing: border-box;
+        width: calc(100% / var(--lanes, 1));
+        left: calc(100% * var(--lane, 0) / var(--lanes, 1));
     }
     .line{
         border-top: dotted #808080 1px;
@@ -90,6 +98,7 @@
         /* border-radius: 1em; */
         background-color: white;
         box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
+        overflow: hidden;
     }
     .event_cell{
         /* box-sizing: border-box;

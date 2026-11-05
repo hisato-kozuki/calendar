@@ -83,7 +83,7 @@
         grid-column: 1/2;
         grid-template-columns: repeat(4, 5%) 80%;
     }
-    .event_container{
+    .event_cell{
         position: relative;
         /* height: fit-content; */
         visibility: visible;
@@ -91,7 +91,7 @@
         background-color: white;
         box-shadow: 0 2px 6px rgba(74, 144, 226, 0.2);
     }
-    .event_container{
+    .event_cell{
         /* box-sizing: border-box;
         padding: 0.5em;
         margin: 0.5em;
@@ -100,7 +100,7 @@
     .date_cell{
         display: none;
     }
-    .event_cell{
+    .title_cell{
         height: fit-content;
         white-space: normal;
     }
@@ -109,7 +109,7 @@
     }
     
     #today_container .week_cell{ height: auto; }
-    /* #today_container .event_container{ display: flex; } */
+    /* #today_container .event_cell{ display: flex; } */
     #today_container .date_cell{ display: block; }
     /* #today_container .display_none_cell{ display: none; }
     #today_container .display_land_none_cell{ display: block; } */

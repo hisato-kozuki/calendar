@@ -9,6 +9,7 @@
         <link href="style_sm_port.css" rel="stylesheet" type="text/css" media="all">
         <link href="style_sm_land.css" rel="stylesheet" type="text/css" media="all">
     </head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <body>
         <header class="header">
             <h1>📅 カレンダー</h1>
@@ -132,7 +133,7 @@
             <!-- 履歴 -->
             <div id="history_console" style="display:flex;justify-content: center;">
                 <div style="position: relative;"><button>📅</button></div>
-                <div class="grid" style="width:18em;height:12em;align-self:center;justify-self:center;">
+                <div class="grid" style="width:18em;height:12em;align-self:center;justify-self:center;" hidden>
                     <div id="studyhistory" style="grid-column: 2; grid-row: 1;">勉強時間</div>
                     <div id="hobbyhistory" style="grid-column: 3; grid-row: 1;">趣味時間</div>
                     <div style="grid-column: 1; grid-row: 2;">今日</div><div style="grid-column: 1; grid-row: 3;">昨日</div><div style="grid-column: 1; grid-row: 4;">一週間</div>
@@ -142,6 +143,36 @@
                     <div id="history33" style="grid-area: 3 / 3;"></div>
                     <div id="history42" style="grid-area: 4 / 2;"></div>
                     <div id="history43" style="grid-area: 4 / 3;"></div>
+                </div>
+
+                <div class="controls">
+
+                    <div class="control">
+                    <label for="category">カテゴリー</label>
+                    <select id="category">
+                        <option value="all">すべて</option>
+                    </select>
+                    </div>
+
+                    <div class="control">
+                    <label for="startDate">開始日</label>
+                    <input type="date" id="startDate">
+                    </div>
+
+                    <div class="control">
+                    <label for="endDate">終了日</label>
+                    <input type="date" id="endDate">
+                    </div>
+
+                </div>
+
+                <div class="summary">
+                    <div>選択期間の合計使用時間</div>
+                    <div class="total" id="totalTime">0秒</div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="usageChart"></canvas>
                 </div>
             </div>
 
